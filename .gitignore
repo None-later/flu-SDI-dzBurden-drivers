@@ -1,6 +1,6 @@
 *~
 *.[oa]
-*.py[cod]
+*.py[cod~]
 *.csv
 *.zip
 *.ods
@@ -8,3 +8,4 @@ SQL_export/
 R_export/
 Py_export/
 graph_outputs/
+inc_*.py
