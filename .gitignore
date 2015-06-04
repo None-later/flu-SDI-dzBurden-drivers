@@ -1,0 +1,10 @@
+*~
+*.[oa]
+*.py[cod]
+*.csv
+*.zip
+*.ods
+SQL_export/
+R_export/
+Py_export/
+graph_outputs/

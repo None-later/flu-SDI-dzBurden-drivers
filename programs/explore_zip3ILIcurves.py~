@@ -1,0 +1,40 @@
+#!/usr/bin/python
+
+##############################################
+###Python template
+###Author: Elizabeth Lee
+###Date: 5/3/15
+###Function: plot centered zip3 ILI curves for each season to explore data and compare shapes of curves
+
+###Import data: 
+
+###Command Line: python 
+##############################################
+
+
+### notes ###
+
+
+### packages ###
+import csv
+import numpy as np
+import matplotlib.pyplot as plt
+
+## local packages ##
+
+### data structures ###
+
+
+### parameters ###
+
+### functions ###
+
+### import data ###
+iliin = open('/home/elee/Documents/Elizabeth_Bansal_Lab/SDI/dz_burden/SQL_export/ILIViz_allWeekly_totServ_totAge_allZip.csv','r')
+ili = csv.reader(iliin, delimiter=',')
+popin = open('/home/elee/Documents/Elizabeth_Bansal_Lab/SDI/dz_burden/SQL_export/pop_allYearly_totAge_allZip.csv','r')
+pop = csv.reader(popin, delimiter=',')
+
+### program ###
+
+
