@@ -2,7 +2,7 @@
 ## Name: Elizabeth Lee
 ## Date: 5/30/15
 ## Function: analyze relative magnitude of disease burden
-### disease burden metrics: total ILI attack rate, rate of ILI at epidemic peak, epidemic duration
+### disease burden metrics: mean IR across epidemic weeks, cumulative difference in IR and baseline, cumulative difference in IR and epidemic threshold, rate of ILI at epidemic peak, epidemic duration
 ## Filenames: periodicReg_%sallZip3Mods.csv
 ## Data Source: IMS Health 
 ## Notes: 5/31/15 - Refer to explore_fluSeasonDefinition_IR.R for explanation of "flu epidemic" is defined. Zip3s are considered to have experienced a flu epidemic if they had 4+ consecutive weeks above the epidemic threshold in the flu period.
@@ -81,13 +81,14 @@ data5 <- data4 %>% filter(flu.week) %>% filter(has.epi) %>% group_by(season, zip
 # write.csv(data5, file = sprintf('fullIndic_periodicReg_%sanalyzeDB.csv', code), row.names=FALSE)
 
 ##################
-# create disease burden metrics: total ILI attack rate (proxy: mean IR), rate of ILI at epidemic peak, epidemic duration
-dbMetrics <- data5 %>% group_by(season, zipname) %>% filter(in.season) %>% summarize(tot.ar = mean(IR, na.rm=T), peak.rate = max(IR, na.rm=T), epi.dur = length(in.season))
-dbMetrics.g <- gather(dbMetrics, metric, burden, 3:5)
+# 7/27/15 update dz burden metrics (\cite{Viboud2014} for inspiration of 1b & 1c)
+# create disease burden metrics: 1a) mean IR across epidemic weeks (proxy of overall magnitude), 1b) cumulative difference in IR and baseline (second proxy of overall magnitude), 1c) cumulative difference in IR and epidemic threshold (third proxy of overall magnitude), 2) rate of ILI at epidemic peak, 3) epidemic duration
+dbMetrics <- data5 %>% group_by(season, zipname) %>% filter(in.season) %>% summarize(IR.mean = mean(IR, na.rm=T), IR.excess.BL = sum(IR-.fitted, na.rm=T), IR.excess.thresh = sum(IR-epi.thresh, na.rm=T), IR.peak = max(IR, na.rm=T), epi.dur = length(in.season))
+dbMetrics.g <- gather(dbMetrics, metric, burden, 3:7)
 # mean and sd for each metric by season
-dbMetrics_summary <- dbMetrics %>% group_by(season) %>% summarize(tot.ar.mn = mean(tot.ar), tot.ar.sd = sd(tot.ar), peak.rate.mn = mean(peak.rate), peak.rate.sd = sd(peak.rate), epi.dur.mn = mean(epi.dur), epi.dur.sd = sd(epi.dur))
+dbMetrics_summary <- dbMetrics.g %>% group_by(season, metric) %>% summarize(metric.mn = mean(burden), metric.sd = sd(burden))
 
-# # save to file (6/1/15)
+# # save to file (7/27/15)
 # setwd('/home/elee/Dropbox/Elizabeth_Bansal_Lab/SDI_Data/dz_burden/R_export')
 # write.csv(dbMetrics.g, file = sprintf('dbMetrics_periodicReg_%sanalyzeDB.csv', code), row.names=FALSE)
 
@@ -96,7 +97,6 @@ dbMetrics_summary <- dbMetrics %>% group_by(season) %>% summarize(tot.ar.mn = me
 # Although the distributions are not normally distributed, the distributions across seasons are fairly similar for each disease burden metric, which might suggest that the standardized values should comparable across seasons. Standardization is still beneficial because it will render the values more comparable, but it will not help with comparisons between disease burden metrics.
 
 dbMetrics.gz <- dbMetrics.g %>% group_by(season, metric) %>% mutate(burden.z = (burden - mean(burden))/sd(burden))
-
 
 ##################
 # perform checks on db_metric calculations

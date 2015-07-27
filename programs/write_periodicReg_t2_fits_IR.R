@@ -4,7 +4,7 @@
 ## Function: write excess ILI by zip3; lm(IR ~ t + t^2 + cos(2*pi*t/52) + sin(2*pi*t/52))
 ## Filenames: 
 ## Data Source: 
-## Notes: 
+## Notes: iliProp_df reports ILI as a proportion of all visits.
 ## 
 ## useful commands:
 ## install.packages("pkg", dependencies=TRUE, lib="/usr/local/lib/R/site-library") # in sudo R
@@ -41,7 +41,7 @@ iliProp_df <- iliProp_df %>% mutate(Thu.week = as.Date(week+4)) %>%
 iliProp_gather_df <- gather(iliProp_df, zip3, ili, X2:X999, convert=FALSE)
 pop_gather_df <- gather(pop_df, zip3, pop, X2:X999, convert=FALSE)
 iliProp_pop_gather_df <- left_join(iliProp_gather_df, pop_gather_df, by=c("year", "zip3"))
-# perform IR calculation
+# perform IR calculation 7/27/15: calculation is correct because ili is the ILI proportion of all visits
 IR_fullgather_df <- iliProp_pop_gather_df %>% mutate(IR = ili*pop/100000)
 
 ####################################
