@@ -76,9 +76,9 @@ data4 <- right_join(data3, zip3s_with_epi %>% select(-consec.epiweeks), by=c("se
 
 data5 <- data4 %>% filter(flu.week) %>% filter(has.epi) %>% group_by(season, zipname) %>% mutate(in.season = consider.flu.season(epi.week))
 
-# save to file (6/1/15)
-setwd('/home/elee/Dropbox/Elizabeth_Bansal_Lab/SDI_Data/dz_burden/R_export')
-write.csv(data5, file = sprintf('fullIndic_periodicReg_%sanalyzeDB.csv', code), row.names=FALSE)
+# # save to file (6/1/15)
+# setwd('/home/elee/Dropbox/Elizabeth_Bansal_Lab/SDI_Data/dz_burden/R_export')
+# write.csv(data5, file = sprintf('fullIndic_periodicReg_%sanalyzeDB.csv', code), row.names=FALSE)
 
 ##################
 # create disease burden metrics: total ILI attack rate (proxy: mean IR), rate of ILI at epidemic peak, epidemic duration
@@ -87,36 +87,16 @@ dbMetrics.g <- gather(dbMetrics, metric, burden, 3:5)
 # mean and sd for each metric by season
 dbMetrics_summary <- dbMetrics %>% group_by(season) %>% summarize(tot.ar.mn = mean(tot.ar), tot.ar.sd = sd(tot.ar), peak.rate.mn = mean(peak.rate), peak.rate.sd = sd(peak.rate), epi.dur.mn = mean(epi.dur), epi.dur.sd = sd(epi.dur))
 
-# save to file (6/1/15)
-setwd('/home/elee/Dropbox/Elizabeth_Bansal_Lab/SDI_Data/dz_burden/R_export')
-write.csv(dbMetrics.g, file = sprintf('dbMetrics_periodicReg_%sanalyzeDB.csv', code), row.names=FALSE)
+# # save to file (6/1/15)
+# setwd('/home/elee/Dropbox/Elizabeth_Bansal_Lab/SDI_Data/dz_burden/R_export')
+# write.csv(dbMetrics.g, file = sprintf('dbMetrics_periodicReg_%sanalyzeDB.csv', code), row.names=FALSE)
 
-
-################## 6/1/15: MOVE THIS TO EXPLORE_DBMETRICSDISTRIBUTION_IR.R
-# explore distribution of dbMetrics to see if zscore is appropriate
-setwd(sprintf('/home/elee/Dropbox/Elizabeth_Bansal_Lab/SDI_Data/dz_burden/graph_outputs/analyze_relativeDiseaseBurden_%sIR', code))
-# attack rate plot
-plt.distr.totAR <- ggplot(dbMetrics.g %>% filter(metric=='tot.ar'), aes(x=burden, group=season)) +
-  geom_histogram(aes(y=..density..), binwidth=0.005) + geom_density() + 
-  coord_cartesian(xlim=c(0, 0.35)) +
-  facet_wrap(~season) + ggtitle("tot.ar (proxy) during flu season")
-ggsave(sprintf("distr_totAR_%sIR.png", code), plt.distr.totAR, width=9, height=6)
-
-# peak rate plot
-plt.distr.pkRate <- ggplot(dbMetrics.g %>% filter(metric=='peak.rate'), aes(x=burden, group=season)) +
-  geom_histogram(aes(y=..density..), binwidth=0.005) + geom_density() + 
-  coord_cartesian(xlim=c(0, 0.5)) +
-  facet_wrap(~season) + ggtitle("peak rate during flu season")
-ggsave(sprintf("distr_pkRate_%sIR.png", code), plt.distr.pkRate, width=9, height=6)
-
-# epidemic duration plot
-plt.distr.epiDur <- ggplot(dbMetrics.g %>% filter(metric=='epi.dur'), aes(x=burden, group=season)) +
-  geom_histogram(aes(y=..density..), binwidth=1) + geom_density() + 
-  coord_cartesian(xlim=c(0, 30)) +
-  facet_wrap(~season) + ggtitle("epidemic duration (weeks) during flu season")
-ggsave(sprintf("distr_epiDur_%sIR.png", code), plt.distr.epiDur, width=9, height=6)
-
+##################
 # zscore all dbMetrics by the mean and sd for that season, in order to make data comparable across seasons
+# Although the distributions are not normally distributed, the distributions across seasons are fairly similar for each disease burden metric, which might suggest that the standardized values should comparable across seasons. Standardization is still beneficial because it will render the values more comparable, but it will not help with comparisons between disease burden metrics.
+
+dbMetrics.gz <- dbMetrics.g %>% group_by(season, metric) %>% mutate(burden.z = (burden - mean(burden))/sd(burden))
+
 
 ##################
 # perform checks on db_metric calculations
