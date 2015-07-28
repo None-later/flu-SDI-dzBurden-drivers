@@ -79,6 +79,8 @@ plt.distr.epiDur <- ggplot(dbMetrics.g %>% filter(metric=='epi.dur'), aes(x=burd
 ggsave(sprintf("distr_epiDur_%sIR.png", code), plt.distr.epiDur, width=w, height=h)
 
 # FINDING: plots by season are not normally distributed for any of the metrics
+# Although the distributions are not normally distributed, the distributions across seasons are fairly similar for each disease burden metric, which might suggest that the standardized values should comparable across seasons. Standardization is still beneficial because it will render the values more comparable, but it will not help with comparisons between disease burden metrics.
+# 7/28/15: on the other hand, it seems that the standardized distributions are similar to the raw distributions. what is the benefit of the transformation?
 ####################################
 # compare the mean and variance for each metric by season
 metric.summ <- dbMetrics.g %>% group_by(season, metric) %>% summarise(MN = mean(burden), VAR = var(burden))

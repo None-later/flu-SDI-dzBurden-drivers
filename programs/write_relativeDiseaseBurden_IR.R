@@ -1,11 +1,12 @@
 
 ## Name: Elizabeth Lee
 ## Date: 5/30/15
-## Function: analyze relative magnitude of disease burden
+## Function: write relative magnitude of disease burden
 ### disease burden metrics: mean IR across epidemic weeks, cumulative difference in IR and baseline, cumulative difference in IR and epidemic threshold, rate of ILI at epidemic peak, epidemic duration
 ## Filenames: periodicReg_%sallZip3Mods.csv
 ## Data Source: IMS Health 
 ## Notes: 5/31/15 - Refer to explore_fluSeasonDefinition_IR.R for explanation of "flu epidemic" is defined. Zip3s are considered to have experienced a flu epidemic if they had 4+ consecutive weeks above the epidemic threshold in the flu period.
+## 7/28/15: renamed "analyze_relativeDiseaseBurden_IR.R" to "write_relativeDiseaseBurden_IR.R", add lat/long coords by zipe
 ## 
 ## useful commands:
 ## install.packages("pkg", dependencies=TRUE, lib="/usr/local/lib/R/site-library") # in sudo R
@@ -77,6 +78,7 @@ data4 <- right_join(data3, zip3s_with_epi %>% select(-consec.epiweeks), by=c("se
 data5 <- data4 %>% filter(flu.week) %>% filter(has.epi) %>% group_by(season, zipname) %>% mutate(in.season = consider.flu.season(epi.week))
 
 # # save to file (6/1/15)
+# # these data are saved for reference
 # setwd('/home/elee/Dropbox/Elizabeth_Bansal_Lab/SDI_Data/dz_burden/R_export')
 # write.csv(data5, file = sprintf('fullIndic_periodicReg_%sanalyzeDB.csv', code), row.names=FALSE)
 
@@ -85,18 +87,40 @@ data5 <- data4 %>% filter(flu.week) %>% filter(has.epi) %>% group_by(season, zip
 # create disease burden metrics: 1a) mean IR across epidemic weeks (proxy of overall magnitude), 1b) cumulative difference in IR and baseline (second proxy of overall magnitude), 1c) cumulative difference in IR and epidemic threshold (third proxy of overall magnitude), 2) rate of ILI at epidemic peak, 3) epidemic duration
 dbMetrics <- data5 %>% group_by(season, zipname) %>% filter(in.season) %>% summarize(IR.mean = mean(IR, na.rm=T), IR.excess.BL = sum(IR-.fitted, na.rm=T), IR.excess.thresh = sum(IR-epi.thresh, na.rm=T), IR.peak = max(IR, na.rm=T), epi.dur = length(in.season))
 dbMetrics.g <- gather(dbMetrics, metric, burden, 3:7)
-# mean and sd for each metric by season
+# mean and sd for each metric by season for viewing
 dbMetrics_summary <- dbMetrics.g %>% group_by(season, metric) %>% summarize(metric.mn = mean(burden), metric.sd = sd(burden))
 
-# # save to file (7/27/15)
+# import zip3 lat/long coordinate data
+setwd('/home/elee/Dropbox/Elizabeth_Bansal_Lab/SDI_Data/dz_burden/reference_data')
+import <- read_csv(file='Coord3digits.csv')
+coordsData <- tbl_df(import) %>% select(zip3, STATE, st_FIPS, pop, lat, long, w_lat, w_long) %>% mutate(zipname = substr.Right(paste0("00", zip3), 3))
+
+##################
+# # performed checks on coordsData (7/28/15)
+# # 1) state-zip3 assignment: cross-referenced a sample of zip3-state combinations using zip code prefixes page on wikipedia
+# View(coordsData %>% select(zip3, STATE))
+# # 2) zip3-latlong assignment: cross-referenced a sample of zip3-latlong combinations using zip3 centroids google fusion table (Id: http://maps.huge.info/zip3.htm)
+# # coordinates are similar, but I don't understand the differences between the lat/long and w_lat/w_long variables (perhaps regular lat/long centroids or population-weighted lat/long centroids). Nevertheless, the coordinate decimal places are not exact, so I'm not sure about the accuracy.
+# # 3) pop variables in coordsData and IMS Health data
+# checkpop <- inner_join(data5, coordsData, by = "zipname") %>% select(season, zipname, pop.x, pop.y) %>% distinct %>% mutate(pop.diff = pop.x - pop.y) %>% group_by(season) %>% summarise(sum.pop.diff = sum(abs(pop.diff), na.rm=T))
+# View(checkpop)
+# # pop differences are smallest in the earliest season (i.e. 2000-01)
+
+##################
+# merge coord data with dz burden metrics data
+coordsData2 <- coordsData %>% select(-w_lat, -w_long, -pop, -zip3)
+dbMetrics.coords <- left_join(dbMetrics.g, coordsData2, by = "zipname")
+
+##################
+# # save summary data to file (7/27/15) 
+# # these data are used in "explore_dbMetricsDistribution_IR.R" for exploratory analysis of outcome metrics
 # setwd('/home/elee/Dropbox/Elizabeth_Bansal_Lab/SDI_Data/dz_burden/R_export')
 # write.csv(dbMetrics.g, file = sprintf('dbMetrics_periodicReg_%sanalyzeDB.csv', code), row.names=FALSE)
 
-##################
-# zscore all dbMetrics by the mean and sd for that season, in order to make data comparable across seasons
-# Although the distributions are not normally distributed, the distributions across seasons are fairly similar for each disease burden metric, which might suggest that the standardized values should comparable across seasons. Standardization is still beneficial because it will render the values more comparable, but it will not help with comparisons between disease burden metrics.
-
-dbMetrics.gz <- dbMetrics.g %>% group_by(season, metric) %>% mutate(burden.z = (burden - mean(burden))/sd(burden))
+# # save summary data to file with coords (7/28/15) 
+# # these data are used in "analyze_dbMetricsDistance_IR.R" for matrix correlations
+# setwd('/home/elee/Dropbox/Elizabeth_Bansal_Lab/SDI_Data/dz_burden/R_export')
+# write.csv(dbMetrics.coords, file = sprintf('dbMetrics_periodicReg_%sanalyzeDBdist.csv', code), row.names=FALSE)
 
 ##################
 # perform checks on db_metric calculations
