@@ -1,0 +1,7 @@
+git branch issues
+
+07/29/15: iss1
+Will the Mantel test provide the same results for disease burden metrics that have and have not been z-normalized (i.e., standardized)?
+- In initial results, 1) few correlations were observed between spatial and outcome distance matrices, while 2) nearly all correlations between outcome distance matrices between seasons were significantly positive.
+- Analysis 2) had a clear temporal trend where disease burden correlations were increasingly higher among seasons closer in time. Correlations were also higher among later seasons, perhaps suggesting the role of increasing data coverage in biasing the results.
+- RESOLVED: Mantel test did provide similar results for metrics that had and had not been z-normalized. Correlation coefficients were the same for both analyses and p-values differed slightly but not enough to substantially change results.
