@@ -1,6 +1,7 @@
 ## Name: Elizabeth Lee
 ## Date: 6/4/15
 ## Function: explore distributions of disease burden metrics -- are they normally distributed, meaning that a z-score normalization would be appropriate?
+## Results: They are not normally distributed.
 ### disease burden metrics: mean IR across epidemic weeks, cumulative difference in IR and baseline, cumulative difference in IR and epidemic threshold, rate of ILI at epidemic peak, epidemic duration
 ## Filenames: sprintf('dbMetrics_periodicReg_%sanalyzeDB.csv', code)
 ## Data Source: IMS Health 
