@@ -43,6 +43,7 @@ h = 6
 # 2) cumulative diff in IR & BL vs. (peak ILI rate or epidemic duration)
 # 3) cumulative diff in IR & epi thresh vs. (peak ILI rate or epidemic duration)
 
+# figures saved 8/5/15 morning
 setwd(sprintf('/home/elee/Dropbox/Elizabeth_Bansal_Lab/SDI_Data/dz_burden/graph_outputs/explore_dbMetricsRelationships_%sIR', code))
 ggsave <- ggplot2::ggsave; body(ggsave) <- body(ggplot2::ggsave)[-2] # hack to bypass checks in ggsave that allow only ggplot objects to be saved (see evernote "ggsave a gtable object")
 
