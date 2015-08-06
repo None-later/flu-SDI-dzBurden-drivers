@@ -8,6 +8,7 @@
 ## Notes: 
 ## 5/31/15 - Refer to explore_fluSeasonDefinition_IR.R for explanation of "flu epidemic" is defined. Zip3s are considered to have experienced a flu epidemic if they had 4+ consecutive weeks above the epidemic threshold in the flu period.
 ## 6/4/15 - Refer to analyze_relativeDiseaseBurden_IR.R for export of disease burden metrics data file.
+## 8/6/15 - Examine distributions of new epidemic timing and peak timing disease burden metrics 
 ## 
 ## useful commands:
 ## install.packages("pkg", dependencies=TRUE, lib="/usr/local/lib/R/site-library") # in sudo R
@@ -79,6 +80,20 @@ plt.distr.epiDur <- ggplot(dbMetrics.g %>% filter(metric=='epi.dur'), aes(x=burd
   facet_wrap(~season) + ggtitle("epidemic duration (weeks) during flu season")
 ggsave(sprintf("distr_epiDur_%sIR.png", code), plt.distr.epiDur, width=w, height=h)
 
+# epidemic timing plot
+plt.distr.epiTime <- ggplot(dbMetrics.g %>% filter(metric=='wks.to.epi'), aes(x=burden, group=season)) +
+  geom_histogram(aes(y=..density..), binwidth=1) + geom_density() + 
+  #coord_cartesian(xlim=c(0, 30)) +
+  facet_wrap(~season) + ggtitle("weeks to epidemic start during flu season")
+ggsave(sprintf("distr_epiTime_%sIR.png", code), plt.distr.epiTime, width=w, height=h)
+
+# peak timing plot
+plt.distr.pkTime <- ggplot(dbMetrics.g %>% filter(metric=='wks.to.peak'), aes(x=burden, group=season)) +
+  geom_histogram(aes(y=..density..), binwidth=1) + geom_density() + 
+  #coord_cartesian(xlim=c(0, 30)) +
+  facet_wrap(~season) + ggtitle("weeks to peak during epidemic")
+ggsave(sprintf("distr_pkTime_%sIR.png", code), plt.distr.pkTime, width=w, height=h)
+
 # FINDING: plots by season are not normally distributed for any of the metrics
 # Although the distributions are not normally distributed, the distributions across seasons are fairly similar for each disease burden metric, which might suggest that the standardized values should comparable across seasons. Standardization is still beneficial because it will render the values more comparable, but it will not help with comparisons between disease burden metrics.
 # 7/28/15: on the other hand, it seems that the standardized distributions are similar to the raw distributions. what is the benefit of the transformation?
@@ -125,3 +140,17 @@ plt.distr.epiDur.z <- ggplot(dbMetrics.gz %>% filter(metric=='epi.dur'), aes(x=b
   #coord_cartesian(xlim=c(-3, 4)) +
   facet_wrap(~season) + ggtitle("std epidemic duration (weeks) during flu season")
 ggsave(sprintf("zDistr_epiDur_%sIR.png", code), plt.distr.epiDur.z, width=w, height=h)
+
+# epidemic timing plot
+plt.distr.epiTime.z <- ggplot(dbMetrics.gz %>% filter(metric=='wks.to.epi'), aes(x=burden.z, group=season)) +
+  geom_histogram(aes(y=..density..), binwidth=0.1) + geom_density() + 
+  #coord_cartesian(xlim=c(0, 30)) +
+  facet_wrap(~season) + ggtitle("std weeks to epidemic start during flu season")
+ggsave(sprintf("zDistr_epiTime_%sIR.png", code), plt.distr.epiTime.z, width=w, height=h)
+
+# peak timing plot
+plt.distr.pkTime.z <- ggplot(dbMetrics.gz %>% filter(metric=='wks.to.peak'), aes(x=burden.z, group=season)) +
+  geom_histogram(aes(y=..density..), binwidth=0.1) + geom_density() + 
+  #coord_cartesian(xlim=c(0, 30)) +
+  facet_wrap(~season) + ggtitle("std weeks to peak during epidemic")
+ggsave(sprintf("zDistr_pkTime_%sIR.png", code), plt.distr.pkTime.z, width=w, height=h)
