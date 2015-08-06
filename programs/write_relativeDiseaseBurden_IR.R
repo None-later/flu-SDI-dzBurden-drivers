@@ -2,11 +2,12 @@
 ## Name: Elizabeth Lee
 ## Date: 5/30/15
 ## Function: write relative magnitude of disease burden
-### disease burden metrics: mean IR across epidemic weeks, cumulative difference in IR and baseline, cumulative difference in IR and epidemic threshold, rate of ILI at epidemic peak, epidemic duration
+### disease burden metrics: mean IR across epidemic weeks, cumulative difference in IR and baseline, cumulative difference in IR and epidemic threshold, rate of ILI at epidemic peak, epidemic duration, weeks from Nov1 to epidemic start, weeks from epidemic start to peak IR week 
 ## Filenames: periodicReg_%sallZip3Mods.csv
 ## Data Source: IMS Health 
 ## Notes: 5/31/15 - Refer to explore_fluSeasonDefinition_IR.R for explanation of "flu epidemic" is defined. Zip3s are considered to have experienced a flu epidemic if they had 4+ consecutive weeks above the epidemic threshold in the flu period.
-## 7/28/15: renamed "analyze_relativeDiseaseBurden_IR.R" to "write_relativeDiseaseBurden_IR.R", add lat/long coords by zipe
+## 7/28/15: renamed "analyze_relativeDiseaseBurden_IR.R" to "write_relativeDiseaseBurden_IR.R", add lat/long coords by zip
+## 8/6/15: add peak timing (# weeks since start of epi period) and epidemic start timing (true week number) as disease burden metrics
 ## 
 ## useful commands:
 ## install.packages("pkg", dependencies=TRUE, lib="/usr/local/lib/R/site-library") # in sudo R
@@ -86,7 +87,20 @@ data5 <- data4 %>% filter(flu.week) %>% filter(has.epi) %>% group_by(season, zip
 # 7/27/15 update dz burden metrics (\cite{Viboud2014} for inspiration of 1b & 1c)
 # create disease burden metrics: 1a) mean IR across epidemic weeks (proxy of overall magnitude), 1b) cumulative difference in IR and baseline (second proxy of overall magnitude), 1c) cumulative difference in IR and epidemic threshold (third proxy of overall magnitude), 2) rate of ILI at epidemic peak, 3) epidemic duration
 dbMetrics <- data5 %>% group_by(season, zipname) %>% filter(in.season) %>% summarize(IR.mean = mean(IR, na.rm=T), IR.excess.BL = sum(IR-.fitted, na.rm=T), IR.excess.thresh = sum(IR-epi.thresh, na.rm=T), IR.peak = max(IR, na.rm=T), epi.dur = length(in.season))
-dbMetrics.g <- gather(dbMetrics, metric, burden, 3:7)
+
+# 8/6/15 create epidemic start timing and peak timing metrics
+# data processing in preparation for timing metrics
+data6 <- data5 %>% select(Thu.week, t, IR, season, zipname, flu.week, in.season)
+createTiming1 <- data6 %>% group_by(season, zipname) %>% mutate(t.minweek = ifelse(Thu.week==min(Thu.week), t, 0)) %>% select(Thu.week, season, zipname, minweek)
+createTiming2 <- data6 %>% group_by(season, zipname) %>% filter(in.season) %>% mutate(t.firstepiweek = ifelse(Thu.week==min(Thu.week, na.rm=T), t, 0)) %>% mutate(t.peakweek = ifelse(IR==max(IR, na.rm=T), t, 0))
+createTiming <- left_join(createTiming1, createTiming2, by=c("Thu.week", "season", "zipname")) %>% mutate(Thu.week=as.Date(Thu.week, origin="1970-01-01"))
+# create dataset with metrics
+# 4) wks.to.epi = # weeks between start of flu period and start of epidemic; 5) wks.to.peak = # weeks between start of epidemic and peak IR week
+dbMetrics.timing <- createTiming %>% group_by(season, zipname) %>% summarise(minweek = max(minweek), firstepiweek = max(firstepiweek, na.rm=T), peakweek = max(peakweek, na.rm=T)) %>% mutate(wks.to.epi = 1 + firstepiweek - minweek) %>% mutate(wks.to.peak = 1 + peakweek - firstepiweek) %>% select(-minweek, -firstepiweek, -peakweek)
+# merge timing metrics with other dz burden metrics
+dbMetrics2 <- full_join(dbMetrics, dbMetrics.timing, by=c("season", "zipname"))
+
+dbMetrics.g <- gather(dbMetrics2, metric, burden, 3:9)
 # mean and sd for each metric by season for viewing
 dbMetrics_summary <- dbMetrics.g %>% group_by(season, metric) %>% summarize(metric.mn = mean(burden), metric.sd = sd(burden))
 
@@ -112,15 +126,15 @@ coordsData2 <- coordsData %>% select(-w_lat, -w_long, -pop, -zip3)
 dbMetrics.coords <- left_join(dbMetrics.g, coordsData2, by = "zipname")
 
 ##################
-# # save summary data to file (7/27/15) 
+# # save summary data to file (8/6/15) 
 # # these data are used in "explore_dbMetricsDistribution_IR.R" for exploratory analysis of outcome metrics
-# setwd('/home/elee/Dropbox/Elizabeth_Bansal_Lab/SDI_Data/dz_burden/R_export')
-# write.csv(dbMetrics.g, file = sprintf('dbMetrics_periodicReg_%sanalyzeDB.csv', code), row.names=FALSE)
+setwd('/home/elee/Dropbox/Elizabeth_Bansal_Lab/SDI_Data/dz_burden/R_export')
+write.csv(dbMetrics.g, file = sprintf('dbMetrics_periodicReg_%sanalyzeDB.csv', code), row.names=FALSE)
 
-# # save summary data to file with coords (7/28/15) 
+# # save summary data to file with coords (8/6/15) 
 # # these data are used in "analyze_dbMetricsDistance_IR.R" for matrix correlations
-# setwd('/home/elee/Dropbox/Elizabeth_Bansal_Lab/SDI_Data/dz_burden/R_export')
-# write.csv(dbMetrics.coords, file = sprintf('dbMetrics_periodicReg_%sanalyzeDBdist.csv', code), row.names=FALSE)
+setwd('/home/elee/Dropbox/Elizabeth_Bansal_Lab/SDI_Data/dz_burden/R_export')
+write.csv(dbMetrics.coords, file = sprintf('dbMetrics_periodicReg_%sanalyzeDBdist.csv', code), row.names=FALSE)
 
 ##################
 # perform checks on db_metric calculations
