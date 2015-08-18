@@ -84,10 +84,10 @@ data5 <- data4 %>% filter(flu.week) %>% filter(has.epi) %>% group_by(season, zip
 # write.csv(data5, file = sprintf('fullIndicFlu_periodicReg_%sanalyzeDB.csv', code), row.names=FALSE) # 8/18/15 name change
 
 data6 <- data4 %>% filter(has.epi) %>% group_by(season, zipname) %>% mutate(in.season = consider.flu.season(epi.week))
-# save to file (8/18/15)
-# these data are saved for reference
-setwd('/home/elee/Dropbox/Elizabeth_Bansal_Lab/SDI_Data/dz_burden/R_export')
-write.csv(data6, file = sprintf('fullIndicAll_periodicReg_%sanalyzeDB.csv', code), row.names=FALSE)
+# # save to file (8/18/15)
+# # these data are saved for reference
+# setwd('/home/elee/Dropbox/Elizabeth_Bansal_Lab/SDI_Data/dz_burden/R_export')
+# write.csv(data6, file = sprintf('fullIndicAll_periodicReg_%sanalyzeDB.csv', code), row.names=FALSE)
 
 ##################
 # 7/27/15 update dz burden metrics (\cite{Viboud2014} for inspiration of 1b & 1c)
