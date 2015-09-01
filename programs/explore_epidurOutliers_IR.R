@@ -56,54 +56,55 @@ ct = 6
 ####################################
 # examine ts of zip-seasons with long epidemic durations
 db.dur20 <- dbMetrics.g %>% filter(metric=="epi.dur" & burden>=20) %>% mutate(id.combo = paste0(season, zipname))
-zip3list1 <- db.dur20 %>% select(zipname) %>% distinct %>% mutate(for.plot = seq_along(1:nrow(.))) # id all zip3s with long durations
+zip3list1 <- db.dur20 %>% select(id.combo) %>% distinct %>% mutate(for.plot = seq_along(1:nrow(.))) # id all zip3s with long durations
 
 # subset full data
-fi.dur20.all <- fullIndic %>% filter(zipname %in% zip3list1$zipname) %>% filter(season!=1)
-data_plot <- right_join(fi.dur20.all, zip3list1, by='zipname')
+fi.dur20.all <- fullIndic %>% mutate(id.combo = paste0(season, zipname)) %>% filter(id.combo %in% zip3list1$id.combo) %>% filter(season!=1)
+data_plot <- right_join(fi.dur20.all, zip3list1, by='id.combo') %>% mutate(Thu.week=as.Date(Thu.week, origin="1970-01-01"))
 
-####################################
-# plot full time series for zip3s with long durations
-indexes <- seq(1, max(data_plot %>% select(for.plot)), by=ct)
-
-# IR plots
-setwd(sprintf('/home/elee/Dropbox/Elizabeth_Bansal_Lab/SDI_Data/dz_burden/graph_outputs/explore_epidurOutliers_%sIR/over20/IR',code))
-for(i in indexes){
-  dummyplots <- ggplot(data_plot %>% filter(for.plot>= i & for.plot < i+ct)), aes(x=week, y=IR, group=zipname)) +
-    theme(axis.text=element_text(size=12), axis.title=element_text(size=14,face="bold")) +
-    geom_line(aes(color = in.season)) + scale_color_brewer(palette="Set1") +
-#     coord_cartesian(ylim=c(0, 0.2)) + 
-    facet_wrap(~zipname)
-  # grab zip3s in plot for file name
-  ziplabels <- data_plot %>% select(zipname) %>% distinct %>% slice(c(i, i+ct-1)) 
-  ggsave(sprintf("longEpiDur_%sfits_IR_%s-%s.png", code, ziplabels[1,], ziplabels[2,]), dummyplots, width=w, height=h)
-}
-
-# ili plots
-setwd(sprintf('/home/elee/Dropbox/Elizabeth_Bansal_Lab/SDI_Data/dz_burden/graph_outputs/explore_epidurOutliers_%sIR/over20/iliProp', code))
-for(i in indexes){
-  dummyplots <- ggplot(data_plot %>% filter(for.plot>= i & for.plot < i+ct), aes(x=week, y=ili, group=zipname)) +
-    theme(axis.text=element_text(size=12), axis.title=element_text(size=14,face="bold")) +
-    geom_line(aes(color = in.season)) + scale_color_brewer(palette="Set1")
-#     coord_cartesian(ylim=c(0, 0.2)) + 
-    facet_wrap(~zipname)
-  # grab zip3s in plot for file name
-  ziplabels <- data_plot %>% select(zipname) %>% distinct %>% slice(c(i, i+ct-1)) 
-  ggsave(sprintf("longEpiDur_%sfits_iliProp_%s-%s.png", code, ziplabels[1,], ziplabels[2,]), dummyplots, width=9, height=6)
-}
+# ####################################
+# # 9/1/15 comment out these plots: we're not really interested in zip3s with any long seasons
+# # plot full time series for zip3s with long durations
+# indexes <- seq(1, max(data_plot %>% select(for.plot)), by=ct)
+# 
+# # IR plots
+# setwd(sprintf('/home/elee/Dropbox/Elizabeth_Bansal_Lab/SDI_Data/dz_burden/graph_outputs/explore_epidurOutliers_%sIR/over20/IR',code))
+# for(i in indexes){
+#   dummyplots <- ggplot(data_plot %>% filter(for.plot>= i & for.plot < i+ct), aes(x=week, y=IR, group=id.combo)) +
+#     theme(axis.text=element_text(size=12), axis.title=element_text(size=14,face="bold")) +
+#     geom_line(aes(color = in.season)) + scale_color_brewer(palette="Set1") +
+# #     coord_cartesian(ylim=c(0, 0.2)) + 
+#     facet_wrap(~id.combo)
+#   # grab zip3s in plot for file name
+#   ziplabels <- data_plot %>% select(id.combo) %>% distinct %>% slice(c(i, i+ct-1)) 
+#   ggsave(sprintf("longEpiDur_%sfits_IR_%s-%s.png", code, ziplabels[1,], ziplabels[2,]), dummyplots, width=w, height=h)
+# }
+# 
+# # ili plots
+# setwd(sprintf('/home/elee/Dropbox/Elizabeth_Bansal_Lab/SDI_Data/dz_burden/graph_outputs/explore_epidurOutliers_%sIR/over20/iliProp', code))
+# for(i in indexes){
+#   dummyplots <- ggplot(data_plot %>% filter(for.plot>= i & for.plot < i+ct), aes(x=week, y=ili, group=id.combo)) +
+#     theme(axis.text=element_text(size=12), axis.title=element_text(size=14,face="bold")) +
+#     geom_line(aes(color = in.season)) + scale_color_brewer(palette="Set1") +
+# #     coord_cartesian(ylim=c(0, 0.2)) + 
+#     facet_wrap(~id.combo)
+#   # grab zip3s in plot for file name
+#   ziplabels <- data_plot %>% select(id.combo) %>% distinct %>% slice(c(i, i+ct-1)) 
+#   ggsave(sprintf("longEpiDur_%sfits_iliProp_%s-%s.png", code, ziplabels[1,], ziplabels[2,]), dummyplots, width=9, height=6)
+# }
 
 ####################################
 # subset season-zip3 combinations in db.dur20 only
 fi.dur20.seas <- fullIndic %>% mutate(id.combo = paste0(season, zipname)) %>% filter(id.combo %in% db.dur20$id.combo)
 zip3list2 <- fi.dur20.seas %>% select(id.combo) %>% distinct %>% mutate(for.plot = seq_along(1:nrow(.)))
-data_plot2 <- right_join(fi.dur20.seas, zip3list2, by="id.combo")
+data_plot2 <- right_join(fi.dur20.seas, zip3list2, by="id.combo") %>% mutate(Thu.week=as.Date(Thu.week, origin="1970-01-01")) %>% filter(flu.week)
 
 ####################################
 # plot epidemic time series for zip3-season combinations with long durations
 indexes2 <- seq(1, max(data_plot2 %>% select(for.plot)), by=ct)
 
 # IR plots by season
-setwd(sprintf('/home/elee/Dropbox/Elizabeth_Bansal_Lab/SDI_Data/dz_burden/graph_outputs/explore_epidurOutliers_%sIR/over20/bySeason/IR', code))
+setwd(sprintf('/home/elee/Dropbox/Elizabeth_Bansal_Lab/SDI_Data/dz_burden/graph_outputs/explore_epidurOutliers_%sIR/over20/IR', code))
 for(i in indexes2){
   dummyplots <- ggplot(data_plot2 %>% filter(for.plot>= i & for.plot < i+ct) %>% mutate(is.epiweek = ifelse(epi.week, 0, NA)), aes(x=Thu.week, y=IR, group=id.combo)) +
     theme(axis.text=element_text(size=12), axis.title=element_text(size=14,face="bold")) +
@@ -116,7 +117,7 @@ for(i in indexes2){
 }
 
 # ili proportion by season
-setwd(sprintf('/home/elee/Dropbox/Elizabeth_Bansal_Lab/SDI_Data/dz_burden/graph_outputs/explore_epidurOutliers_%sIR/over20/bySeason/iliProp', code))
+setwd(sprintf('/home/elee/Dropbox/Elizabeth_Bansal_Lab/SDI_Data/dz_burden/graph_outputs/explore_epidurOutliers_%sIR/over20/iliProp', code))
 for(i in indexes2){
   dummyplots <- ggplot(data_plot2 %>% filter(for.plot>= i & for.plot < i+ct) %>% mutate(is.epiweek = ifelse(epi.week, 0, NA)), aes(x=Thu.week, y=ili, group=id.combo)) +
     theme(axis.text=element_text(size=12), axis.title=element_text(size=14,face="bold")) +
@@ -137,14 +138,14 @@ db.dur5 <- dbMetrics.g %>% filter(metric=="epi.dur" & burden<=5) %>% mutate(id.c
 # subset season-zip3 combinations in db.dur8 only
 fi.dur5.seas <- fullIndic %>% filter(season != 1) %>% mutate(id.combo = paste0(season, zipname)) %>% filter(id.combo %in% db.dur5$id.combo)
 zip3list3 <- fi.dur5.seas %>% select(id.combo) %>% distinct %>% mutate(for.plot = seq_along(1:nrow(.)))
-data_plot3 <- right_join(fi.dur5.seas, zip3list3, by="id.combo")
+data_plot3 <- right_join(fi.dur5.seas, zip3list3, by="id.combo") %>% mutate(Thu.week=as.Date(Thu.week, origin="1970-01-01")) %>% filter(flu.week)
 
 ####################################
 # plot epidemic time series for zip3-season combinations with short durations
 indexes3 <- seq(1, max(data_plot3 %>% select(for.plot)), by=ct)
 
 # IR plots by season
-setwd(sprintf('/home/elee/Dropbox/Elizabeth_Bansal_Lab/SDI_Data/dz_burden/graph_outputs/explore_epidurOutliers_%sIR/under5/bySeason/IR', code))
+setwd(sprintf('/home/elee/Dropbox/Elizabeth_Bansal_Lab/SDI_Data/dz_burden/graph_outputs/explore_epidurOutliers_%sIR/under5/IR', code))
 for(i in indexes3){
   dummyplots <- ggplot(data_plot3 %>% filter(for.plot>= i & for.plot < i+ct) %>% mutate(is.epiweek = ifelse(epi.week, 0, NA)), aes(x=Thu.week, y=IR, group=id.combo)) +
     theme(axis.text=element_text(size=12), axis.title=element_text(size=14,face="bold")) +
@@ -157,7 +158,7 @@ for(i in indexes3){
 }
 
 # ili proportion by season
-setwd(sprintf('/home/elee/Dropbox/Elizabeth_Bansal_Lab/SDI_Data/dz_burden/graph_outputs/explore_epidurOutliers_%sIR/under5/bySeason/iliProp', code))
+setwd(sprintf('/home/elee/Dropbox/Elizabeth_Bansal_Lab/SDI_Data/dz_burden/graph_outputs/explore_epidurOutliers_%sIR/under5/iliProp', code))
 for(i in indexes3){
   dummyplots <- ggplot(data_plot3 %>% filter(for.plot>= i & for.plot < i+ct) %>% mutate(is.epiweek = ifelse(epi.week, 0, NA)), aes(x=Thu.week, y=ili, group=id.combo)) +
     theme(axis.text=element_text(size=12), axis.title=element_text(size=14,face="bold")) +
@@ -169,4 +170,4 @@ for(i in indexes3){
   ggsave(sprintf("shortEpiDur_seas_%sfits_iliProp_%s-%s.png", code, ziplabels[1,], ziplabels[2,]), dummyplots, width=w, height=h)
 }
 
-# all files saved 08/18/15 evening
+# all files saved 9/1/15 morning
