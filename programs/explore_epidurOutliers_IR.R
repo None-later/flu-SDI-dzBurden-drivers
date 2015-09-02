@@ -129,6 +129,8 @@ for(i in indexes2){
   ggsave(sprintf("longEpiDur_seas_%sfits_iliProp_%s-%s.png", code, ziplabels[1,], ziplabels[2,]), dummyplots, width=w, height=h)
 }
 
+
+
 ####################################
 # SHORT DURATIONS (LESS THAN OR EQUAL TO 5 WEEKS)
 ####################################
@@ -170,4 +172,31 @@ for(i in indexes3){
   ggsave(sprintf("shortEpiDur_seas_%sfits_iliProp_%s-%s.png", code, ziplabels[1,], ziplabels[2,]), dummyplots, width=w, height=h)
 }
 
-# all files saved 9/1/15 morning
+####################################
+# 9/2/15
+# population size of zip3s with long/short epidemic durations vs. all popsizes
+pop.dur20 <- fi.dur20.seas %>% select(season, zipname, pop) %>% distinct
+View(pop.dur20 %>% group_by(zipname) %>% summarise(counts = length(zipname)/2)) # how many times does a zip3 appear?
+pop.fi <- fullIndic %>% filter(year==2006) %>% select(zipname, pop) %>% distinct
+pop.dur5 <- fi.dur5.seas %>% select(season, zipname, pop) %>% distinct
+View(pop.dur5 %>% group_by(zipname) %>% summarise(counts = length(zipname)/2)) 
+# how many long duration zip3s are in the short duration zip3 list?
+sum(unique(pop.dur20$zipname) %in% unique(pop.dur5$zipname)) # 66
+pop.durboth <- tbl_df(data.frame(zipname = unique(pop.dur5$zipname), in.both = unique(pop.dur5$zipname) %in% unique(pop.dur20$zipname))) %>% filter(in.both) %>% arrange(zipname)
+pop.durboth2 <- pop.fi %>% filter(zipname %in% pop.durboth$zipname) 
+
+setwd('/home/elee/Dropbox/Elizabeth_Bansal_Lab/SDI_Data/dz_burden/graph_outputs/explore_epidurOutliers_t2_IR/over20')
+png(filename='popDistComparison.png', width=w, height=h+3, units='in', res=1000)
+par(mfrow=c(2,2))
+
+hist(pop.dur20$pop, breaks=50, main='epidur>=20 wks', xlab='population', xlim=c(0,3E6))
+abline(v=quantile(pop.dur20$pop)[2:4], lwd=1, col='red')
+hist(pop.fi$pop, breaks=50, main='all 2006 zip3s', xlab='population', xlim=c(0,3E6))
+abline(v=quantile(pop.fi$pop)[2:4], lwd=1, col='red')
+hist(pop.dur5$pop, breaks=50, main='epidur<= 5 wks', xlab='population', xlim=c(0,3E6))
+abline(v=quantile(pop.dur5$pop)[2:4], lwd=1, col='red')
+hist(pop.durboth2$pop, breaks=50, main='2006 zip3s in short & long', xlab='population', xlim=c(0,3E6))
+abline(v=quantile(pop.durboth2$pop)[2:4], lwd=1, col='red')
+dev.off()
+
+# all plots saved 9/1/15 morning
