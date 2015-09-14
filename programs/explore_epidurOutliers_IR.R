@@ -110,6 +110,7 @@ for(i in indexes2){
     theme(axis.text=element_text(size=12), axis.title=element_text(size=14,face="bold")) +
     geom_line(aes(color = in.season)) + scale_color_brewer(palette="Set1") +
     geom_line(aes(y = is.epiweek), color = 'black') + # appears if epi.week=T
+    geom_line(aes(y = epi.thresh), color = 'grey') +
     facet_wrap(~id.combo, scales = "free")
   # grab zip3s in plot for file name
   ziplabels <- data_plot2 %>% select(id.combo) %>% distinct %>% slice(c(i, i+ct-1)) 
@@ -153,6 +154,7 @@ for(i in indexes3){
     theme(axis.text=element_text(size=12), axis.title=element_text(size=14,face="bold")) +
     geom_line(aes(color = in.season)) + scale_color_brewer(palette="Set1") +
     geom_line(aes(y = is.epiweek), color = 'black') + # appears if epi.week=T
+    geom_line(aes(y = epi.thresh), color = 'grey') +
     facet_wrap(~id.combo, scales = "free")
   # grab zip3s in plot for file name
   ziplabels <- data_plot3 %>% select(id.combo) %>% distinct %>% slice(c(i, i+ct-1)) 
@@ -177,10 +179,10 @@ for(i in indexes3){
 ####################################
 # 9/2/15
 # population size of zip3s with long/short epidemic durations vs. all popsizes
-pop.dur20 <- fi.dur20.seas %>% select(season, zipname, pop) %>% distinct
+pop.dur20 <- fi.dur20.seas %>% select(season, zipname, pop) %>% distinct(season, zipname) # rm double counting for two calendar years in each season
 View(pop.dur20 %>% group_by(zipname) %>% summarise(counts = length(zipname)/2)) # how many times does a zip3 appear?
 pop.fi <- fullIndic %>% filter(year==2006) %>% select(zipname, pop) %>% distinct
-pop.dur5 <- fi.dur5.seas %>% select(season, zipname, pop) %>% distinct
+pop.dur5 <- fi.dur5.seas %>% select(season, zipname, pop) %>% distinct(season, zipname)
 View(pop.dur5 %>% group_by(zipname) %>% summarise(counts = length(zipname)/2)) 
 # how many long duration zip3s are in the short duration zip3 list?
 sum(unique(pop.dur20$zipname) %in% unique(pop.dur5$zipname)) # 66
@@ -200,4 +202,4 @@ abline(v=quantile(pop.dur5$pop)[2:4], lwd=1, col='red')
 hist(pop.durboth2$pop, breaks=50, main='2006 zip3s in short & long', xlab='population', xlim=c(0,3E6))
 abline(v=quantile(pop.durboth2$pop)[2:4], lwd=1, col='red')
 dev.off()
-# saved 9/2/15 morning
+# saved 9/3/15 afternoon
