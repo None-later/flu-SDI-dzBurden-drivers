@@ -68,4 +68,4 @@ setwd('../R_export')
 # # write tidy coefficient dataset
 # write.csv(allMods_tidy, file=sprintf('tidyCoef_periodicReg_t2_allZip3Mods_ILI%s.csv', code2), row.names=FALSE)
 # # write summary statistics for all models
-# write.csv(allMods_glance, file=sprintf('summaryStats_periodicReg_t2_allZip3Mods_ILI.csv', code2), row.names=FALSE)
+# write.csv(allMods_glance, file=sprintf('summaryStats_periodicReg_t2_allZip3Mods_ILI%s.csv', code2), row.names=FALSE)
