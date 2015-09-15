@@ -61,11 +61,13 @@ code2 = "_Oct"
 # data3 <- data2 %>% filter(incl.lm)  %>% mutate(epi.thresh = .fitted+(1.96*.se.fit)) %>% mutate(epi.week = ili>epi.thresh)
 # 
 # ## See explore_fluSeasonDefinition_IR.R for derivation of flu season definition
-# # 9/15/15: filter out zip3-season combinations with equivalent or more ILI activity in the non-flu season than flu season
+# # 9/15/15: filter out zip3-season combinations with equivalent or more ILI activity in the previous non-flu season than flu season (season 1 will use subsequent non-flu season)
 # dummy.flu <- data3 %>% filter(flu.week) %>% group_by(season, zipname) %>% summarise(consec.flu.epiweeks = rle.func(epi.week))
-# dummy.nf <- data3 %>% filter(!flu.week) %>% group_by(season, zipname) %>% summarise(consec.nf.epiweeks = rle.func(epi.week))
+# dummy.nf <- data3 %>% filter(!flu.week) %>% group_by(season, zipname) %>% summarise(consec.nf.epiweeks = rle.func(epi.week)) %>% ungroup %>% mutate(season=season+1)
+# # 9/15/15 for season 1, use season 1 consec.nf.epiweeks, which occur after the season 1 flu period
+# dummy.nf2 <- bind_rows((dummy.nf %>% filter(season==2) %>% ungroup %>% mutate(season=1)), dummy.nf)
 # # summarize season-zip3 combinations that have epidemics (4+ consecutive epidemic weeks)
-# zip3s_with_epi <- right_join(dummy.flu, dummy.nf, by=c("season", "zipname")) %>% mutate(incl.analysis = consec.flu.epiweeks > consec.nf.epiweeks) %>% mutate(has.epi = (consec.flu.epiweeks>=4))
+# zip3s_with_epi <- full_join(dummy.flu, dummy.nf2, by=c("season", "zipname")) %>% mutate(incl.analysis = consec.flu.epiweeks > consec.nf.epiweeks) %>% mutate(has.epi = (consec.flu.epiweeks>=4))
 # 
 # # join summary data to full dataset (adds has.epi and incl.analysis indicators)
 # data4 <- right_join(data3, zip3s_with_epi %>% select(-contains("consec.")), by=c("season", "zipname"))
@@ -78,8 +80,8 @@ code2 = "_Oct"
 # write.csv(data5, file = sprintf('fullIndicFlu_periodicReg_%sILI%s_analyzeDB.csv', code, code2), row.names=FALSE)
 # write.csv(data6, file = sprintf('fullIndicAll_periodicReg_%sILI%s_analyzeDB.csv', code, code2), row.names=FALSE)
 
-#### read saved data back in ##################
-# 9/15/15 read data back in
+# #### read saved data back in ##################
+# # 9/15/15 read data back in
 setwd('../R_export')
 data5 <- read_csv(sprintf('fullIndicFlu_periodicReg_%sILI%s_analyzeDB.csv', code, code2), col_names = T, col_types = list(zipname=col_character()))
 
@@ -92,7 +94,7 @@ dbMetrics <- data5 %>% group_by(season, zipname) %>% filter(in.season) %>% summa
 # data processing in preparation for timing metrics
 data7 <- data5 %>% select(Thu.week, t, ili, season, zipname, flu.week, in.season)
 createTiming1 <- data7 %>% group_by(season, zipname) %>% mutate(t.minweek = ifelse(Thu.week==min(Thu.week), t, 0)) %>% select(Thu.week, season, zipname, t.minweek) %>% ungroup
-createTiming2 <- data7 %>% group_by(season, zipname) %>% filter(in.season) %>% mutate(t.firstepiweek = ifelse(Thu.week==min(Thu.week, na.rm=T), t, 0)) %>% mutate(t.peakweek = ifelse(ili==max(ili, na.rm=T), t, 0)) %>% ungroup %>% select(Thu.week, zipname, t.firstepiweek, t.peakweek)
+createTiming2 <- data7 %>% mutate(ili = as.numeric(ili)) %>% group_by(season, zipname) %>% filter(in.season) %>% mutate(t.firstepiweek = ifelse(Thu.week==min(Thu.week, na.rm=T), t, 0)) %>% mutate(t.peakweek = as.numeric(ifelse(ili==max(ili, na.rm=T), t, 0))) %>% ungroup %>% select(Thu.week, zipname, t.firstepiweek, t.peakweek) # as.numeric wrapper on if/else statement for t.peakweek mutate is due to issue: https://github.com/hadley/dplyr/issues/1036
 createTiming <- left_join(createTiming1, createTiming2, by=c("Thu.week", "zipname")) %>% mutate(Thu.week=as.Date(Thu.week, origin="1970-01-01"))
 # create dataset with metrics
 # 4) wks.to.epi = # weeks between start of flu period and start of epidemic; 5) wks.to.peak = # weeks between start of epidemic and peak IR week
@@ -126,15 +128,15 @@ coordsData2 <- coordsData %>% select(-w_lat, -w_long, -pop, -zip3)
 dbMetrics.coords <- left_join(dbMetrics.g, coordsData2, by = "zipname")
 
 #### save summary data ##################
-# # save summary data to file (9/15/15) 
-# # these data are used in "explore_dbMetricsDistribution_IR.R" for exploratory analysis of outcome metrics
-# setwd('../R_export')
-# write.csv(dbMetrics.g, file = sprintf('dbMetrics_periodicReg_%sILI%s_analyzeDB.csv', code, code2), row.names=FALSE)
-# 
-# # save summary data to file with coords (9/15/15) 
-# # these data are used in "analyze_dbMetricsDistance_IR.R" for matrix correlations
-# setwd('../R_export')
-# write.csv(dbMetrics.coords, file = sprintf('dbMetrics_periodicReg_%sILI%s_analyzeDBdist.csv', code, code2), row.names=FALSE)
+# save summary data to file (9/15/15) 
+# these data are used in "explore_dbMetricsDistribution_IR.R" for exploratory analysis of outcome metrics
+setwd('../R_export')
+write.csv(dbMetrics.g, file = sprintf('dbMetrics_periodicReg_%sILI%s_analyzeDB.csv', code, code2), row.names=FALSE)
+
+# save summary data to file with coords (9/15/15) 
+# these data are used in "analyze_dbMetricsDistance_IR.R" for matrix correlations
+setwd('../R_export')
+write.csv(dbMetrics.coords, file = sprintf('dbMetrics_periodicReg_%sILI%s_analyzeDBdist.csv', code, code2), row.names=FALSE)
 
 #### checks on metrics ##################
 # # perform checks on db_metric calculations
