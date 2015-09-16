@@ -9,7 +9,6 @@
 ## Data Source: IMS Health 
 ## Notes: 
 
-
 ## 
 ## useful commands:
 ## install.packages("pkg", dependencies=TRUE, lib="/usr/local/lib/R/site-library") # in sudo R
