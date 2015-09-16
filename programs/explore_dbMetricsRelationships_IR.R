@@ -74,7 +74,7 @@ plt.IRexcessBL.pkRate <- ggplot(dbMetrics, aes(x=IR.excess.BL, y=IR.peak)) +
   ggtitle("BL excess vs. peak IR")
 # ggsave(sprintf("IRexcessBL_pkRate_%sIR.png", code), plt.IRexcessBL.pkRate, width=w, height=h)
 
-plt.IRexcessBL.epiDur <- ggplot(dbMetrics, aes(x=IR.mean, y=epi.dur)) +
+plt.IRexcessBL.epiDur <- ggplot(dbMetrics, aes(x=IR.excess.BL, y=epi.dur)) +
   geom_point(aes(color=as.character(season))) +
   scale_color_discrete(breaks=2:9, name="season") +
   ggtitle("BL excess vs. epidemic duration")
