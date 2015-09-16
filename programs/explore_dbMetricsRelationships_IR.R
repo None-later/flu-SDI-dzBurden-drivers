@@ -8,6 +8,7 @@
 ## Notes: 
 ## 5/31/15 - Refer to explore_fluSeasonDefinition_IR.R for explanation of "flu epidemic" is defined. Zip3s are considered to have experienced a flu epidemic if they had 4+ consecutive weeks above the epidemic threshold in the flu period.
 ## 6/4/15 - Refer to analyze_relativeDiseaseBurden_IR.R for export of disease burden metrics data file.
+## 9/16/15 - Found IRexcessBL reference error in one of the plots
 ## 
 ## useful commands:
 ## install.packages("pkg", dependencies=TRUE, lib="/usr/local/lib/R/site-library") # in sudo R
