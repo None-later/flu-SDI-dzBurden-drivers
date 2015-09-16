@@ -127,16 +127,16 @@ coordsData <- tbl_df(import) %>% select(zip3, STATE, st_FIPS, pop, lat, long, w_
 coordsData2 <- coordsData %>% select(-w_lat, -w_long, -pop, -zip3)
 dbMetrics.coords <- left_join(dbMetrics.g, coordsData2, by = "zipname")
 
-#### save summary data ##################
-# save summary data to file (9/15/15) 
-# these data are used in "explore_dbMetricsDistribution_IR.R" for exploratory analysis of outcome metrics
-setwd('../R_export')
-write.csv(dbMetrics.g, file = sprintf('dbMetrics_periodicReg_%sILI%s_analyzeDB.csv', code, code2), row.names=FALSE)
-
-# save summary data to file with coords (9/15/15) 
-# these data are used in "analyze_dbMetricsDistance_IR.R" for matrix correlations
-setwd('../R_export')
-write.csv(dbMetrics.coords, file = sprintf('dbMetrics_periodicReg_%sILI%s_analyzeDBdist.csv', code, code2), row.names=FALSE)
+# #### save summary data ##################
+# # save summary data to file (9/15/15) 
+# # these data are used in "explore_dbMetricsDistribution_IR.R" for exploratory analysis of outcome metrics
+# setwd('../R_export')
+# write.csv(dbMetrics.g, file = sprintf('dbMetrics_periodicReg_%sILI%s_analyzeDB.csv', code, code2), row.names=FALSE)
+# 
+# # save summary data to file with coords (9/15/15) 
+# # these data are used in "analyze_dbMetricsDistance_IR.R" for matrix correlations
+# setwd('../R_export')
+# write.csv(dbMetrics.coords, file = sprintf('dbMetrics_periodicReg_%sILI%s_analyzeDBdist.csv', code, code2), row.names=FALSE)
 
 #### checks on metrics ##################
 # # perform checks on db_metric calculations
@@ -155,3 +155,4 @@ write.csv(dbMetrics.coords, file = sprintf('dbMetrics_periodicReg_%sILI%s_analyz
 # test <- data.frame(zip3=c(1,1,1,2,2,2,3,3,3,4,4,4), epi.week=c(T,T,F,F,F,T,T,T,T,F,F,F))
 # test %>% group_by(zip3) %>% select(epi.week) %>% consider.flu.season
 # test %>% group_by(zip3) %>% mutate(in.seas = consider.flu.season(epi.week))
+
