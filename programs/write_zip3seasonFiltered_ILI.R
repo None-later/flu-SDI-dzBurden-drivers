@@ -61,6 +61,12 @@ summ.filtered <- zipseas.combos.filt %>% count(season) # roughly 300 to 600 zip3
 removedCombos <- setdiff(dbMetrics.g %>% filter(metric=="ili.peak") %>% select(season, zipname), zipseas.combos.filt) %>% filter(season!=1)
 removedCombos %>% count(season) # with the two filters, 50 to 90 combinations are removed per season
 
+#### 9/23/15: how many zip3s have data across all 8 seasons? ####################################
+zipseas.combos.filt %>% filter(season != 1) %>% count(zipname) %>% filter(n == 8) # only 97 of 760 zip3s meet these requirements for seasons 2-9
+distr <- zipseas.combos.filt %>% filter(season != 1) %>% count(zipname)
+hist(distr$n, breaks=8, xlab='seasons that meet peak ILI & missing data criteria', main='distribution of zip3s')
+# saved 9/23/15 in explore_periodicReg_%s_fits_ILI%s/inSeason
+
 #### write to file ####################################
 # write.csv(zipseas.combos.filt, file=sprintf('zip3SeasonCombos_%sILI%s.csv', code, code2), row.names=F)
 # saved 9/16/15
