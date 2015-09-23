@@ -25,10 +25,13 @@ code2 <- "_Oct"
 #### plot formatting ################################
 w <- 9; h <- 6
 
-#### initial time series plots ################################
+#### import data ################################
 setwd('../R_export')
 data <- read_csv(file=sprintf('periodicReg_%sallZip3Mods_ILI%s.csv', code, code2), col_types=list(ili=col_double(), .fitted=col_double(), .se.fit=col_double()))
+data.inSeas <- read_csv(file=sprintf('fullIndicAll_periodicReg_%sILI%s_analyzeDB.csv', code, code2), col_types=list(zipname=col_character()))
+data.combos <- read_csv(file=sprintf('zip3SeasonCombos_%sILI%s.csv', code, code2), col_types=list(zipname=col_character()))
 
+#### initial time series plots ################################
 dir.create(sprintf('../graph_outputs/explore_periodicReg_%sfits_ILI%s', code, code2), showWarnings=FALSE)
 setwd(sprintf('../graph_outputs/explore_periodicReg_%sfits_ILI%s', code, code2))
 
@@ -49,24 +52,43 @@ indexes <- seq(1, max(data_plot %>% select(for.plot)), by=6)
 #   ggsave(sprintf("periodicReg_%sfits_ILI%s_%s-%s.png", code, code2, ziplabels[1,], ziplabels[2,]), dummyplots, width=w, height=h)
 # } # saved 9/14/15
 
-#### 9/15/15 in.season filtering fits ################################
-setwd('../../R_export')
-data.inSeas <- read_csv(file=sprintf('fullIndicAll_periodicReg_%sILI%s_analyzeDB.csv', code, code2), col_types=list(zipname=col_character()))
+#### 9/15/15 in.season fits ################################
+dir.create(sprintf('../explore_periodicReg_%sfits_ILI%s/inSeason', code, code2), showWarnings=FALSE)
+setwd(sprintf('../explore_periodicReg_%sfits_ILI%s/inSeason', code, code2))
 
-dir.create(sprintf('../graph_outputs/explore_periodicReg_%sfits_ILI%s/inSeason', code, code2), showWarnings=FALSE)
-setwd(sprintf('../graph_outputs/explore_periodicReg_%sfits_ILI%s/inSeason', code, code2))
-
-zip3list <- data.inSeas %>% select(zipname) %>% distinct %>% mutate(for.plot = seq_along(1:nrow(.)))
-data_plot2 <- right_join(data.inSeas, zip3list, by="zipname")
+zip3list2 <- data.inSeas %>% select(zipname) %>% distinct %>% arrange(zipname) %>% mutate(for.plot = seq_along(1:nrow(.)))
+data_plot2 <- right_join(data.inSeas, zip3list2, by="zipname")
 indexes2 <- seq(1, max(data_plot2 %>% select(for.plot)), by=6)
 
-for(i in indexes2){
-  dummyplots <- ggplot(data_plot2 %>% filter(for.plot>= i & for.plot < i+6), aes(x=week, y=ili, group=zipname)) +
+# for(i in indexes2){
+#   dummyplots <- ggplot(data_plot2 %>% filter(for.plot>= i & for.plot < i+6), aes(x=week, y=ili, group=zipname)) +
+#     theme(axis.text=element_text(size=12), axis.title=element_text(size=14,face="bold")) +
+#     geom_line(aes(color = in.season)) + scale_color_discrete(name='in.season') + 
+#     geom_line(aes(y=ifelse(flu.week, 1, NA)), color = 'black') + 
+#     geom_line(aes(y = .fitted), color = 'black') + 
+#     facet_wrap(~zipname, scales="free_y")
+#   # grab zip3s in plot for file name
+#   ziplabels <- data_plot2 %>% select(zipname) %>% distinct %>% slice(c(i, i+5)) 
+#   ggsave(sprintf("periodicReg_inSeas_%sfits_ILI%s_%s-%s.png", code, code2, ziplabels[1,], ziplabels[2,]), dummyplots, width=w, height=h)
+# } # saved 9/23/15
+
+#### 9/23/15 in.season filtered fits (write_zip3seasonFiltered_ILI.R) ################################
+dir.create(sprintf('../inSeasonFiltered', code, code2), showWarnings=FALSE)
+setwd(sprintf('../inSeasonFiltered', code, code2))
+
+zips.filtered <- data.combos %>% filter(season != 1) %>% count(zipname) %>% filter(n == 8) %>% select(zipname)
+zip3list3 <- data.inSeas %>% select(zipname) %>% distinct %>% filter(zipname %in% zips.filtered$zipname) %>% arrange(zipname) %>% mutate(for.plot = seq_along(1:nrow(.)))
+data_plot3 <- right_join(data.inSeas, zip3list3, by="zipname")
+indexes3 <- seq(1, max(data_plot3 %>% select(for.plot)), by=6)
+
+for(i in indexes3){
+  dummyplots <- ggplot(data_plot3 %>% filter(for.plot>= i & for.plot < i+6), aes(x=week, y=ili, group=zipname)) +
     theme(axis.text=element_text(size=12), axis.title=element_text(size=14,face="bold")) +
     geom_line(aes(color = in.season)) + scale_color_discrete(name='in.season') + 
     geom_line(aes(y=ifelse(flu.week, 1, NA)), color = 'black') + 
+    geom_line(aes(y = .fitted), color = 'black') + 
     facet_wrap(~zipname, scales="free_y")
   # grab zip3s in plot for file name
-  ziplabels <- data_plot %>% select(zipname) %>% distinct %>% slice(c(i, i+5)) 
-  ggsave(sprintf("periodicReg_inSeas_%sfits_ILI%s_%s-%s.png", code, code2, ziplabels[1,], ziplabels[2,]), dummyplots, width=w, height=h)
-} # saved 9/15/15
+  ziplabels <- data_plot3 %>% select(zipname) %>% distinct %>% slice(c(i, i+5)) 
+  ggsave(sprintf("periodicReg_inSeasFilt_%sfits_ILI%s_%s-%s.png", code, code2, ziplabels[1,], ziplabels[2,]), dummyplots, width=w, height=h)
+} # saved 9/23/15
