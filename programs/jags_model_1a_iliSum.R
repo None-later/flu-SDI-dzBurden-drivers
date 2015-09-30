@@ -13,9 +13,9 @@
 #### model #################################
 model{
   # priors
-  theta ~ dlnorm(0, 1/1E-4)
-  phi ~ dunif(0, 0.7)
   lambda ~ dunif(0, 0.1)
+  phi ~ dunif(0, 0.7)
+  theta ~ dlnorm(0, 1/1E-4)
   
   # model true iliSum state
   for (i in 1:n.loc){

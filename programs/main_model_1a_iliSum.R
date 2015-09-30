@@ -18,13 +18,25 @@ require(tidyr)
 require(dplyr)
 require(readr)
 require(ggplot2)
+source("source_jags_posterior_plots.R")
 set.seed(19)
 
 #### set these ################################
 code <- 't2_'
 code2 <- '_Oct'
 modcode <- '1a_iliSum'
-s <- 3
+s <- 4
+
+#### assign plotting params ################################
+var.names <- c("lambda", "phi", "theta", "p", "z", "y")
+var.coda <- c("lambda", "phi", "theta", "p", "z")
+
+#### assign MCMC params ################################
+n.adapt <- 5000 # MH tuning chains to discard
+n.update <- 20000 # burn in
+n.iter <- 10000 # number of final samples
+n.thin <- 1
+n.chains <- 2
 
 #### import data ################################
 setwd('../R_export/jagsModelData_import')
@@ -40,70 +52,79 @@ jdata <- list(
   y = as.double(as.vector(md$burden))
 )
 
-#### assign MCMC params ################################
-n.adapt <- 5000 # MH tuning chains to discard
-n.update <- 20000 # burn in
-n.iter <- 10000 # number of final samples
-n.thin <- 1
-
 #### assign initial conditions ################################
-inits <- list(
-    list(theta=1, phi=0.2, lambda=0.05, z=rep(8000, nrow(md))), # chain 1
-    list(theta=20, phi=0.63, lambda=0.01, z=rep(10000, nrow(md))) # chain 2
-  )
-
-#### assign plotting params ################################
-var.names <- c("theta", "phi", "lambda", "p", "z", "y")
-var.coda <- c("theta", "phi", "lambda", "z")
-var.jags <- c("p") # derived quants
+# # 9/29/15 used automatically assigned initial conditions
+# inits <- list(
+#     list(lambda=0.05, phi=0.2, theta=1, z=rep(8000, nrow(md))), # chain 1
+#     list(lambda=0.01, phi=0.6, theta=20, z=rep(10000, nrow(md))) # chain 2
+#   )
 
 #### run jags model ################################
 setwd(dirname(sys.frame(1)$ofile))
-mobject <- jags.model(sprintf("jags_model_%s.R", modcode), data=jdata, n.chains=length(inits), n.adapt=n.adapt) 
+mobject <- jags.model(sprintf("jags_model_%s.R", modcode), data=jdata, n.chains=n.chains, n.adapt=n.adapt) 
 update(mobject, n.iter=n.update)
 mcoda <- coda.samples(mobject, variable.names=var.coda, n.iter=n.iter, n.thin=n.thin)
-mjags <- jags.samples(mobject, variable.names=var.jags, n.iter=n.iter, n.thin=n.thin)
-
-#### diagnostics plots ################################
-x11()
-plot(mcoda[,1:4])
-x11()
-plot(mcoda[,5:8])
-
-#### convergence diagnostics ################################
-gelman.diag(mcoda[,var.coda]) 
-raftery.diag(mcoda[,var.coda]) 
 
 #### process data ################################
-names.col <- paste0('z_', md$zipname)
 chain1 <- tbl_df(as.data.frame(mcoda[[1]])) %>% mutate(chain=1) %>% mutate(iter=seq_along(chain))  
 chain2 <- tbl_df(as.data.frame(mcoda[[2]])) %>% mutate(chain=2) %>% mutate(iter=seq_along(chain)) 
-mout <- rbind(chain1, chain2)
+mout.full <- rbind(chain1, chain2)
 
-# CHANGE COLUMN NAMES
+# for.plot numbering
+zip.forplots <- data.frame(zipname = md$zipname, for.plot = seq_along(md$zipname), y.data = md$burden)
 
-mout_gather <- gather(mout, param, sample, 1:353) %>% mutate(param = as.character(param)) 
-uq.params <- data.frame(param = as.character(unique(mout_gather$param)), for.plot = seq_along(unique(mout_gather$param)), ys = as.numeric(c(NA, NA, NA, jdata$y)))
-mout_gather2 <- left_join(mout_gather, uq.params, by="param")
-indexes <- seq(1, max(mout_gather2 %>% select(for.plot)), by=6)
+# separate df for parameters
+mout.paramsg <- mout.full %>% select(-contains("z["), -contains("p[")) %>% gather(param, sample, lambda:theta) %>% mutate(param = as.character(param))
 
+# separate df for derived quantities (p[i])
+der.varnames <- paste0("p", md$zipname)
+mout.der <- mout.full %>% select(contains("p["), chain, iter)
+names(mout.der) <- c(der.varnames, "chain", "iter")
+mout.derg <- gather(mout.der, param, sample, 1:(ncol(mout.der)-2)) %>% mutate(param = as.character(param)) %>% mutate(zipname = substr.Right(param, 3)) %>% mutate(id.combo = paste0(s, zipname))
+mout.derg2 <- left_join(mout.derg, zip.forplots %>% select(-y.data), by="zipname")
+
+# separate df for latent burden (z[i])
+z.varnames <- paste0("z", md$zipname)
+mout.z <- mout.full %>% select(contains("z["), chain, iter)
+names(mout.z) <- c(z.varnames, "chain", "iter")
+mout.zg <- gather(mout.z, param, sample, 1:(ncol(mout.z)-2)) %>% mutate(param = as.character(param)) %>% mutate(zipname = substr.Right(param, 3)) %>% mutate(id.combo = paste0(s, zipname))
+mout.zg2 <- left_join(mout.zg, zip.forplots %>% select(-y.data), by="zipname")
+
+#### write all dfs to file ################################
+dir.create(sprintf('../R_export/jagsModelData_export/%s', modcode))
+setwd(sprintf('../R_export/jagsModelData_export/%s', modcode))
+
+write.csv(mout.paramsg, sprintf('param_samples_%s_S%s.csv', modcode, s), row.names=F)
+write.csv(mout.derg2, sprintf('deriv_samples_%s_S%s.csv', modcode, s), row.names=F)
+write.csv(mout.zg2, sprintf('z_samples_%s_S%s.csv', modcode, s), row.names=F)
 
 #### plotting params ################################
 w <- 9; h <- 6
+ct <- 12 # plots per figure for posterior
+ct2 <- 4 # params per figure for diagnostics
+indexes <- seq(1, max(zip.forplots %>% select(for.plot)), by=ct)
+plotWrapper <- list(w=w, h=h, ct=ct, indexes=indexes, modcode=modcode, seas=s, ct2=ct2)
 
+#### plot all posteriors ################################
+setwd(dirname(sys.frame(1)$ofile))
+dir.create(sprintf('../graph_outputs/jagsModelDiagnostics/%s', modcode))
+setwd(sprintf('../graph_outputs/jagsModelDiagnostics/%s', modcode))
 
-#### plot data ################################
-dir.create('../graph_outputs/jagsModelDiagnostics')
-setwd('../graph_outputs/jagsModelDiagnostics')
-for (i in indexes){
-  dummyplot <- ggplot(mout_gather2 %>% filter(for.plot>= i & for.plot < i+6 & chain==1), aes(x = sample, group = param)) +
-    geom_histogram(aes(y = ..density..)) +
-    
-    # FIX VERTICAL LINE
-    geom_vline(aes(x=ys)) +
-    facet_wrap(~param, scales="free")
-  filelabs <- uq.params %>% select(param) %>% slice(c(i, i+5)) 
-  ggsave(sprintf('test_%s_%s-%s.png', modcode, filelabs[1,], filelabs[2,]), dummyplot, width=w, height=h)
-}
+paramsPlot(mout.paramsg, plotWrapper)
+derPlot(mout.derg2, zip.forplots, plotWrapper)
+zPlot(mout.zg2, zip.forplots, plotWrapper)
+
+# #### sample diagnostics plots ################################
+# x11() # plot est. params
+# plot(mcoda[,var.coda[1:3]])
+# x11() # plot some p_i
+# plot(mcoda[,5:8])
+# x11() # plot some z_i
+# plot(mcoda[,360:363])
+# 
+# #### convergence diagnostics ################################
+# gelman.diag(mcoda[,var.coda[1:3]]) 
+# raftery.diag(mcoda[,var.coda[1:3]]) 
+
 
   
