@@ -1,10 +1,10 @@
 
 ## Name: Elizabeth Lee
-## Date: 
-## Function: 
+## Date: 9/29/15
+## Function: main code for jags model 1a_iliSum
 ## Filenames: 
 ## Data Source: 
-## Notes: 
+## Notes: v2: change to prior on phi, see jags_model_1a_ilisum.R
 ## 
 ## useful commands:
 ## install.packages("pkg", dependencies=TRUE, lib="/usr/local/lib/R/site-library") # in sudo R
@@ -25,7 +25,8 @@ set.seed(19)
 code <- 't2_'
 code2 <- '_Oct'
 modcode <- '1a_iliSum'
-s <- 4
+s <- 3
+version <- 'v2' 
 
 #### assign plotting params ################################
 var.names <- c("lambda", "phi", "theta", "p", "z", "y")
@@ -94,34 +95,41 @@ mout.zg2 <- left_join(mout.zg, zip.forplots %>% select(-y.data), by="zipname")
 dir.create(sprintf('../R_export/jagsModelData_export/%s', modcode))
 setwd(sprintf('../R_export/jagsModelData_export/%s', modcode))
 
-write.csv(mout.paramsg, sprintf('param_samples_%s_S%s.csv', modcode, s), row.names=F)
-write.csv(mout.derg2, sprintf('deriv_samples_%s_S%s.csv', modcode, s), row.names=F)
-write.csv(mout.zg2, sprintf('z_samples_%s_S%s.csv', modcode, s), row.names=F)
+write.csv(mout.paramsg, sprintf('param_samples_%s_%s_S%s.csv', modcode, version, s), row.names=F)
+write.csv(mout.derg2, sprintf('deriv_samples_%s_%s_S%s.csv', modcode, version, s), row.names=F)
+write.csv(mout.zg2, sprintf('z_samples_%s_%s_S%s.csv', modcode, version, s), row.names=F)
 
 #### plotting params ################################
 w <- 9; h <- 6
+w.pix <- 700; h.pix <- 700; sz <- 2
 ct <- 12 # plots per figure for posterior
 ct2 <- 4 # params per figure for diagnostics
 indexes <- seq(1, max(zip.forplots %>% select(for.plot)), by=ct)
-plotWrapper <- list(w=w, h=h, ct=ct, indexes=indexes, modcode=modcode, seas=s, ct2=ct2)
+plotWrapper <- list(w=w, h=h, ct=ct, indexes=indexes, modcode=modcode, seas=s, ct2=ct2, version=version)
 
 #### plot all posteriors ################################
 setwd(dirname(sys.frame(1)$ofile))
-dir.create(sprintf('../graph_outputs/jagsModelDiagnostics/%s', modcode))
-setwd(sprintf('../graph_outputs/jagsModelDiagnostics/%s', modcode))
+dir.create(sprintf('../graph_outputs/jagsModelDiagnostics/%s/%s', modcode, version), showWarnings = F)
+setwd(sprintf('../graph_outputs/jagsModelDiagnostics/%s/%s', modcode, version))
 
 paramsPlot(mout.paramsg, plotWrapper)
-derPlot(mout.derg2, zip.forplots, plotWrapper)
+# derPlot(mout.derg2, zip.forplots, plotWrapper)
 zPlot(mout.zg2, zip.forplots, plotWrapper)
 
-# #### sample diagnostics plots ################################
-# x11() # plot est. params
-# plot(mcoda[,var.coda[1:3]])
-# x11() # plot some p_i
-# plot(mcoda[,5:8])
-# x11() # plot some z_i
-# plot(mcoda[,360:363])
-# 
+#### sample diagnostics plots ################################
+# plot est. params
+png(sprintf('param_diag_%s_%s_S%s.png', modcode, version, s), width = w.pix, height = h.pix)
+plot(mcoda[,var.coda[1:3]], cex = sz)
+dev.off()
+# plot some p_i
+png(sprintf('derivSamp_diag_%s_%s_S%s.png', modcode, version, s), width = w.pix, height = h.pix)
+plot(mcoda[,5:8], cex = sz)
+dev.off()
+# plot some z_i
+png(sprintf('zSamp_diag_%s_%s_S%s.png', modcode, version, s), width = w.pix, height = h.pix)
+plot(mcoda[,360:363], cex = sz)
+dev.off()
+
 # #### convergence diagnostics ################################
 # gelman.diag(mcoda[,var.coda[1:3]]) 
 # raftery.diag(mcoda[,var.coda[1:3]]) 
