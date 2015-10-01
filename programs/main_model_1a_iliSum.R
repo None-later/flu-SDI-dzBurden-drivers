@@ -25,7 +25,7 @@ set.seed(19)
 code <- 't2_'
 code2 <- '_Oct'
 modcode <- '1a_iliSum'
-s <- 3
+s <- 4
 version <- 'v2' 
 
 #### assign plotting params ################################
@@ -62,7 +62,7 @@ jdata <- list(
 
 #### run jags model ################################
 setwd(dirname(sys.frame(1)$ofile))
-mobject <- jags.model(sprintf("jags_model_%s.R", modcode), data=jdata, n.chains=n.chains, n.adapt=n.adapt) 
+mobject <- jags.model(sprintf("jags_model_%s_%s.R", modcode, version), data=jdata, n.chains=n.chains, n.adapt=n.adapt) 
 update(mobject, n.iter=n.update)
 mcoda <- coda.samples(mobject, variable.names=var.coda, n.iter=n.iter, n.thin=n.thin)
 
