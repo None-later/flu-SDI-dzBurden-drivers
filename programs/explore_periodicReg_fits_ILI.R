@@ -1,7 +1,7 @@
 
 ## Name: Elizabeth Lee
 ## Date: 9/14/15
-## Function: 1. explore periodic regression fits of raw ILI through plotting, 2. examine in season classifications
+## Function: 1. explore periodic regression fits of raw ILI through plotting
 ## Filenames: 
 ## Data Source: 
 ## Notes: 
