@@ -1,6 +1,6 @@
 
 ## Name: Elizabeth Lee
-## Date: 10/19/15
+## Date: 10/20/15
 ## Function: perform periodic regression on the detrended relative ili (iliDt)
 ## iliDt metric defined: after using loess smoother to generate fitted values during summer weeks, we divided observed ili by smoothed loess fits for entire time series
 ## used write_loess_fits_ILI.R to generate iliDt data

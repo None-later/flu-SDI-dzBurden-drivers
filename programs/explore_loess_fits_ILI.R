@@ -1,6 +1,6 @@
 
 ## Name: Elizabeth Lee
-## Date: 9/14/15
+## Date: 10/20/15
 ## Function: explore loess regression fits of raw ILI through plotting; the loess fits will serve as a baseline to process the raw ILI data, removing time trends
 ## Filenames: 
 ## Data Source: 
