@@ -12,10 +12,8 @@
 ## install.packages("pkg", dependencies=TRUE, lib="/usr/local/lib/R/site-library") # in sudo R
 ## update.packages(lib.loc = "/usr/local/lib/R/site-library")
 
-
+rm(list = ls())
 #### header ####################################
-setwd('~/Dropbox/code')
-source("GeneralTools.R")
 require(dplyr)
 require(ggplot2)
 require(readr)
@@ -23,10 +21,14 @@ require(ISOweek)
 require(tidyr)
 setwd(dirname(sys.frame(1)$ofile))
 #### set these! ####################################
-# code = "t2sa_" # semi-annual periodicity
-code = "t2_" # parabolic time trend term
-# code="" # linear time trend term
-code2 = "_Oct"
+# code <- "t2sa_" # semi-annual periodicity
+# code <- "t2_" # parabolic time trend term
+# code <- "" # linear time trend term
+code <- "t4_" # quartic time trend term
+
+# code2 <- "_Oct" # fluseason = Oct to Apr
+code2 <- "_Octfit" # fit = Apr to Oct and fluseason = Oct to Apr
+
 #### read data ##################
 setwd('../R_export')
 data5 <- read_csv(sprintf('fullIndicFlu_periodicReg_%sILI%s_analyzeDB.csv', code, code2), col_names = T, col_types = list(zipname=col_character()))
@@ -64,10 +66,10 @@ removedCombos %>% count(season) # with the two filters, 50 to 90 combinations ar
 #### 9/23/15: how many zip3s have data across all 8 seasons? ####################################
 zipseas.combos.filt %>% filter(season != 1) %>% count(zipname) %>% filter(n == 8) # only 97 of 760 zip3s meet these requirements for seasons 2-9
 distr <- zipseas.combos.filt %>% filter(season != 1) %>% count(zipname)
-hist(distr$n, breaks=8, xlab='seasons that meet peak ILI & missing data criteria', main='distribution of zip3s')
+hist(distr$n, breaks=8, xlab='seasons that meet peak ILI & missing data criteria for all seaseons', main='distribution of zip3s')
 # saved 9/23/15 in explore_periodicReg_%s_fits_ILI%s/inSeason
 
-#### write to file ####################################
+# #### write to file ####################################
 # write.csv(zipseas.combos.filt, file=sprintf('zip3SeasonCombos_%sILI%s.csv', code, code2), row.names=F)
-# saved 9/16/15
+# # saved 10/20/15
 
