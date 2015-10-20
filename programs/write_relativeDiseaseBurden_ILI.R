@@ -26,10 +26,10 @@ setwd(dirname(sys.frame(1)$ofile))
 # code <- "t2sa_" # semi-annual periodicity
 # code <- "t2_" # parabolic time trend term
 code <- "t4_" # quartic time trend
-
 # code <-"" # linear time trend term
-# code2 <- "_Oct"
-code2 <- "_Octfit"
+
+# code2 <- "_Oct" # fluseason = Oct to Apr
+code2 <- "_Octfit" # fit = Apr to Oct and fluseason = Oct to Apr
 
 #### read saved data from write_fullIndic_periodicReg_ILI.R ##################
 setwd('../R_export')

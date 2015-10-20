@@ -13,9 +13,8 @@
 ## install.packages("pkg", dependencies=TRUE, lib="/usr/local/lib/R/site-library") # in sudo R
 ## update.packages(lib.loc = "/usr/local/lib/R/site-library")
 
+rm(list = ls())
 #### header ####################################
-setwd('~/Dropbox/code')
-source("GeneralTools.R")
 require(ggplot2)
 require(readr)
 require(dplyr)
@@ -24,14 +23,19 @@ require(gridExtra)
 setwd(dirname(sys.frame(1)$ofile))
 
 #### set these! ####################################
-# code = "t2sa_" # semi-annual periodicity
-code <- "t2_" # parabolic time trend term
-# code="" # linear time trend term
-code2 <- "_Oct"
+# code <- "t2sa_" # semi-annual periodicity
+# code <- "t2_" # parabolic time trend term
+# code <- "" # linear time trend term
+code <- "t4_" # quartic time trend term 
+
+# code2 <- "_Oct" # fluseason = Oct to Apr
+code2 <- "_Octfit" # fit = Apr to Oct and fluseason = Oct to Apr
+
 #### import data ####################################
 setwd('../R_export')
 dbMetrics.g <- read.csv(sprintf('dbMetrics_periodicReg_%sILI%s_analyzeDB.csv', code, code2), header=T, colClasses=c(zipname="character", metric="character")) %>% filter(season!=1)
 dbMetrics <- spread(dbMetrics.g, metric, burden)
+
 #### plot formatting ####################################
 w = 9
 h = 6

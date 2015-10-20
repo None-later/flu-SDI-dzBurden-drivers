@@ -18,11 +18,11 @@ setwd(dirname(sys.frame(1)$ofile))
 #### set these! ####################################
 # code <- "t2sa_" # semi-annual periodicity
 # code <- "t2_" # parabolic time trend term
-code <- "t4_"
+code <- "t4_" # quartic time trend
 # code <-"" # linear time trend term
 
-# code2 <- "_Oct"
-code2 <- "_Octfit"
+# code2 <- "_Oct" # fluseason = Oct to Apr
+code2 <- "_Octfit" # fit = Apr to Oct and fluseason = Oct to Apr
 #### plot formatting ################################
 w <- 9; h <- 6
 
