@@ -14,10 +14,8 @@
 ## install.packages("pkg", dependencies=TRUE, lib="/usr/local/lib/R/site-library") # in sudo R
 ## update.packages(lib.loc = "/usr/local/lib/R/site-library")
 
-
+rm(list = ls())
 #### header ####################################
-setwd('~/Dropbox (Bansal Lab)/code')
-source("GeneralTools.R")
 require(dplyr)
 require(ggplot2)
 require(readr)
@@ -56,7 +54,7 @@ test <- data3 %>% filter(zipname=='013', season==1, flu.week) %>% select(ili, ep
 zips.over.thresh_flu_consec <- data3 %>% filter(flu.week) %>% mutate(epidemic = ili>epi.thresh) %>% group_by(season, zipname) %>% summarise(flu = rle.func(epidemic))
 # maximum number of consecutive epidemics during non-flu weeks
 zips.over.thresh_nonflu_consec <- data3 %>% filter(!flu.week) %>% mutate(epidemic = ili>epi.thresh) %>% group_by(season, zipname) %>% summarise(nf = rle.func(epidemic))
-zips.over.thresh_consec_flat <- right_join(zips.over.thresh_flu_consec, zips.over.thresh_nonflu_consec, by = c("season", "zipname"))
+zips.over.thresh_consec_flat <- full_join(zips.over.thresh_flu_consec, zips.over.thresh_nonflu_consec, by = c("season", "zipname"))
 zips.over.thresh_consec <- gather(zips.over.thresh_consec_flat, period, consec.weeks, 3:4)
 
 # plot histograms for consecutive weeks
@@ -87,9 +85,9 @@ ggsave(sprintf("consecEpiWeeks_nfPeriod_%sILI%s.png", code, code2), consec.nflu,
 consec.summary <- zips.over.thresh_consec_flat %>% group_by(season) %>% summarise(., flu.mn = mean(flu), nflu.mn = mean(nf), flu.var = var(flu), nflu.var = var(nf))
 
 # quantile for flu period
-zips.over.thresh_consec %>% filter(period=="flu") %>% select(consec.weeks) %>% unlist %>% quantile
+zips.over.thresh_consec %>% filter(period=="flu") %>% select(consec.weeks) %>% unlist %>% quantile(seq(0, 1, 0.05), na.rm=T)
 # quantile for non flue period
-zips.over.thresh_consec %>% filter(period=="nf") %>% select(consec.weeks) %>% unlist %>% quantile
+zips.over.thresh_consec %>% filter(period=="nf") %>% select(consec.weeks) %>% unlist %>% quantile(seq(0, 1, 0.05), na.rm=T)
 # during flu period: 75% of zip3-season combinations have 2+ consecutive weeks above the epidemic threshold
 # during non-flu period: 75% of zip3-season combinations have 4 or fewer consecutive weeks above the epidemic threshold
 
@@ -110,9 +108,9 @@ consec.flu.nf.single2 <- ggplot(zips.over.thresh_consec2, aes(x=consec.weeks, gr
 ggsave(sprintf("consecEpiWeeks_%sILI%s_rmNoise.png", code, code2), consec.flu.nf.single2, width=4, height=4)
 
 # quantile for flu period
-zips.over.thresh_consec2 %>% filter(period=="flu") %>% select(consec.weeks) %>% unlist %>% quantile(seq(0, 1, 0.05))
+zips.over.thresh_consec2 %>% filter(period=="flu") %>% select(consec.weeks) %>% unlist %>% quantile(seq(0, 1, 0.05), na.rm=T)
 # quantile for non flu period
-zips.over.thresh_consec2 %>% filter(period=="nf") %>% select(consec.weeks) %>% unlist %>% quantile(seq(0, 1, 0.05))
+zips.over.thresh_consec2 %>% filter(period=="nf") %>% select(consec.weeks) %>% unlist %>% quantile(seq(0, 1, 0.05), na.rm=T)
 # during flu period: 85% of zip3-season combinations have 4+ consecutive weeks above the epidemic threshold
 # during non-flu period: 80% of zip3-season combinations have 4 or fewer consecutive weeks above the epidemic threshold
 # 9/15/15: use four consecutive weeks as the lower threshold

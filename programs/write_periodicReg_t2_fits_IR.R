@@ -9,19 +9,18 @@
 ## useful commands:
 ## install.packages("pkg", dependencies=TRUE, lib="/usr/local/lib/R/site-library") # in sudo R
 ## update.packages(lib.loc = "/usr/local/lib/R/site-library")
-
+rm(list=ls())
 ####################################
 # header
-setwd('/home/elee/R/source_functions')
-source("dfsumm.R")
 require(dplyr)
 require(ggplot2)
 require(broom)
 require(tidyr)
+setwd(dirname(sys.frame(1)$ofile))
 
 ####################################
 # import data
-setwd('/home/elee/Dropbox/Elizabeth_Bansal_Lab/SDI_Data/dz_burden/Py_export')
+setwd('../Py_export')
 # ili_df <- read.csv('iliByallZip_allWeekly_totServ_totAge.csv', header=T, colClasses=c("week"="Date"))
 # viz_df <- read.csv('vizByallZip_allWeekly_totServ_totAge.csv', header=T, colClasses=c("week"="Date"))
 iliProp_df <- read.csv('iliPropByallZip_allWeekly_totServ_totAge.csv', header=T, colClasses=c("week"="Date"))
@@ -42,7 +41,7 @@ iliProp_gather_df <- gather(iliProp_df, zip3, ili, X2:X999, convert=FALSE)
 pop_gather_df <- gather(pop_df, zip3, pop, X2:X999, convert=FALSE)
 iliProp_pop_gather_df <- left_join(iliProp_gather_df, pop_gather_df, by=c("year", "zip3"))
 # perform IR calculation 7/27/15: calculation is correct because ili is the ILI proportion of all visits
-IR_fullgather_df <- iliProp_pop_gather_df %>% mutate(IR = ili*pop/100000)
+IR_fullgather_df <- iliProp_pop_gather_df %>% mutate(IR = ili*pop/100000) %>% mutate(week=as.Date(week, origin="1970-01-01")) %>% mutate(Thu.week=as.Date(Thu.week, origin="1970-01-01"))
 
 ####################################
 # program
@@ -53,7 +52,7 @@ noIRdata <- IR_fullgather_df %>% filter(!flu.week) %>%
   summarise(num.NA = sum(is.na(IR))) %>% mutate(incl.lm = num.NA <105)
 
 # join datasets to incorporate indicators for including zip3 into lm
-IR_df <- right_join(IR_fullgather_df, (noIRdata %>% select(-num.NA)), by='zip3')
+IR_df <- right_join(IR_fullgather_df, (noIRdata %>% select(-num.NA)), by='zip3') 
 
 # create new data for augment
 newbasedata <- IR_df %>% select(Thu.week, t) %>% unique %>% filter(Thu.week < as.Date('2009-05-01'))
@@ -65,10 +64,10 @@ allMods_tidy <- tidy(allMods, fitZip3)
 allMods_aug <- augment(allMods, fitZip3, newdata= newbasedata)
 
 # after augment - join IR data to fits
-allMods_fit_IR <- right_join((allMods_aug %>% select(-t)), (IR_df %>% filter(Thu.week < as.Date('2009-05-01'))), by=c('Thu.week', 'zip3'))
+allMods_fit_IR <- right_join((allMods_aug %>% select(-t)), (IR_df %>% filter(Thu.week < as.Date('2009-05-01'))), by=c('Thu.week', 'zip3')) %>% mutate(week=as.Date(week, origin="1970-01-01")) %>% mutate(Thu.week=as.Date(Thu.week, origin="1970-01-01"))
 
 # write to file (5/31/15)
-setwd('/home/elee/Dropbox/Elizabeth_Bansal_Lab/SDI_Data/dz_burden/R_export')
+setwd('../R_export')
 # write fitted and original IR data 
 write.csv(allMods_fit_IR, file='periodicReg_t2_allZip3Mods.csv', row.names=FALSE)
 # write tidy coefficient dataset

@@ -13,28 +13,22 @@
 ## useful commands:
 ## install.packages("pkg", dependencies=TRUE, lib="/usr/local/lib/R/site-library") # in sudo R
 ## update.packages(lib.loc = "/usr/local/lib/R/site-library")
-
+rm(list=ls())
 ####################################
 # header
-setwd('/home/elee/R/source_functions')
-source("dfsumm.R")
 require(dplyr)
 require(ggplot2)
 require(readr)
 require(ISOweek)
+setwd(dirname(sys.frame(1)$ofile))
 
-####################################
-# local functions
-substr.Right <- function(x, numchar){
-  return(substr(x, nchar(x)-(numchar-1), nchar(x)))
-}
 ####################################
 # set these!
 # code = "t2sa_" # semi-annual periodicity
 code = "t2_" # parabolic time trend term
 # code="" # linear time trend term
 ####################################
-setwd('/home/elee/Dropbox/Elizabeth_Bansal_Lab/SDI_Data/dz_burden/R_export')
+setwd('../R_export')
 data <- read_csv(file=sprintf('periodicReg_%sallZip3Mods.csv', code), col_types=list(ili=col_double(), .fitted=col_double(), .se.fit=col_double(), IR=col_double(), pop=col_integer()))
 
 # 1) add ISO week numbers; 2) add season numbers ; 3) add real zip3 names
@@ -54,11 +48,6 @@ test <- data3 %>% filter(zipname=='013', season==1, flu.week) %>% select(IR, epi
 
 # Analysis 2: a zip3 had a flu epidemic if IR > epi.threshold for at least x consecutive weeks during the flu period
 
-# function that returns maximum number of consecutive T values in x
-rle.func <- function(x){
-  rle.results = rle(x)
-  return(max(0, rle.results$lengths[which(rle.results$values)]))
-}
 # maximum number of consecutive epidemics during flu weeks
 zips.over.thresh_flu_consec <- data3 %>% filter(flu.week) %>% mutate(epidemic = IR>epi.thresh) %>% group_by(season, zipname) %>% summarise(flu = rle.func(epidemic))
 # maximum number of consecutive epidemics during non-flu weeks
@@ -67,7 +56,8 @@ zips.over.thresh_consec_flat <- right_join(zips.over.thresh_flu_consec, zips.ove
 zips.over.thresh_consec <- gather(zips.over.thresh_consec_flat, period, consec.weeks, 3:4)
 
 # plot histograms for consecutive weeks
-setwd(sprintf('/home/elee/Dropbox/Elizabeth_Bansal_Lab/SDI_Data/dz_burden/graph_outputs/explore_fluSeasonDefinition_%sIR', code))
+dir.create(sprintf('../graph_outputs/explore_fluSeasonDefinition_%sIR', code), showWarnings=FALSE)
+setwd(sprintf('../graph_outputs/explore_fluSeasonDefinition_%sIR', code))
 
 # single histogram for all seasons
 consec.flu.nf.single <- ggplot(zips.over.thresh_consec, aes(x=consec.weeks, group=period)) +
