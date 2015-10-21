@@ -26,7 +26,7 @@ setwd(dirname(sys.frame(1)$ofile))
 #### header ################################
 code <- ''
 code2 <- '_Octfit'
-span.var <- 0.6 # 0.4, 0.6
+span.var <- 0.4 # 0.4, 0.6
 degree.var <- 2
 code.str <- sprintf('_span%s_degree%s', span.var, degree.var)
 

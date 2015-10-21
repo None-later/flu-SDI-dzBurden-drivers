@@ -17,7 +17,7 @@ require(readr)
 setwd(dirname(sys.frame(1)$ofile))
 
 #### set these! ####################################
-span.var <- 0.6 # 0.4, 0.6
+span.var <- 0.4 # 0.4, 0.6
 degree.var <- 2
 code.str <- sprintf('_span%s_degree%s', span.var, degree.var)
 
@@ -39,7 +39,7 @@ indexes <- seq(1, max(data_plot %>% select(for.plot)), by=6)
 for(i in indexes){
   dummyplots <- ggplot(data_plot %>% filter(for.plot>= i & for.plot < i+6), aes(x=Thu.week, y=ili, group=zipname)) +
     theme(axis.text=element_text(size=12), axis.title=element_text(size=14,face="bold")) +
-    geom_line(aes(color = flu.week)) + scale_color_discrete(name='flu.week (fit: May to Sept)') + 
+    geom_line(aes(color = flu.week)) + scale_color_discrete(name='flu.week (fit: Apr to Oct)') + 
     geom_line(aes(y = .fitted), color = 'black') + 
     geom_ribbon(aes(ymin = .fitted-(1.96*.se.fit), ymax = .fitted+(1.96*.se.fit), alpha=0.7), fill = 'green') +
     scale_alpha_continuous(name='', breaks=c(0.7), labels=c('95% CI fit')) + 

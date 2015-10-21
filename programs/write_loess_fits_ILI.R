@@ -28,7 +28,7 @@ ili_df <- read.csv('iliByallZip_allWeekly_totServ_totAge.csv', header=T, colClas
 # pop_df <- read.csv('popByallZip_allYearly_totAge.csv', header=T, colClasses=c("year"="character"))
 
 #### set these! ################################
-span.var <- 0.6 # 0.4, 0.6
+span.var <- 0.4 # 0.4, 0.6
 degree.var <- 2
 code.str <- sprintf('_span%s_degree%s', span.var, degree.var)
 
@@ -59,7 +59,7 @@ ILI_full_df <- right_join(ili_gather_df, (noILIdata %>% select(-num.NA)), by='zi
 newbasedata <- ILI_full_df %>% select(Thu.week, t) %>% unique %>% filter(Thu.week < as.Date('2009-05-01'))
 
 #### perform loess regression ####################################
-allLoessMods <- ILI_full_df %>% filter(!flu.week) %>% filter(Thu.week < as.Date('2009-05-01')) %>% 
+allLoessMods <- ILI_full_df %>% filter(fit.week) %>% filter(Thu.week < as.Date('2009-05-01')) %>% 
   filter(incl.lm) %>% group_by(zip3) %>%
   do(fitZip3 = loess(ili ~ t, span = span.var, degree = degree.var, data = ., na.action=na.exclude))
 allLoessMods_aug <- augment(allLoessMods, fitZip3, newdata= newbasedata)
@@ -68,7 +68,8 @@ allLoessMods_aug <- augment(allLoessMods, fitZip3, newdata= newbasedata)
 # allLoessMods_glance <- glance(allLoessMods, fitZip3)
 
 # after augment - join ILI data to fits
-allLoessMods_fit_ILI <- right_join((allLoessMods_aug %>% select(-t)), (ILI_full_df %>% filter(Thu.week < as.Date('2009-05-01'))), by=c('Thu.week', 'zip3')) %>% mutate(week=as.Date(week, origin="1970-01-01")) %>% ungroup %>% mutate(ili.dt = ifelse(.fitted <= 1, ili, ili/.fitted)) %>% mutate(zipname = substr.Right(gsub("X", "00", zip3), 3)) 
+allLoessMods_fit_ILI <- right_join((allLoessMods_aug %>% ungroup %>% select(-t)), (ILI_full_df %>% filter(Thu.week < as.Date('2009-05-01'))), by=c('Thu.week', 'zip3')) %>% mutate(week=as.Date(week, origin="1970-01-01")) %>% mutate(ili.dt = ifelse(.fitted <= 1, ili, ili/.fitted)) %>% mutate(zipname = substr.Right(gsub("X", "00", zip3), 3)) 
+
 
 #### write data to file ####################################
 setwd('../R_export')
