@@ -1,7 +1,7 @@
 
 ## Name: Elizabeth Lee
 ## Date: 10/24/15
-## Function:
+## Function: examine visits/population and visits/physician at the zip3 level -- Are they spatially and temporally variable?
 ## Filenames: 
 ## Data Source: 
 ## Notes: 
@@ -38,14 +38,14 @@ pop_viz_df <- left_join(viz_gather_df, pop_gather_df, by = c('year', 'zip3')) %>
 fullD <- left_join(pop_viz_df, zipCov %>% select(-minUnvrs, -maxUnvrs, -covProv), by = c("year", "zip3")) %>% rename(weekViz = viz) %>% filter(!is.na(for.plot))
 
 vpRatio <- fullD %>% group_by(year, zip3) %>% 
-  summarise(mn_wkViz = mean(weekViz, na.rm=T), pop = max(pop, na.rm=T), subViz = max(sampViz, na.rm=T), AMAphys = max(avgUnvrs, na.rm=T), IMSphys = max(sampProv, na.rm=T)) %>% 
+  summarise(mn_wkViz = mean(weekViz, na.rm=T), pop = max(pop, na.rm=T), subViz = max(sampViz, na.rm=T), AMAphys = max(avgUnvrs, na.rm=T), IMSphys = max(sampProv, na.rm=T), effPhysCov = max(covAdjProv, na.rm=T)) %>% 
   ungroup %>%
   mutate(vizPopRatio = mn_wkViz/pop) %>% 
   mutate(vizPhysRatio = mn_wkViz/IMSphys) %>% 
   mutate(vizPopRatio.sub = subViz/pop) %>%
   mutate(vizPhysRatio.sub = subViz/IMSphys)
   
-vpRatio.mn <- vpRatio %>% group_by(year) %>% summarise(vizPopRatMn = mean(vizPopRatio, na.rm=T), vizPhysRatMn = mean(vizPhysRatio, na.rm=T), vizPopSubMn = mean(vizPopRatio.sub, na.rm=T), vizPhysSubMn = mean(vizPhysRatio.sub, na.rm=T))
+vpRatio.mn <- vpRatio %>% group_by(year) %>% summarise(vizPopRatMn = mean(vizPopRatio, na.rm=T), vizPhysRatMn = mean(vizPhysRatio, na.rm=T), vizPopSubMn = mean(vizPopRatio.sub, na.rm=T), vizPhysSubMn = mean(vizPhysRatio.sub, na.rm=T), effPhysCovMn = mean(effPhysCov, na.rm=T))
 
 #### explore data ################################
 dir.create('../graph_outputs/explore_coverageRatioMetrics', showWarnings=FALSE) 
@@ -70,7 +70,6 @@ vizphys.plot <- ggplot(vpRatio, aes(x = vizPhysRatio, group = year)) +
 print(vizphys.plot)
 ggsave('vizPhysRatio_iliDat.png', vizphys.plot, width = w, height = h)
 
-
 # 2a) for each year, is the coverage viz/population ratio constant across locations (viz from coverage data)?
 vizpop.plot2 <- ggplot(vpRatio, aes(x = vizPopRatio.sub, group = year)) +
   geom_histogram(aes(y = ..density..), stat = 'bin') +
@@ -80,7 +79,6 @@ vizpop.plot2 <- ggplot(vpRatio, aes(x = vizPopRatio.sub, group = year)) +
 print(vizpop.plot2)
 ggsave('vizPopRatio_covDat.png', vizpop.plot2, width = w, height = h)
 
-
 # 2b) for each year, is the observed viz/physician ratio constant across locations (viz from coverage data)?
 vizphys.plot2 <- ggplot(vpRatio, aes(x = vizPhysRatio.sub, group = year)) +
   geom_histogram(aes(y = ..density..), stat = 'bin') +
@@ -89,3 +87,20 @@ vizphys.plot2 <- ggplot(vpRatio, aes(x = vizPhysRatio.sub, group = year)) +
   ggtitle('Visits (covdata) per physician distribution')
 print(vizphys.plot2)
 ggsave('vizPhysRatio_covDat.png', vizphys.plot2, width = w, height = h)
+
+# 3) for each year, what is the zip3 distribution of effective physician coverage
+effCov.plot <- ggplot(vpRatio, aes(x = effPhysCov, group = year)) +
+  geom_histogram(aes(y = ..density..), stat = 'bin') +
+  geom_vline(data = vpRatio.mn, aes(xintercept = effPhysCovMn), colour = 'red') +
+  facet_wrap(~year) + 
+  ggtitle('Effective zip3 physician coverage')
+print(effCov.plot)
+ggsave('effPhysCov_covDat.png', effCov.plot, width = w, height = h)
+
+#### print answers ################################
+# 1) How many zip3s have any effective physician coverage percentages below 5%?
+View(vpRatio %>% select(-contains('Ratio')) %>% mutate(below5 = effPhysCov < 0.05) %>% filter(below5))
+# 305 zip3-year combinations have coverage below 5%
+
+vpRatio %>% select(-contains('Ratio')) %>% mutate(below5 = effPhysCov < 0.05) %>% filter(below5) %>% select(zip3) %>% unique
+# 145 zip3s have at least one season below 5%
