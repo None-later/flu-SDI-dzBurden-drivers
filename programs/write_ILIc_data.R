@@ -57,7 +57,8 @@ iliDat <- left_join(ili_gather_df, pop_gather_df, by = c('zip3', 'year'))
 cov_df2 <- cov_df %>% select(zip3, year, avgUnvrs, sampViz, covAdjProv) %>%
   filter(!is.na(sampViz + avgUnvrs)) %>% 
   mutate(alpha.numer = sampViz/avgUnvrs) %>%
-  rename(cov_z.y = covAdjProv)
+  rename(cov_z.y = covAdjProv) %>%
+  mutate(cov_below5 = cov_z.y < 0.05)
 
 # calculate \bar{viz_y}/\bar{phys_y})
 mn_viz_phys <- cov_df2 %>% 
@@ -79,7 +80,7 @@ alphaDat_Full2 <- bind_rows(alphaDat_Full, dummy2001Dat)
 alphaDat_Full2 <- arrange(alphaDat_Full2, zip3, year)
 
 # shorten dataset
-alphaDat <- alphaDat_Full2 %>% select(zip3, year, cov_z.y, alpha_z.y) 
+alphaDat <- alphaDat_Full2 %>% select(zip3, year, cov_z.y, alpha_z.y, cov_below5) 
 
 #### data cleaning: generate ilic data ####################################
 # identify zip3s with too little ILI data during fitted week periods (Apr to Oct >= 50 NAs)
@@ -97,7 +98,7 @@ ilicDat <- left_join(iliDat2, alphaDat, by = c("zip3", "year")) %>%
 #### write Data to file ####################################
 write.csv(alphaDat_Full2, file = 'vizPhysRatio_zipYear_corrections.csv', row.names=F)
 write.csv(ilicDat, file = 'ilicByallZip_allWeekly_totServ_totAge.csv', row.names=F)
-
+# exported 10/25/15
 
 
 
