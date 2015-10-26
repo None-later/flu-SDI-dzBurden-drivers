@@ -24,11 +24,9 @@ setwd(dirname(sys.frame(1)$ofile))
 
 #### set these! ####################################
 code <-"" # linear time trend term
-
-# code2 <- "_Oct"
 code2 <- "_Octfit"
 
-span.var <- 0.4 # 0.4, 0.6
+span.var <- 0.6 # 0.4, 0.6
 degree.var <- 2
 code.str <- sprintf('_span%s_degree%s', span.var, degree.var)
 
@@ -45,7 +43,7 @@ dbMetrics <- data5 %>% group_by(season, zipname) %>% filter(in.season) %>% summa
 # data processing in preparation for timing metrics
 data7 <- data5 %>% select(Thu.week, t, ili.dt, season, zipname, flu.week, in.season)
 createTiming1 <- data7 %>% group_by(season, zipname) %>% mutate(t.minweek = ifelse(Thu.week==min(Thu.week), t, 0)) %>% select(Thu.week, season, zipname, t.minweek) %>% ungroup
-createTiming2 <- data7 %>% mutate(ili = as.numeric(ili.dt)) %>% group_by(season, zipname) %>% filter(in.season) %>% mutate(t.firstepiweek = ifelse(Thu.week==min(Thu.week, na.rm=T), t, 0)) %>% mutate(t.peakweek = as.numeric(ifelse(ili.dt==max(ili.dt, na.rm=T), t, 0))) %>% ungroup %>% select(Thu.week, zipname, t.firstepiweek, t.peakweek) # as.numeric wrapper on if/else statement for t.peakweek mutate is due to issue: https://github.com/hadley/dplyr/issues/1036
+createTiming2 <- data7 %>% mutate(ili.dt = as.numeric(ili.dt)) %>% group_by(season, zipname) %>% filter(in.season) %>% mutate(t.firstepiweek = ifelse(Thu.week==min(Thu.week, na.rm=T), t, 0)) %>% mutate(t.peakweek = as.numeric(ifelse(ili.dt==max(ili.dt, na.rm=T), t, 0))) %>% ungroup %>% select(Thu.week, zipname, t.firstepiweek, t.peakweek) # as.numeric wrapper on if/else statement for t.peakweek mutate is due to issue: https://github.com/hadley/dplyr/issues/1036
 createTiming <- left_join(createTiming1, createTiming2, by=c("Thu.week", "zipname")) %>% mutate(Thu.week=as.Date(Thu.week, origin="1970-01-01"))
 # create dataset with metrics
 # 4) wks.to.epi = # weeks between start of flu period and start of epidemic; 5) wks.to.peak = # weeks between start of epidemic and peak IR week
