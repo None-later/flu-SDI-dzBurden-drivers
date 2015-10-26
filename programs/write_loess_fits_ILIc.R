@@ -39,12 +39,13 @@ write_loess_fits_ILIc <- function(span.var, degree.var){
   
   #### perform loess regression ####################################
   allLoessMods <- ilic_df %>% filter(fit.week) %>% filter(Thu.week < as.Date('2009-05-01')) %>% 
-    filter(incl.lm) %>% group_by(zip3) %>%
+    filter(incl.lm) %>% 
+    group_by(zip3) %>%
     do(fitZip3 = loess(ILIc ~ t, span = span.var, degree = degree.var, data = ., na.action=na.exclude))
+    
   allLoessMods_aug <- augment(allLoessMods, fitZip3, newdata= newbasedata)
-  # 10/20/15 tidy and glance aren't implemented for loess models
-  
-  # after augment - join ILI data to fits
+    
+    # after augment - join ILI data to fits
   allLoessMods_fit_ILI <- right_join((allLoessMods_aug %>% ungroup %>% select(-t)), (ilic_df %>% filter(Thu.week < as.Date('2009-05-01'))), by=c('Thu.week', 'zip3')) %>% 
     mutate(week=as.Date(week, origin="1970-01-01")) %>% 
     mutate(Thu.week=as.Date(Thu.week, origin="1970-01-01")) %>% 

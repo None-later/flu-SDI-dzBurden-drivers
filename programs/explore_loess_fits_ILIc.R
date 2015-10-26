@@ -10,7 +10,7 @@
 ## install.packages("pkg", dependencies=TRUE, lib="/usr/local/lib/R/site-library") # in sudo R
 ## update.packages(lib.loc = "/usr/local/lib/R/site-library")
 
-explore_loess_fits_ILIc <- function(span.var, degree.var){
+explore_loess_fits_ILIc <- function(span.var, degree.var, metric){
   #### header ####################################
   require(dplyr)
   require(ggplot2)
@@ -49,7 +49,7 @@ explore_loess_fits_ILIc <- function(span.var, degree.var){
       facet_wrap(~zip3, scales="free_y")
     # grab zip3s in plot for file name
     ziplabels <- data_plot %>% select(zip3) %>% distinct %>% slice(c(i, i+5)) 
-    ggsave(sprintf("loess%s_fits_ILI_%s-%s.png", code.str, ziplabels[1,], ziplabels[2,]), dummyplots, width=w, height=h)
+    ggsave(sprintf("loess%s_fits_ILIc_%s-%s.png", code.str, ziplabels[1,], ziplabels[2,]), dummyplots, width=w, height=h)
   }
   
   # 10/26/15 overlaps with periodicReg_fits_ilicDt/

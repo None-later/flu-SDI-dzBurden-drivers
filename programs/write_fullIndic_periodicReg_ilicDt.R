@@ -57,7 +57,7 @@ write_fullIndic_periodicReg_ilicDt <- function(span.var, degree.var){
   data2 <- data %>% mutate(wknum = as.numeric(substr.Right(ISOweek(Thu.week), 2))) %>% mutate(season = ifelse(wknum<40, as.integer(substr(Thu.week, 3, 4)), as.integer(substr(Thu.week, 3, 4))+1)) 
   
   # 1) include only zip3s where lm was performed; 2) set .fitted + 1.96*.se.fit as the epidemic threshold; 3) identify which weeks are epi weeks
-  data3 <- data2 %>% filter(incl.lm)  %>% mutate(epi.thresh = .fitted+(1.96*.se.fit)) %>% mutate(epi.week = ili>epi.thresh)
+  data3 <- data2 %>% filter(incl.lm)  %>% mutate(epi.thresh = .fitted+(1.96*.se.fit)) %>% mutate(epi.week = ilic.dt>epi.thresh)
   
   ## See explore_fluSeasonDefinition_IR.R for derivation of flu season definition
   # 9/15/15: filter out zip3-season combinations with equivalent or more ILI activity in the previous non-flu season than flu season (season 1 will use subsequent non-flu season)
