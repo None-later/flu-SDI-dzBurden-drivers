@@ -27,7 +27,7 @@ span.list <- seq(0.5, 0.6, by=0.1)
 
 for (span in span.list){
   params <- list(span.var = span, degree.var = 2)
-  
+
   do.call(write_loess_fits_ILIcn, c(params))
   do.call(explore_loess_fits_ILIcn, c(params))
   do.call(write_periodicReg_fits_ilicnDt_Octfit, c(params))

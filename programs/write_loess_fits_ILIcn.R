@@ -16,8 +16,7 @@
 ## update.packages(lib.loc = "/usr/local/lib/R/site-library")
 
 write_loess_fits_ILIcn <- function(span.var, degree.var){
-  print(deparse(sys.call()))
-  
+
   #### header ####################################
   require(dplyr)
   require(ggplot2)

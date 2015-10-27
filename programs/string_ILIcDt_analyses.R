@@ -22,17 +22,17 @@ source("write_relativeDiseaseBurden_ilicDt.R")
 source("explore_dbMetricsDistribution_ilicDt.R")
 
 
-span.list <- seq(0.5, 1, by=0.1)
+span.list <- seq(0.5, 0.6, by=0.1)
 
 for (span in span.list){
   params <- list(span.var = span, degree.var = 2)
   
-  do.call(write_loess_fits_ILIc, c(params))
-  do.call(explore_loess_fits_ILIc, c(params))
-  do.call(write_periodicReg_fits_ilicDt_Octfit, c(params))
-  do.call(write_fullIndic_periodicReg_ilicDt, c(params))
-  do.call(explore_periodicReg_fits_ilicDt, c(params))
-  do.call(write_relativeDiseaseBurden_ilicDt, c(params))
+#   do.call(write_loess_fits_ILIc, c(params))
+#   do.call(explore_loess_fits_ILIc, c(params))
+#   do.call(write_periodicReg_fits_ilicDt_Octfit, c(params))
+#   do.call(write_fullIndic_periodicReg_ilicDt, c(params))
+#   do.call(explore_periodicReg_fits_ilicDt, c(params))
+#   do.call(write_relativeDiseaseBurden_ilicDt, c(params))
   do.call(explore_dbMetricsDistribution_ilicDt, c(params))
 }
 
