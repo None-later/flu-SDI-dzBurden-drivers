@@ -50,28 +50,28 @@ explore_dbMetricsDistribution_ilicDt <- function(span.var, degree.var){
   # total ILI plot
   plt.distr.iliSum <- ggplot(dbMetrics.g %>% filter(metric=='ilicDt.sum'), aes(x=burden, group=season)) +
     geom_histogram(aes(y=..density..), binwidth=10) + geom_density() + 
-    # coord_cartesian(xlim=c(0, 250)) +
+    coord_cartesian(xlim=c(0, 250)) +
     facet_wrap(~season) + ggtitle("Sum ilicDt during flu season")
   ggsave(sprintf("distr_ILITot_%silicDt%s%s.png", code, code2, code.str), plt.distr.iliSum, width=w, height=h)
   
   # ILI in excess of modeled seasonal baseline
   plt.distr.ILIexcessBL <- ggplot(dbMetrics.g %>% filter(metric=='ilicDt.excess.BL'), aes(x=burden, group=season)) +
     geom_histogram(aes(y=..density..), binwidth=10) + geom_density() + 
-    # coord_cartesian(xlim=c(0, 200)) +
+    coord_cartesian(xlim=c(0, 200)) +
     facet_wrap(~season) + ggtitle("ilicDt in excess of modeled seasonal baseline during flu season")
   ggsave(sprintf("distr_ILIexcessBL_%silicDt%s%s.png", code, code2, code.str), plt.distr.ILIexcessBL, width=w, height=h)
   
   # ili in excess of modeled epidemic threshold (BL + 1.96*se)
   plt.distr.ILIexcessThresh <- ggplot(dbMetrics.g %>% filter(metric=='ilicDt.excess.thresh'), aes(x=burden, group=season)) +
     geom_histogram(aes(y=..density..), binwidth=10) + geom_density() + 
-    # coord_cartesian(xlim=c(-150, 250)) +
+    coord_cartesian(xlim=c(-150, 250)) +
     facet_wrap(~season) + ggtitle("ilicDt in excess of modeled epidemic threshold during flu season")
   ggsave(sprintf("distr_ILIexcessThresh_%silicDt%s%s.png", code, code2, code.str), plt.distr.ILIexcessThresh, width=w, height=h)
   
   # ili peak case count plot
   plt.distr.pkCount <- ggplot(dbMetrics.g %>% filter(metric=='ilicDt.peak'), aes(x=burden, group=season)) +
     geom_histogram(aes(y=..density..), binwidth=5) + geom_density() + 
-    # coord_cartesian(xlim=c(0, 50)) +
+    coord_cartesian(xlim=c(0, 50)) +
     facet_wrap(~season) + ggtitle("peak ilicDt count during flu season")
   ggsave(sprintf("distr_pkCount_%silicDt%s%s.png", code, code2, code.str), plt.distr.pkCount, width=w, height=h)
   
