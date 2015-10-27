@@ -22,7 +22,7 @@ source("write_relativeDiseaseBurden_ilicDt.R")
 source("explore_dbMetricsDistribution_ilicDt.R")
 
 
-span.list <- seq(0.5, 0.6, by=0.1)
+span.list <- c(0.6)
 
 for (span in span.list){
   params <- list(span.var = span, degree.var = 2)
