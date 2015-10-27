@@ -75,6 +75,7 @@ write_fullIndic_periodicReg_ilicDt <- function(span.var, degree.var){
   data6 <- left_join(data4, (data5 %>% ungroup %>% select(Thu.week, zip3, in.season)), by = c("Thu.week", "zip3")) %>% mutate(Thu.week=as.Date(Thu.week, origin="1970-01-01")) %>% filter(has.epi & incl.analysis)
   
   # save to file 
+  print(sprintf('writing full indicators to file %s', code.str))
   # these data are used in "write_relativeDiseaseBurden_ilicDt.R" for further processing of disease burden metrics
   write.csv(data5, file = sprintf('fullIndicFlu_periodicReg_%silicDt%s%s_analyzeDB.csv', code, code2, code.str), row.names=FALSE)
   write.csv(data6, file = sprintf('fullIndicAll_periodicReg_%silicDt%s%s_analyzeDB.csv', code, code2, code.str), row.names=FALSE)

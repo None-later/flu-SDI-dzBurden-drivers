@@ -76,6 +76,7 @@ write_relativeDiseaseBurden_ilicDt <- function(span.var, degree.var){
   coordsData2 <- coordsData %>% select(-w_lat, -w_long, -pop)
   dbMetrics.coords <- left_join(dbMetrics.g, coordsData2, by = "zip3")
   
+  print(sprintf('writing db metrics to file %s', code.str))
   #### save summary data ##################
   # save summary data to file 
   # these data are used in "explore_dbMetricsDistribution_IR.R" for exploratory analysis of outcome metrics

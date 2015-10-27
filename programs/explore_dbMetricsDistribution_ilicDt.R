@@ -40,6 +40,8 @@ explore_dbMetricsDistribution_ilicDt <- function(span.var, degree.var){
   
   #### plot distribution of dbMetrics ####################################
   # 9/15/15 - saved figures
+  print(sprintf('plotting db metrics distribution %s', code.str))
+  
   dir.create(sprintf('../graph_outputs/explore_dbMetricsDistribution_%silicDt%s%s', code, code2, code.str), showWarnings=FALSE)
   setwd(sprintf('../graph_outputs/explore_dbMetricsDistribution_%silicDt%s%s', code, code2, code.str))
   
