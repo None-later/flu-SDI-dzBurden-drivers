@@ -14,6 +14,8 @@
 ## update.packages(lib.loc = "/usr/local/lib/R/site-library")
 
 explore_dbMetricsDistribution_ilicnDt <- function(span.var, degree.var){
+  print(deparse(sys.call()))
+  
   #### header ####################################
   require(ggplot2)
   require(readr)
@@ -39,6 +41,7 @@ explore_dbMetricsDistribution_ilicnDt <- function(span.var, degree.var){
   h = 6
   
   #### plot distribution of dbMetrics ####################################
+  print(sprintf('plotting db metrics %s', code.str))
   # 9/15/15 - saved figures
   dir.create(sprintf('../graph_outputs/explore_dbMetricsDistribution_%silicnDt%s%s', code, code2, code.str), showWarnings=FALSE)
   setwd(sprintf('../graph_outputs/explore_dbMetricsDistribution_%silicnDt%s%s', code, code2, code.str))
@@ -92,6 +95,7 @@ explore_dbMetricsDistribution_ilicnDt <- function(span.var, degree.var){
     facet_wrap(~season) + ggtitle("weeks to peak during epidemic")
   ggsave(sprintf("distr_pkTime_%silicnDt%s%s.png", code, code2, code.str), plt.distr.pkTime, width=w, height=h)
   
+  print('finished plotting db metrics')
   # FINDING: magnitude metrics could be truncated and shifted normals, but timing metrics don't appear to be normally distributed
   ####################################
   # compare the mean and variance for each metric by season

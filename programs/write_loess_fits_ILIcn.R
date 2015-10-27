@@ -15,7 +15,9 @@
 ## install.packages("pkg", dependencies=TRUE, lib="/usr/local/lib/R/site-library") # in sudo R
 ## update.packages(lib.loc = "/usr/local/lib/R/site-library")
 
-write_loess_fits_ILIcn <- function(span.var, degree.var, metric){
+write_loess_fits_ILIcn <- function(span.var, degree.var){
+  print(deparse(sys.call()))
+  
   #### header ####################################
   require(dplyr)
   require(ggplot2)
@@ -34,27 +36,32 @@ write_loess_fits_ILIcn <- function(span.var, degree.var, metric){
   code.str <- sprintf('_span%s_degree%s', span.var, degree.var)
   
   #### data cleaning ####################################
+  # 10/27/15 remove zip3s with missing pop data in incl.lm indicator
+  ilic_df2 <- ilic_df %>% 
+    mutate(incl.lm = ifelse(!incl.lm, FALSE, ifelse(is.na(pop), FALSE, TRUE))) %>% 
+    mutate(ILIcn = ILIc/pop*10000)
+
   # create new data for augment
-  newbasedata <- ilic_df %>% select(Thu.week, t) %>% unique %>% filter(Thu.week < as.Date('2009-05-01'))
-  
+  newbasedata <- ilic_df2 %>% select(Thu.week, t) %>% unique %>% filter(Thu.week < as.Date('2009-05-01')) 
   #### perform loess regression ####################################
-  allLoessMods <- ilic_df %>% filter(fit.week) %>% filter(Thu.week < as.Date('2009-05-01')) %>% 
-    filter(incl.lm) %>%       
-    mutate(ILIcn = ILIc/pop*10000) %>%
+  allLoessMods <- ilic_df2 %>%
+    filter(fit.week) %>% 
+    filter(Thu.week < as.Date('2009-05-01')) %>% 
+    filter(incl.lm) %>%
     group_by(zip3) %>%
     do(fitZip3 = loess(ILIcn ~ t, span = span.var, degree = degree.var, data = ., na.action=na.exclude))
     
   allLoessMods_aug <- augment(allLoessMods, fitZip3, newdata= newbasedata)
  
-    # after augment - join ILI data to fits
-  allLoessMods_fit_ILI <- right_join((allLoessMods_aug %>% ungroup %>% select(-t)), (ilic_df %>% filter(Thu.week < as.Date('2009-05-01'))), by=c('Thu.week', 'zip3')) %>% 
+  # after augment - join ILI data to fits
+  allLoessMods_fit_ILI <- right_join((allLoessMods_aug %>% ungroup %>% select(-t)), (ilic_df2 %>% filter(Thu.week < as.Date('2009-05-01'))), by=c('Thu.week', 'zip3')) %>% 
     mutate(week=as.Date(week, origin="1970-01-01")) %>% 
     mutate(Thu.week=as.Date(Thu.week, origin="1970-01-01")) %>% 
-    mutate(ilicn.dt = ifelse(.fitted <= 1, ILIcn, ILIcn/.fitted)) 
-
+   mutate(ilicn.dt = ifelse(.fitted <= 1, ILIcn, ILIcn/.fitted)) 
   
-  
+ 
   #### write data to file ####################################
+  print('writing loess fits')
   setwd('../R_export')
   # write fitted and original loess smoothed ILI data 
   write.csv(allLoessMods_fit_ILI, file=sprintf('loess%s_allZip3Mods_ILIcn.csv', code.str), row.names=FALSE)

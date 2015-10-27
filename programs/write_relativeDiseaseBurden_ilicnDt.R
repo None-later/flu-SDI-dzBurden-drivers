@@ -14,6 +14,8 @@
 ## update.packages(lib.loc = "/usr/local/lib/R/site-library")
 
 write_relativeDiseaseBurden_ilicnDt <- function(span.var, degree.var){
+  print(deparse(sys.call()))
+  
   #### header ####################################
   require(dplyr)
   require(ggplot2)
@@ -77,6 +79,7 @@ write_relativeDiseaseBurden_ilicnDt <- function(span.var, degree.var){
   dbMetrics.coords <- left_join(dbMetrics.g, coordsData2, by = "zip3")
   
   #### save summary data ##################
+  print(sprintf('writing db metrics to file %s', code.str))
   # save summary data to file 
   # these data are used in "explore_dbMetricsDistribution_IR.R" for exploratory analysis of outcome metrics
   setwd('../R_export')

@@ -16,6 +16,8 @@
 ## update.packages(lib.loc = "/usr/local/lib/R/site-library")
 
 write_periodicReg_fits_ilicnDt_Octfit <- function(span.var, degree.var){
+  print(deparse(sys.call()))
+  
   #### header ####################################
   require(dplyr)
   require(ggplot2)
@@ -40,6 +42,7 @@ write_periodicReg_fits_ilicnDt_Octfit <- function(span.var, degree.var){
   newbasedata <- ILI_full_df %>% select(Thu.week, t) %>% unique %>% filter(Thu.week < as.Date('2009-05-01'))
   
   # perform periodic regression
+  print('performing periodic regression')
   allMods <- ILI_full_df %>% filter(fit.week) %>% filter(Thu.week < as.Date('2009-05-01')) %>% 
     filter(incl.lm) %>% group_by(zip3) %>%
     do(fitZip3 = lm(ilicn.dt ~ t + cos(2*pi*t/52.18) + sin(2*pi*t/52.18), data = ., na.action=na.exclude))
@@ -54,6 +57,7 @@ write_periodicReg_fits_ilicnDt_Octfit <- function(span.var, degree.var){
   
   
   #### write data to file ####################################
+  print(sprintf('writing periodic reg data to file %s', code.str))
   setwd('../R_export')
   # write fitted and original IR data 
   write.csv(allMods_fit_ILI, file=sprintf('periodicReg_%sallZip3Mods_ilicnDt%s%s.csv', code, code2, code.str), row.names=FALSE)

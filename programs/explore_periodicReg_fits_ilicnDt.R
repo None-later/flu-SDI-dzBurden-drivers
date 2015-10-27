@@ -12,6 +12,8 @@
 
 
 explore_periodicReg_fits_ilicnDt <- function(span.var, degree.var){
+  print(deparse(sys.call()))
+  
   #### header ####################################
   require(dplyr)
   require(ggplot2)
@@ -37,6 +39,7 @@ explore_periodicReg_fits_ilicnDt <- function(span.var, degree.var){
   fitdata <- read_csv(file=sprintf('summaryStats_periodicReg_%sallZip3Mods_ilicnDt%s%s.csv', code, code2, code.str), col_types=list(zip3 = col_character()))
   
   #### initial time series plots ################################
+  print(sprintf('plotting time series %s', code.str))
   dir.create(sprintf('../graph_outputs/explore_periodicReg_%sfits_ilicnDt%s%s', code, code2, code.str), showWarnings = FALSE)
   setwd(sprintf('../graph_outputs/explore_periodicReg_%sfits_ilicnDt%s%s', code, code2, code.str))
   
@@ -58,6 +61,7 @@ explore_periodicReg_fits_ilicnDt <- function(span.var, degree.var){
   } 
   
   #### 10/20/15 residual vs fitted ################################
+  print(sprintf('plotting diagnostics %s', code.str))
   dir.create('./diagnostics', showWarnings = FALSE)
   setwd('./diagnostics')
   

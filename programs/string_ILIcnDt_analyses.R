@@ -11,6 +11,8 @@
 ## update.packages(lib.loc = "/usr/local/lib/R/site-library")
 
 rm(list = ls())
+
+
 setwd(dirname(sys.frame(1)$ofile))
 source("write_loess_fits_ILIcn.R")
 source("explore_loess_fits_ILIcn.R")
@@ -18,10 +20,10 @@ source("write_periodicReg_fits_ilicnDt_Octfit.R")
 source("write_fullIndic_periodicReg_ilicnDt.R")
 source("explore_periodicReg_fits_ilicnDt.R")
 source("write_relativeDiseaseBurden_ilicnDt.R")
-# source("explore_dbMetricsDistribution_ilicnDt.R")
+source("explore_dbMetricsDistribution_ilicnDt.R")
 
 
-span.list <- c(0.7, 0.8, 0.9, 1)
+span.list <- seq(0.5, 0.6, by=0.1)
 
 for (span in span.list){
   params <- list(span.var = span, degree.var = 2)

@@ -11,6 +11,7 @@
 ## update.packages(lib.loc = "/usr/local/lib/R/site-library")
 
 explore_loess_fits_ILIcn <- function(span.var, degree.var){
+  print(deparse(sys.call()))
   #### header ####################################
   require(dplyr)
   require(ggplot2)
@@ -31,6 +32,7 @@ explore_loess_fits_ILIcn <- function(span.var, degree.var){
   
   
   #### loess fit plots ################################
+  print('plotting loess fits')
   dir.create('../graph_outputs/explore_loess_fits_ILIcn', showWarnings = FALSE)
   dir.create(sprintf('../graph_outputs/explore_loess_fits_ILIcn/fits%s', code.str), showWarnings = FALSE)
   setwd(sprintf('../graph_outputs/explore_loess_fits_ILIcn/fits%s', code.str))
@@ -54,6 +56,7 @@ explore_loess_fits_ILIcn <- function(span.var, degree.var){
   
   # 10/26/15 overlaps with periodicReg_fits_ilicDt/
   #### ilic.dt plots ################################
+  print('plotting ilicn.dt ts')
   dir.create(sprintf('../ilicnDt%s', code.str), showWarnings = FALSE)
   setwd(sprintf('../ilicnDt%s', code.str))
   
