@@ -18,6 +18,7 @@ require(tidyr)
 require(dplyr)
 require(readr)
 require(ggplot2)
+require(R2jags)
 source("source_jags_posterior_plots.R")
 set.seed(19)
 
@@ -25,12 +26,18 @@ set.seed(19)
 code <- 't2_'
 code2 <- '_Oct'
 modcode <- '1a_iliSum'
-s <- 4
-version <- 'v2' 
+s <- 8
+version <- 'v3' 
 
 #### assign plotting params ################################
-var.names <- c("lambda", "phi", "theta", "p", "z", "y")
-var.coda <- c("lambda", "phi", "theta", "p", "z")
+if (version=='v1'|version=='v2'){
+  var.names <- c("lambda", "phi", "theta", "p", "z", "y")
+  var.coda <- c("lambda", "phi", "theta", "p", "z")
+}else if(version=='v3'){
+  var.names <- c("lambda", "phi", "p", "z", "y")
+  var.coda <- c("lambda", "phi", "p", "z")
+}
+
 
 #### assign MCMC params ################################
 n.adapt <- 5000 # MH tuning chains to discard
@@ -75,7 +82,8 @@ mout.full <- rbind(chain1, chain2)
 zip.forplots <- data.frame(zipname = md$zipname, for.plot = seq_along(md$zipname), y.data = md$burden)
 
 # separate df for parameters
-mout.paramsg <- mout.full %>% select(-contains("z["), -contains("p[")) %>% gather(param, sample, lambda:theta) %>% mutate(param = as.character(param))
+mout.params <- mout.full %>% select(-contains("z["), -contains("p[")) 
+mout.paramsg <- gather(mout.params, param, sample, 1:(ncol(mout.params)-2)) %>% mutate(param = as.character(param))
 
 # separate df for derived quantities (p[i])
 der.varnames <- paste0("p", md$zipname)
@@ -113,21 +121,24 @@ dir.create(sprintf('../graph_outputs/jagsModelDiagnostics/%s/%s', modcode, versi
 setwd(sprintf('../graph_outputs/jagsModelDiagnostics/%s/%s', modcode, version))
 
 paramsPlot(mout.paramsg, plotWrapper)
-# derPlot(mout.derg2, zip.forplots, plotWrapper)
+derPlot(mout.derg2, zip.forplots, plotWrapper)
 zPlot(mout.zg2, zip.forplots, plotWrapper)
 
 #### sample diagnostics plots ################################
 # plot est. params
+paramnames <- mout.paramsg %>% select(param) %>% distinct %>% unlist
 png(sprintf('param_diag_%s_%s_S%s.png', modcode, version, s), width = w.pix, height = h.pix)
-plot(mcoda[,var.coda[1:3]], cex = sz)
+plot(mcoda[,paramnames], cex = sz)
 dev.off()
 # plot some p_i
+pvarnames <- c("p[1]", "p[2]", "p[3]", "p[4]")
 png(sprintf('derivSamp_diag_%s_%s_S%s.png', modcode, version, s), width = w.pix, height = h.pix)
-plot(mcoda[,5:8], cex = sz)
+plot(mcoda[,pvarnames], cex = sz)
 dev.off()
 # plot some z_i
+zvarnames <- c("z[1]", "z[2]", "z[3]", "z[4]")
 png(sprintf('zSamp_diag_%s_%s_S%s.png', modcode, version, s), width = w.pix, height = h.pix)
-plot(mcoda[,360:363], cex = sz)
+plot(mcoda[,zvarnames], cex = sz)
 dev.off()
 
 # #### convergence diagnostics ################################
