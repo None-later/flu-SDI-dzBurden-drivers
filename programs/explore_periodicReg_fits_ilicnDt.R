@@ -88,8 +88,16 @@ explore_periodicReg_fits_ilicnDt <- function(span.var, degree.var){
     geom_histogram() + 
     geom_vline(data = quantD, aes(xintercept = c(q05, q25, q50, q75, q95), colour = 'red'))
   ggsave(sprintf("periodicReg_%sAdjR2_ilicnDt%s%s.png", code, code2, code.str), adjR2plot, width=w, height=h)
+ 
+  #### 10/27/15 histogram of sigma hat (unexplained variance) ################################
+  sigmaplot <- ggplot(fitdata, aes(x = sigma)) +
+    geom_histogram(binwidth = 0.2) +
+    coord_cartesian(xlim = c(0, 2))
+  ggsave(sprintf("periodicReg_%ssigma_ilicnDt%s%s.png", code, code2, code.str), sigmaplot, width=w, height=h)
   
+  print(fitdata %>% filter(sigma>0.9))
 }
+
 
 
 
