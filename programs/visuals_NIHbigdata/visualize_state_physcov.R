@@ -54,5 +54,5 @@ tsplots <- ggplot(data = data4 , aes(x = year, y = covAdjProv*100, group = fulls
   # guides(colour = FALSE) +
   facet_wrap(~fullstate.fac)
 # print(tsplots)
-ggsave("physCov_ts_state.pdf", tsplots, width = w, height = h, dpi = 450)
+ggsave("physCov_ts_state.png", tsplots, width = w, height = h, dpi = 450)
 # 10/29/15 saved
