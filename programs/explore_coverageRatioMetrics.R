@@ -44,6 +44,7 @@ vpRatio <- fullD %>% group_by(year, zip3) %>%
   mutate(vizPhysRatio = mn_wkViz/IMSphys) %>% 
   mutate(vizPopRatio.sub = subViz/pop) %>%
   mutate(vizPhysRatio.sub = subViz/IMSphys)
+# 10/30/15 mn_wkViz was calculated as the aggregate ILI visits data because it wouldn't discount locations that had more missing data than other locations.
   
 vpRatio.mn <- vpRatio %>% group_by(year) %>% summarise(vizPopRatMn = mean(vizPopRatio, na.rm=T), vizPhysRatMn = mean(vizPhysRatio, na.rm=T), vizPopSubMn = mean(vizPopRatio.sub, na.rm=T), vizPhysSubMn = mean(vizPhysRatio.sub, na.rm=T), effPhysCovMn = mean(effPhysCov, na.rm=T))
 
