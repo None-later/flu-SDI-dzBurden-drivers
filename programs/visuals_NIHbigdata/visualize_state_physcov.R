@@ -17,6 +17,7 @@ require(dplyr)
 require(readr)
 require(RColorBrewer)
 require(grid)
+require(ggthemes)
 setwd(dirname(sys.frame(1)$ofile)) # only works if you source the program
 
 fparams <- list(metric = 'ilicnDt', span = 0.5, degree = 2)
@@ -46,7 +47,7 @@ setwd('../../graph_outputs/visuals_NIHbigdata')
 
 tsplots <- ggplot(data = data4 , aes(x = year, y = covAdjProv*100, group = fullstate.fac)) +
   geom_line(aes(colour = factor(hhsregion)), size = 2) +
-  scale_colour_brewer(name = "HHS Region (numbered E to W)", palette = "Paired") +
+  scale_colour_tableau(name = "HHS Region (numbered E to W)") +
   scale_y_continuous(name = "effective physician coverage (%)") +
   scale_x_continuous(breaks = c(2002, 2005, 2008)) +
   theme_classic(base_size = 15, base_family = "") +

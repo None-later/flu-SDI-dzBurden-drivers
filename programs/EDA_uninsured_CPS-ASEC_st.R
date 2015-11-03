@@ -25,7 +25,7 @@ data2 <- ui_data %>% mutate(state = tolower(name))
 
 #### plot formatting ################################
 w = 9
-h = 6
+h = 5
 
 #### choropleth by year ################################
 # import choropleth state map from ggplot2
@@ -36,13 +36,13 @@ setwd("../graph_outputs/EDA_uninsured_CPS-ASEC_st")
 
 ui.choro <- ggplot(data2, aes(map_id = state, group = year)) +
   geom_map(aes(fill = pctui), map = states_map, color = "black") +
-  scale_fill_gradient(low = "light yellow", high = "red", guide = "legend", breaks = seq(4, 26, 3)) +
+  scale_fill_gradient(name = "Uninsured (%)", low = "light yellow", high = "red", guide = "legend", breaks = seq(4, 26, 3)) +
   expand_limits(x = states_map$long, y = states_map$lat) +
   theme_minimal() +
-  theme(text = element_text(size = 18), axis.ticks = element_blank(), axis.text = element_blank(), axis.title = element_blank(), panel.grid = element_blank()) +
-  facet_wrap(~year) + 
-  ggtitle('Percent uninsured')
-ggsave("pctui_st_0209.png", width=w, height=h)
+  theme(text = element_text(size = 18), axis.ticks = element_blank(), axis.text = element_blank(), axis.title = element_blank(), panel.grid = element_blank(), legend.position = "bottom") +
+  facet_wrap(~year, nrow = 2) # + 
+  # ggtitle('Percent uninsured')
+ggsave("pctui_st_0209.png", width=w, height=h, dpi = 300)
 # exported 9/29/15
 
 #### time series by state ################################
@@ -53,6 +53,6 @@ ui.ts <- ggplot(data2, aes(x = year, y = pctui, group = name)) +
   geom_hline(yintercept = c(20, 10), color = c('red', 'green'), size = 0.5) +
   ylab("Percent uninsured") +
   facet_wrap(~name)
-ggsave("pctui_st_AL-WY.png", width=12, height=12)
+ggsave("pctui_st_AL-WY.png", width=12, height=12, dpi = 300)
 # exported 9/29/15
 
