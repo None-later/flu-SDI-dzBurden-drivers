@@ -46,8 +46,8 @@ write_fullIndic_periodicReg_ilicnDt <- function(span.var, degree.var){
   #### set these! ####################################
   code <-"" # linear time trend term
   code2 <- "_Octfit"
-  # span.var <- 0.4 # 0.4, 0.6
-  # degree.var <- 2
+#   span.var <- 0.5 # 0.4, 0.6
+#   degree.var <- 2
   code.str <- sprintf('_span%s_degree%s', span.var, degree.var)
   
   #### data processing (based on explore_fluSeasonDefinition_ILI.R) ####################################
