@@ -27,7 +27,7 @@ span.var <- 0.5
 degree.var <- 2
 code.str <- sprintf('_span%s_degree%s', span.var, degree.var)
 zipset <- c('941', '946', '947')
-w <- 2; h <- 2; wleg <- 3
+w <- 2; h <- 2; wleg <- 3.4
 fontsz <- 10
 mar <- c(0,0,0,0)
 sz <- 1
@@ -60,7 +60,7 @@ iliSum.plt <- ggplot(exampD, aes(x = Thu.week, y = ilicn.dt)) +
   scale_x_date("Time") +
   scale_y_continuous("ILIcn.dt") +
   guides(fill = "none") +
-  ggtitle("Total ILI rate")
+  ggtitle("Total ILI intensity")
 ggsave("dbGeneric_iliSum.png", iliSum.plt, width = w, height = h, dpi = dp)
 print(iliSum.plt)
 
@@ -73,7 +73,7 @@ iliPeak.plt <- ggplot(exampD, aes(x = Thu.week, y = ilicn.dt)) +
   scale_x_date("Time") +
   scale_y_continuous("ILIcn.dt") +
   # guides(fill = "none") +
-  ggtitle("Peak season ILI rate")
+  ggtitle("Peak ILI intensity")
 ggsave("dbGeneric_iliPeak.png", iliPeak.plt, width = wleg, height = h, dpi = dp)
 print(iliPeak.plt)
 
