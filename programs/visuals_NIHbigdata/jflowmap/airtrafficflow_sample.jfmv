@@ -1,0 +1,24 @@
+view=flowmap
+view.flowmap.colorScheme=Light Blue
+
+data=csv
+data.csv.nodes.src=input_files/metidCoords.csv
+data.csv.flows.src=input_files/airtrafficSampleFlows.csv
+
+
+data.attrs.node.id=Met
+data.attrs.node.label=MSA
+data.attrs.node.lat=Lat
+data.attrs.node.lon=Lon
+data.attrs.flow.origin=Met1
+data.attrs.flow.dest=Met2
+
+data.attrs.flow.weight.csvList=avgPass
+
+
+map=shapefile
+map.shapefile.src=cb_2014_us_nation_5m.shp
+map.projection=FlipY
+map.background.transparency=0.7
+
+window.settings.show=true

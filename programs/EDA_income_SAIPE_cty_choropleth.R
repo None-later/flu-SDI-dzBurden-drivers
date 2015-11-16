@@ -24,10 +24,18 @@ h <- 5; w <- 8; dp <- 450
 mar <- rep(0, 4)
 
 #### import data ################################
+setwd('../reference_data')
+abbrDat <- read_csv("state_abbreviations_FIPS.csv", col_types = list(FIPS = col_character()))
+
+setwd(dirname(sys.frame(1)$ofile))
 setwd("../../../../Sandra Goldlust's Work/Shared_Data/SG_covariate_data/Cleaned_Data")
 # income data
 incomeDat <- read_csv("clean_SAIPE_income.csv", col_types = list("state_id" = col_character(), "county_id" = col_character()), na = c("\\N")) %>%
-  filter(type == 'county') 
+  filter(type == 'county')
+  
+fullDat <- left_join(incomeDat, abbrDat, by = c("state_id" = "FIPS")) %>%
+  mutate(cty = tolower(substring(name, 1, nchar(name)-12))) %>%
+  mutate(match = paste(tolower(State), cty, sep=','))
 
 setwd(dirname(sys.frame(1)$ofile))
 dir.create("../graph_outputs/EDA_income_SAIPE_cty", showWarnings = FALSE)
@@ -35,15 +43,20 @@ setwd("../graph_outputs/EDA_income_SAIPE_cty")
 
 par(mar = mar, oma = mar)
 years <- c(1995, 1997:2013)
+
 for (yr in years){
-  pltDat <- incomeDat %>%
+  pltDat <- fullDat %>%
     filter(year == yr) %>%
     mutate(mi_bin = cut(med_income, breaks = quantile(med_income, probs = seq(0, 1, by = 1/5), na.rm=T), ordered_result = TRUE)) %>%
     mutate(mi_bin = factor(mi_bin, levels = rev(levels(mi_bin)), labels = incVec)) %>% 
     mutate(income_color = factor(mi_bin, levels = levels(mi_bin), labels = colVec)) %>%
     mutate(inc_col_string = as.character(income_color))
+  
+  pltOrder <- pltDat$county_id[match(map("county", plot=FALSE)$names, pltDat$match)]
+  colOrder <- pltDat$inc_col_string[match(pltOrder, pltDat$county_id)]
+  
   png(filename = sprintf("medHouseholdIncome_cty_%s.png", yr), height = h, width = w, units = "in", res = dp)
-  map("county", fill = TRUE, col = pltDat$inc_col_string, xlim = c(-124, -65), ylim = c(20, 50))
+  map("county", fill = TRUE, col = colOrder, xlim = c(-124, -65), ylim = c(20, 50), lwd = 0.1)
   legend(list(x = -122.5, y = 24), legend = incVec, horiz = TRUE,  fill = levels(pltDat$income_color), cex = 0.75) # Tier 1= 120K to 140K income
   dev.off()
   print(pltDat %>% count(mi_bin))

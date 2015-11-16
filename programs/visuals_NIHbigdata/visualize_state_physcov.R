@@ -51,6 +51,7 @@ tsplots <- ggplot(data = data4 , aes(x = year, y = covAdjProv*100, group = fulls
   scale_y_continuous(name = "effective physician coverage (%)") +
   scale_x_continuous(breaks = c(2002, 2005, 2008)) +
   theme_classic(base_size = 15, base_family = "") +
+  geom_hline(yintercept = 20, color = 'black', size = 0.5) +
   theme(panel.grid = element_blank(), plot.margin = unit(mar, "mm"), panel.margin = unit(mar, "mm"), legend.position = "bottom", axis.title.x = element_blank()) +
   # guides(colour = FALSE) +
   facet_wrap(~fullstate.fac)

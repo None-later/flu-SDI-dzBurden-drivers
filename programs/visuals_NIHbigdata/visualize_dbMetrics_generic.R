@@ -39,6 +39,7 @@ naCol <- 'grey50'
 falsCol <- '#a6cee3'
 truCol <- '#cb181d'
 truColLt <- '#fcbba1'
+ylab <- 'Flu incidence'
 
 #### import data ##################
 setwd('../../R_export/dataSnapshot_NIHbigdata')
@@ -58,9 +59,9 @@ iliSum.plt <- ggplot(exampD, aes(x = Thu.week, y = ilicn.dt)) +
   theme_classic(base_size = fontsz, base_family = "") +
   theme(panel.grid.minor = element_blank(), plot.margin = unit(mar, "mm"), axis.ticks = element_blank(), axis.text = element_blank()) +
   scale_x_date("Time") +
-  scale_y_continuous("ILIcn.dt") +
+  scale_y_continuous(ylab) +
   guides(fill = "none") +
-  ggtitle("Total ILI intensity")
+  ggtitle("Seasonal intensity")
 ggsave("dbGeneric_iliSum.png", iliSum.plt, width = w, height = h, dpi = dp)
 print(iliSum.plt)
 
@@ -71,9 +72,9 @@ iliPeak.plt <- ggplot(exampD, aes(x = Thu.week, y = ilicn.dt)) +
   theme_classic(base_size = fontsz, base_family = "") +
   theme(panel.grid.minor = element_blank(), plot.margin = unit(mar, "mm"), axis.ticks = element_blank(), axis.text = element_blank(), legend.position = "right", legend.margin = unit(0, "mm")) +
   scale_x_date("Time") +
-  scale_y_continuous("ILIcn.dt") +
+  scale_y_continuous(ylab) +
   # guides(fill = "none") +
-  ggtitle("Peak ILI intensity")
+  ggtitle("Peak intensity")
 ggsave("dbGeneric_iliPeak.png", iliPeak.plt, width = wleg, height = h, dpi = dp)
 print(iliPeak.plt)
 
@@ -86,7 +87,7 @@ aboveThresh.plt <- ggplot(exampD, aes(x = Thu.week, y = ilicn.dt)) +
   theme_classic(base_size = fontsz, base_family = "") +
   theme(panel.grid.minor = element_blank(), plot.margin = unit(mar, "mm"), axis.ticks = element_blank(), axis.text = element_blank()) +
   scale_x_date("Time") +
-  scale_y_continuous("ILIcn.dt") +
+  scale_y_continuous(ylab) +
   guides(fill = "none") +
   ggtitle("ILI above threshold")
 ggsave("dbGeneric_aboveThresh.png", aboveThresh.plt, width = w, height = h, dpi = dp)
@@ -95,6 +96,10 @@ print(aboveThresh.plt)
 #### gridded magnitude metrics plots ##################
 png(filename = "dbGeneric_allMagnitude.png", height = h, width = w*2+wleg, units = "in", res = dp)
 mag.plts <- grid.arrange(grobs = list(iliSum.plt, aboveThresh.plt, iliPeak.plt), widths = unit(c(w, w, wleg), "in"), nrow = 1)
+dev.off()
+
+png(filename = "dbGeneric_allMagnitude2.png", height = h, width = w+wleg, units = "in", res = dp)
+mag.plts <- grid.arrange(grobs = list(iliSum.plt, iliPeak.plt), widths = unit(c(w, wleg), "in"), nrow = 1)
 dev.off()
 
 #### duration Markers ##################
@@ -125,7 +130,7 @@ epiDur.plt <- ggplot(exampD, aes(x = Thu.week, y = ilicn.dt)) +
   theme_classic(base_size = fontsz, base_family = "") +
   theme(panel.grid.minor = element_blank(), plot.margin = unit(mar, "mm"), axis.ticks = element_blank(), axis.text = element_blank()) +
   scale_x_date("Time") +
-  scale_y_continuous("ILIcn.dt") +
+  scale_y_continuous(ylab) +
   guides(fill = "none") +
   ggtitle("Epidemic duration")
 ggsave("dbGeneric_epiDur.png", epiDur.plt, width = w, height = h, dpi = dp)
@@ -140,7 +145,7 @@ timeToStart.plt <- ggplot(exampD, aes(x = Thu.week, y = ilicn.dt)) +
   theme_classic(base_size = fontsz, base_family = "") +
   theme(panel.grid.minor = element_blank(), plot.margin = unit(mar, "mm"), axis.ticks = element_blank(), axis.text = element_blank(), legend.position = "right", legend.margin = unit(0, "in")) +
   scale_x_date("Time") +
-  scale_y_continuous("ILIcn.dt") +
+  scale_y_continuous(ylab) +
   guides(colour = guide_legend(order = 1),
          fill = guide_legend(order = 2, title = NULL)) +
   ggtitle("Time to epidemic start")
@@ -156,13 +161,33 @@ timeToPeak.plt <- ggplot(exampD, aes(x = Thu.week, y = ilicn.dt)) +
   theme_classic(base_size = fontsz, base_family = "") +
   theme(panel.grid.minor = element_blank(), plot.margin = unit(mar, "mm"), axis.ticks = element_blank(), axis.text = element_blank()) +
   scale_x_date("Time") +
-  scale_y_continuous("ILIcn.dt") +
+  scale_y_continuous(ylab) +
   guides(fill = "none") +
   ggtitle("Time to epidemic peak")
 ggsave("dbGeneric_timeToPeak.png", timeToPeak.plt, width = w, height = h, dpi = dp)
 print(timeToPeak.plt)
 
+timeToPeak.plt2 <- ggplot(exampD, aes(x = Thu.week, y = ilicn.dt)) +
+  geom_bar(aes(fill = in.season), stat = 'identity') +
+  scale_fill_manual(name = "", values = c('TRUE' = truColLt, 'FALSE' = falsCol), breaks = c('TRUE', 'FALSE'), labels = c('Epidemic period', 'Winter period\nNov. - Apr.'), na.value = naCol) +
+  geom_line(colour = tsCol, size = sz) +
+  geom_segment(aes(x = startEpi, y = 6.75, xend = pkEpi, yend = 6.75, colour = truCol), size = sz) +
+  scale_colour_manual(name = "Legend", values = c(truCol), breaks = c(truCol), labels = c("Burden")) +
+  theme_classic(base_size = fontsz, base_family = "") +
+  theme(panel.grid.minor = element_blank(), plot.margin = unit(mar, "mm"), axis.ticks = element_blank(), axis.text = element_blank(), legend.position = "right", legend.margin = unit(0, "in")) +
+  scale_x_date("Time") +
+  scale_y_continuous(ylab) +
+  guides(colour = guide_legend(order = 1),
+         fill = guide_legend(order = 2, title = NULL)) +
+  ggtitle("Time to epidemic peak")
+
 #### gridded magnitude metrics plots ##################
 png(filename = "dbGeneric_allTiming.png", height = h, width = w*2+wleg, units = "in", res = dp)
 tim.plts <- grid.arrange(grobs = list(epiDur.plt, timeToPeak.plt, timeToStart.plt), widths = unit(c(w, w, wleg), "in"), nrow = 1)
 dev.off()
+
+png(filename = "dbGeneric_allTiming2.png", height = h, width = w+wleg, units = "in", res = dp)
+tim.plts <- grid.arrange(grobs = list(epiDur.plt, timeToPeak.plt2), widths = unit(c(w, wleg), "in"), nrow = 1)
+dev.off()
+
+

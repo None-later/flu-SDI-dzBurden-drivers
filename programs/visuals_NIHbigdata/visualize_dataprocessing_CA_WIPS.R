@@ -48,36 +48,9 @@ caD <- fullD %>% filter(zip3 %in% zipset) %>%
   mutate(ili.filt = ifelse(incl.analysis, ili, NA))
 
 setwd('../../graph_outputs/visuals_NIHbigdata')
-# plot raw ILI
-iliP <- ggplot(caD, aes(x = Thu.week, y = ili, group = zipname)) +
-  geom_line(aes(color = flu.week)) +
-  scale_color_discrete(name = 'Potential Flu Season Period') +
-  scale_y_continuous(name = 'ILI') +
-  scale_x_date(name = 'Week') +
-  theme_classic(base_size = fontsz, base_family = "") +
-  theme(panel.grid.minor = element_blank(), plot.margin = unit(mar, "mm"), legend.position = "bottom", axis.text.x = element_blank(), axis.title.x = element_blank(), axis.ticks.x = element_blank()) +
-  facet_wrap(~zipname, nrow = 1) +
-  guides(color = "none")
-ggsave('rawILI_ts_CA.png', iliP, width = w, height = h, dpi = 450)
-# x11()
-# print(iliP)
-  
-# ili.filtP <- ggplot(caD, aes(x = Thu.week, y = ili.filt, group = zipname)) +
-#   geom_line(aes(color = flu.week)) +
-#   scale_color_discrete(name = 'Potential Flu Season Period') +
-#   scale_y_continuous(name = 'filtered ILI') +
-#   scale_x_date(name = 'Week') +
-#   theme_bw(base_size = fontsz, base_family = "") +
-#   theme(panel.grid.minor = element_blank(), plot.margin = unit(mar, "mm"), legend.position = "bottom") +
-#   facet_wrap(~zipname, nrow = 1) +
-#   guides(color = "none")
-# ggsave('filtILI_ts_CA.png', ili.filtP, width = w, height = h, dpi = 450)
-# # x11()
-# # print(ili.filtP)
 
 ilicn.P <- ggplot(caD, aes(x = Thu.week, y = ILIcn, group = zipname)) +
   geom_line(aes(color = flu.week)) +
-  geom_line(aes(y = .fittedLoess), colour = 'black', size = 1) +
   scale_color_discrete(name = 'Potential Flu Season Period') +
   scale_y_continuous(name = 'ILIcn') +
   scale_x_date(name = 'Week') +
@@ -85,10 +58,22 @@ ilicn.P <- ggplot(caD, aes(x = Thu.week, y = ILIcn, group = zipname)) +
   theme(panel.grid.minor = element_blank(), plot.margin = unit(mar, "mm"), legend.position = "bottom", axis.text.x = element_blank(), axis.title.x = element_blank(), axis.ticks.x = element_blank()) +
   facet_wrap(~zipname, nrow = 1) +
   guides(color = "none")
-ggsave('ilicn_ts_CA.png', ilicn.P, width = w, height = h, dpi = 450)
+ggsave('ilicn_ts_CA_noline.png', ilicn.P, width = w, height = h, dpi = 450)
 print(ilicn.P)
   
 ilicnDt.P <- ggplot(caD, aes(x = Thu.week, y = ilicn.dt, group = zipname)) +
+  geom_line(aes(color = flu.week)) +
+  scale_color_discrete(name = 'Potential Flu Season Period') +
+  scale_y_continuous(name = 'ILIcn.dt') +
+  scale_x_date(name = 'Week') +
+  theme_classic(base_size = fontsz, base_family = "") +
+  theme(panel.grid.minor = element_blank(), plot.margin = unit(mar, "mm"), axis.text.x = element_blank(), axis.title.x = element_blank(), axis.ticks.x = element_blank(), legend.position = "bottom", legend.margin = unit(-2, "mm")) +
+  facet_wrap(~zipname, nrow = 1) +
+  guides(color = "none")
+ggsave('ilicnDt_ts_CA_noline.png', ilicnDt.P, width = w, height = h, dpi = 450)
+print(ilicnDt.P)  
+
+ilicnDt.P2 <- ggplot(caD, aes(x = Thu.week, y = ilicn.dt, group = zipname)) +
   geom_line(aes(color = flu.week)) +
   geom_line(aes(y = .fitted), colour = 'black', size = 1) +
   scale_color_discrete(name = 'Potential Flu Season Period') +
@@ -96,22 +81,9 @@ ilicnDt.P <- ggplot(caD, aes(x = Thu.week, y = ilicn.dt, group = zipname)) +
   scale_x_date(name = 'Week') +
   theme_classic(base_size = fontsz, base_family = "") +
   theme(panel.grid.minor = element_blank(), plot.margin = unit(mar, "mm"), axis.text.x = element_blank(), axis.title.x = element_blank(), axis.ticks.x = element_blank(), legend.position = "bottom", legend.margin = unit(-2, "mm")) +
-  facet_wrap(~zipname, nrow = 1) 
-ggsave('ilicnDt_ts_CA.png', ilicnDt.P, width = w, height = h+.75, dpi = 450)
-print(ilicnDt.P)  
-
-# WIPS seminar version
-ilicnDt.P <- ggplot(caD, aes(x = Thu.week, y = ilicn.dt, group = zipname)) +
-  geom_line(aes(color = flu.week)) +
-  scale_color_discrete(name = 'Potential Flu Season Period') +
-  scale_y_continuous(name = 'ILI indicator') +
-  scale_x_date(name = 'Week') +
-  theme_classic(base_size = fontsz, base_family = "") +
-  theme(panel.grid.minor = element_blank(), plot.margin = unit(mar, "mm"), axis.title.x = element_blank(), legend.position = "bottom", legend.margin = unit(-2, "mm")) +
   facet_wrap(~zipname, nrow = 1) +
-  guides(color = 'none')
-ggsave('WIPS_ilicnDt_ts_CA.png', ilicnDt.P, width = w, height = h+.75, dpi = 450)
-print(ilicnDt.P)  
+  guides(color = "none")
+ggsave('ilicnDt_ts_CA_line.png', ilicnDt.P2, width = w, height = h, dpi = 450)
 
 ilicnDt.inSeas.P <- ggplot(caD, aes(x = Thu.week, y = ilicn.dt, group = zipname)) +
   geom_line(aes(color = in.season)) +
@@ -119,26 +91,54 @@ ilicnDt.inSeas.P <- ggplot(caD, aes(x = Thu.week, y = ilicn.dt, group = zipname)
   scale_y_continuous(name = 'ILIcn') +
   scale_x_date(name = 'Week') +
   theme_classic(base_size = fontsz, base_family = "") +
-  theme(panel.grid.minor = element_blank(), plot.margin = unit(mar, "mm"), legend.position = "bottom", legend.margin = unit(-2, "mm")) +
-  facet_wrap(~zipname, nrow = 1) 
-ggsave('ilicnDt_inSeas_ts_CA.png', ilicnDt.inSeas.P, width = w, height = h+.75, dpi = 450)
-print(ilicnDt.inSeas.P)  
+  theme(panel.grid.minor = element_blank(), plot.margin = unit(mar, "mm"), axis.text.x = element_blank(), axis.title.x = element_blank(), axis.ticks.x = element_blank(), legend.position = "bottom", legend.margin = unit(-2, "mm")) +
+  facet_wrap(~zipname, nrow = 1) +
+  guides(color = "none")
+ggsave('ilicnDt_inSeas_ts_CA_WIPS.png', ilicnDt.inSeas.P, width = w, height = h, dpi = 450)
 
-
-#### plot disease burden metrics ##################
-w2 <- 2.5; h2 <- 3.5
-
-#### plot distribution of dbMetrics ####################################
-print(sprintf('plotting db metrics %s', code.str))
+ilicnDt.inSeas.P2 <- ggplot(caD, aes(x = Thu.week, y = ilicn.dt, group = zipname)) +
+  geom_line(aes(color = in.season)) +
+  scale_color_brewer(name = 'Constrained Flu Period', palette = 'Set1') +
+  scale_y_continuous(name = 'Processed ILI') +
+  scale_x_date(name = 'Week') +
+  theme_classic(base_size = fontsz, base_family = "") +
+  theme(panel.grid.minor = element_blank(), plot.margin = unit(mar, "mm"), axis.title.x = element_blank()) +
+  facet_wrap(~zipname, nrow = 1) +
+  guides(color = "none")
+ggsave('ilicnDt_inSeas_ts_CA_WIPS_wTime.png', ilicnDt.inSeas.P2, width = w, height = h, dpi = 450)
 
 # total ILI plot
 plt.distr.iliSum <- ggplot(dbMetrics.g %>% filter(metric=='ilicnDt.sum'), aes(x=burden, group=zipname)) +
   geom_histogram(binwidth=1) +
   theme_classic(base_size = fontsz, base_family = "") +
   theme(panel.grid.minor = element_blank(), plot.margin = unit(mar, "mm")) +
-  scale_x_continuous(name = "Seasonal ILI rate intensity") +
-  scale_y_continuous(name = "Number of seasons", breaks = c(0, 1, 2)) +
-  facet_wrap(~zipname, nrow = 3) 
-ggsave("ilicnDt_dbMag_CA.png", plt.distr.iliSum, width=w2, height=h2, dpi = 450)
+  scale_x_continuous(name = "Seasonal intensity") +
+  scale_y_continuous(name = "Num. seasons", breaks = c(0, 1, 2)) +
+  facet_wrap(~zipname, nrow = 1) 
+ggsave("ilicnDt_dbMag_CA_WIPS.png", plt.distr.iliSum, width=w, height=h, dpi = 450)
 print(plt.distr.iliSum)
-  
+
+
+# WIPS seminar version (front matter) #
+ili.P <- ggplot(caD, aes(x = Thu.week, y = ili, group = zipname)) +
+  geom_line(aes(color = flu.week)) +
+  scale_color_discrete(name = 'Potential Flu Season Period') +
+  scale_y_continuous(name = 'Reports of ILI') +
+  scale_x_date(name = 'Week') +
+  theme_classic(base_size = fontsz, base_family = "") +
+  theme(panel.grid.minor = element_blank(), plot.margin = unit(mar, "mm"), axis.title.x = element_blank(), legend.position = "bottom", legend.margin = unit(-2, "mm")) +
+  facet_wrap(~zipname, nrow = 1) +
+  guides(color = 'none')
+ggsave('WIPS_ili_ts_CA.png', ili.P, width = w, height = h+.75, dpi = 450)
+
+iliP <- ggplot(caD, aes(x = Thu.week, y = ili, group = zipname)) +
+  geom_line(aes(color = flu.week)) +
+  scale_color_discrete(name = 'Potential Flu Season Period') +
+  scale_y_continuous(name = 'Reports of ILI') +
+  scale_x_date(name = 'Week') +
+  theme_classic(base_size = fontsz, base_family = "") +
+  theme(panel.grid.minor = element_blank(), plot.margin = unit(mar, "mm"), legend.position = "bottom", axis.text.x = element_blank(), axis.title.x = element_blank(), axis.ticks.x = element_blank()) +
+  facet_wrap(~zipname, nrow = 1) +
+  guides(color = "none")
+ggsave('rawILI_ts_CA.png', iliP, width = w, height = h, dpi = 450)
+ 
