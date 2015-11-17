@@ -1,8 +1,8 @@
 
 ## Name: Elizabeth Lee
-## Date: 
-## Function: 
-## Filenames: 
+## Date: 11/17/15
+## Function: time series and choropleth EDA for air flow into a given airport destination, data by month. Domestic flights only
+## Filenames: clean_transport_BTS0014_T100D_Market_All_Carrier.csv, clean_transport_openflights_airportDatabase.csv
 ## Data Source: 
 ## Notes: 
 ## 
@@ -97,7 +97,7 @@ for(i in indexes){
   ggsave(sprintf("passengers_BTS_T100D_destAirport_%s-%s.png", labs[1], labs[2]), dplots, width = w2, height = h2, dpi = dp)
   ggsave(sprintf("passNorm_BTS_T100D_destAirport_%s-%s.png", labs[1], labs[2]), dplots2, width = w2, height = h2, dpi = dp)
   
-}
+} # 11/17/15
 
 #### map ################################
 bg.map <- get_map(location = "United States", zoom = 4, maptype = "roadmap", color = "bw", crop = FALSE)
@@ -120,7 +120,7 @@ for (m in monthnum){
     # coord_cartesian(xlim = c(-124.7844079, -66.9513812), ylim = c(24.7433195, 49.3457868)) +
     facet_wrap(~YEAR, nrow=3)
   ggsave(sprintf("passNorm_BTS_T100D_destAirport_mo%s.png", m), mplots2, width = w, height = h, dpi = dp)
-}
+} # 11/17/15
 
 
 
