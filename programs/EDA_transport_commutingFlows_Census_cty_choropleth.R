@@ -1,8 +1,8 @@
 
 ## Name: Elizabeth Lee
-## Date: 
-## Function: 
-## Filenames: 
+## Date: 11/16/15
+## Function: EDA for commuting flows into work county, Census data 1990 & 2000
+## Filenames: clean_transport_Census00.csv, clean_transport_Census90.csv
 ## Data Source: 
 ## Notes: 
 ## 
