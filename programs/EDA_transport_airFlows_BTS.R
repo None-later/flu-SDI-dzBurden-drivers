@@ -82,50 +82,50 @@ setwd('../graph_outputs/EDA_transport_airFlows_BTS')
 # #### time series ################################
 dir.create('./ts', showWarnings = FALSE)
 setwd('./ts')
-# for(i in indexes){
-#   dplots <- ggplot(fullDat2 %>% filter(for.plot>= i & for.plot < i+num), aes(x=date, y=pass_to_dest)) +
-#     theme(axis.text=element_text(size=12), axis.title=element_text(size=14,face="bold")) +
-#     geom_line(aes(colour = DEST)) +
-#     scale_y_continuous(name = "Passengers") +
-#     guides(colour = "none") +
-#     facet_wrap(~STNAME, scales="free")
-#   dplots2 <- ggplot(fullDat2 %>% filter(for.plot>= i & for.plot < i+num), aes(x=date, y=passNorm_to_dest)) +
-#     theme(axis.text=element_text(size=12), axis.title=element_text(size=14,face="bold")) +
-#     geom_line(aes(colour = DEST)) +
-#     scale_y_continuous(name = "Passengers per 100K (pop in ST dest)") +
-#     guides(colour = "none") +
-#     facet_wrap(~STNAME)
-#   
-#   labs <- fullDat2 %>% filter(for.plot>= i & for.plot < i+num) %>% select(STNAME) %>% distinct %>% slice(c(i, i+num-1))  %>% unlist
-#   ggsave(sprintf("passengers_BTS_T100D_destAirport_%s-%s.png", labs[1], labs[2]), dplots, width = w2, height = h2, dpi = dp)
-#   ggsave(sprintf("passNorm_BTS_T100D_destAirport_%s-%s.png", labs[1], labs[2]), dplots2, width = w2, height = h2, dpi = dp)
-#   
-# } # 11/17/15
-# 
-# #### map ################################
+for(i in indexes){
+  dplots <- ggplot(fullDat2 %>% filter(for.plot>= i & for.plot < i+num), aes(x=date, y=pass_to_dest)) +
+    theme(axis.text=element_text(size=12), axis.title=element_text(size=14,face="bold")) +
+    geom_line(aes(colour = DEST)) +
+    scale_y_continuous(name = "Passengers") +
+    guides(colour = "none") +
+    facet_wrap(~STNAME, scales="free")
+  dplots2 <- ggplot(fullDat2 %>% filter(for.plot>= i & for.plot < i+num), aes(x=date, y=passNorm_to_dest)) +
+    theme(axis.text=element_text(size=12), axis.title=element_text(size=14,face="bold")) +
+    geom_line(aes(colour = DEST)) +
+    scale_y_continuous(name = "Passengers per 100K (pop in ST dest)") +
+    guides(colour = "none") +
+    facet_wrap(~STNAME)
+  
+  labs <- fullDat2 %>% filter(for.plot>= i & for.plot < i+num) %>% select(STNAME) %>% distinct %>% slice(c(i, i+num-1))  %>% unlist
+  ggsave(sprintf("passengers_BTS_T100D_destAirport_%s-%s.png", labs[1], labs[2]), dplots, width = w2, height = h2, dpi = dp)
+  ggsave(sprintf("passNorm_BTS_T100D_destAirport_%s-%s.png", labs[1], labs[2]), dplots2, width = w2, height = h2, dpi = dp)
+  
+} # 11/17/15
+
+#### map ################################
 dir.create('../maps', showWarnings = FALSE)
 setwd('../maps')
-# bg.map <- get_map(location = "United States", zoom = 4, maptype = "roadmap", color = "bw", crop = FALSE)
-# 
-# for (m in monthnum){
-#   mplots <- ggmap(bg.map) + 
-#     geom_point(data = fullDat2 %>% filter(MONTH == m), aes(x = lon, y = lat, color = sqrt(pass_to_dest)), size = 1) +
-#     scale_color_gradient(low = "#67a9cf", high = "#ef8a62") +
-#     theme_minimal() +
-#     theme(text = element_text(size = 12), axis.ticks = element_blank(), axis.text = element_blank(), axis.title = element_blank(), panel.grid = element_blank(), legend.position = "bottom", panel.background = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank()) +
-#     # coord_cartesian(xlim = c(-124.7844079, -66.9513812), ylim = c(24.7433195, 49.3457868)) +
-#     facet_wrap(~YEAR, nrow=3)
-#   ggsave(sprintf("passengers_BTS_T100D_destAirport_mo%s.png", m), mplots, width = w, height = h, dpi = dp)
-#   
-#   mplots2 <- ggmap(bg.map) + 
-#     geom_point(data = fullDat2 %>% filter(MONTH == m), aes(x = lon, y = lat, color = sqrt(passNorm_to_dest)), size = 1) +
-#     scale_color_gradient(low = "#67a9cf", high = "#ef8a62") +
-#     theme_minimal() +
-#     theme(text = element_text(size = 12), axis.ticks = element_blank(), axis.text = element_blank(), axis.title = element_blank(), panel.grid = element_blank(), legend.position = "bottom", panel.background = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank()) +
-#     # coord_cartesian(xlim = c(-124.7844079, -66.9513812), ylim = c(24.7433195, 49.3457868)) +
-#     facet_wrap(~YEAR, nrow=3)
-#   ggsave(sprintf("passNorm_BTS_T100D_destAirport_mo%s.png", m), mplots2, width = w, height = h, dpi = dp)
-# } # 11/17/15
+bg.map <- get_map(location = "United States", zoom = 4, maptype = "roadmap", color = "bw", crop = FALSE)
+
+for (m in monthnum){
+  mplots <- ggmap(bg.map) + 
+    geom_point(data = fullDat2 %>% filter(MONTH == m), aes(x = lon, y = lat, color = sqrt(pass_to_dest)), size = 1) +
+    scale_color_gradient(low = "#67a9cf", high = "#ef8a62") +
+    theme_minimal() +
+    theme(text = element_text(size = 12), axis.ticks = element_blank(), axis.text = element_blank(), axis.title = element_blank(), panel.grid = element_blank(), legend.position = "bottom", panel.background = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank()) +
+    # coord_cartesian(xlim = c(-124.7844079, -66.9513812), ylim = c(24.7433195, 49.3457868)) +
+    facet_wrap(~YEAR, nrow=3)
+  ggsave(sprintf("passengers_BTS_T100D_destAirport_mo%s.png", m), mplots, width = w, height = h, dpi = dp)
+  
+  mplots2 <- ggmap(bg.map) + 
+    geom_point(data = fullDat2 %>% filter(MONTH == m), aes(x = lon, y = lat, color = sqrt(passNorm_to_dest)), size = 1) +
+    scale_color_gradient(low = "#67a9cf", high = "#ef8a62") +
+    theme_minimal() +
+    theme(text = element_text(size = 12), axis.ticks = element_blank(), axis.text = element_blank(), axis.title = element_blank(), panel.grid = element_blank(), legend.position = "bottom", panel.background = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank()) +
+    # coord_cartesian(xlim = c(-124.7844079, -66.9513812), ylim = c(24.7433195, 49.3457868)) +
+    facet_wrap(~YEAR, nrow=3)
+  ggsave(sprintf("passNorm_BTS_T100D_destAirport_mo%s.png", m), mplots2, width = w, height = h, dpi = dp)
+} # 11/17/15
 
 
 #### scatter bw access & population variables ################################

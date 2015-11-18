@@ -68,3 +68,20 @@ ggsave("commutingInflowsNorm_Census_1990_cty.png", choro90, width = w, height = 
 choro90r <- county_choropleth(fullDat00 %>% rename(value = rawvalue), legend = "Into Wk county") 
 ggsave("commutingInflows_Census_1990_cty.png", choro90r, width = w, height = h, dpi = dp)
 
+#### scatter bw access & population variables ################################
+scatterPlot <- function(dataset){
+  dummy <- dataset %>% rename(pop = POPESTIMATE2000)
+  scatters <- ggplot(dummy, aes(x = rawvalue,  y = pop)) +
+    geom_point(color = 'black') +
+    theme_bw(base_size = 12, base_family = "") +
+    scale_x_continuous(name = "commuters to work county")
+    # scale_y_log10(limits = c(1, 30000000)) + scale_x_log10(limits = c(1, 30000000))
+    # coord_cartesian(xlim = c(1, 30000000), ylim = c(1, 30000000)) +
+  return(scatters)
+}
+  
+sp00 <- scatterPlot(fullDat00)
+ggsave("scatterPop_transport_commutingFlows_Census_cty_2000.png", sp00, width = w, height = h, dpi = dp)
+sp90 <- scatterPlot(fullDat90)
+ggsave("scatterPop_transport_commutingFlows_Census_cty_1990.png", sp90, width = w, height = h, dpi = dp)
+# 11/18/15
