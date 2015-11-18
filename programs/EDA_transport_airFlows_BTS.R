@@ -72,55 +72,74 @@ fullDat2 <- fullDat %>%
 indexes <- seq(1, max(fullDat2 %>% select(for.plot) %>% distinct %>% unlist, na.rm=T), by=num)
 dates <- fullDat2 %>% select(date) %>% unique %>% arrange
 monthnum <- fullDat2 %>% select(MONTH) %>% unique %>% arrange(MONTH) %>% unlist
+yearlist <- fullDat2 %>% select(YEAR) %>% unique %>% arrange(YEAR) %>% unlist
 
 #### plotting ################################
 setwd(dirname(sys.frame(1)$ofile)) # only works if you source the program
 dir.create(sprintf('../graph_outputs/EDA_transport_airFlows_BTS'), showWarnings=FALSE) # create directory if not exists
 setwd('../graph_outputs/EDA_transport_airFlows_BTS')
 
-#### time series ################################
-for(i in indexes){
-  dplots <- ggplot(fullDat2 %>% filter(for.plot>= i & for.plot < i+num), aes(x=date, y=pass_to_dest)) +
-    theme(axis.text=element_text(size=12), axis.title=element_text(size=14,face="bold")) +
-    geom_line(aes(colour = DEST)) +
-    scale_y_continuous(name = "Passengers") +
-    guides(colour = "none") +
-    facet_wrap(~STNAME, scales="free")
-  dplots2 <- ggplot(fullDat2 %>% filter(for.plot>= i & for.plot < i+num), aes(x=date, y=passNorm_to_dest)) +
-    theme(axis.text=element_text(size=12), axis.title=element_text(size=14,face="bold")) +
-    geom_line(aes(colour = DEST)) +
-    scale_y_continuous(name = "Passengers per 100K (pop in ST dest)") +
-    guides(colour = "none") +
-    facet_wrap(~STNAME)
-  
-  labs <- fullDat2 %>% filter(for.plot>= i & for.plot < i+num) %>% select(STNAME) %>% distinct %>% slice(c(i, i+num-1))  %>% unlist
-  ggsave(sprintf("passengers_BTS_T100D_destAirport_%s-%s.png", labs[1], labs[2]), dplots, width = w2, height = h2, dpi = dp)
-  ggsave(sprintf("passNorm_BTS_T100D_destAirport_%s-%s.png", labs[1], labs[2]), dplots2, width = w2, height = h2, dpi = dp)
-  
-} # 11/17/15
+# #### time series ################################
+dir.create('./ts', showWarnings = FALSE)
+setwd('./ts')
+# for(i in indexes){
+#   dplots <- ggplot(fullDat2 %>% filter(for.plot>= i & for.plot < i+num), aes(x=date, y=pass_to_dest)) +
+#     theme(axis.text=element_text(size=12), axis.title=element_text(size=14,face="bold")) +
+#     geom_line(aes(colour = DEST)) +
+#     scale_y_continuous(name = "Passengers") +
+#     guides(colour = "none") +
+#     facet_wrap(~STNAME, scales="free")
+#   dplots2 <- ggplot(fullDat2 %>% filter(for.plot>= i & for.plot < i+num), aes(x=date, y=passNorm_to_dest)) +
+#     theme(axis.text=element_text(size=12), axis.title=element_text(size=14,face="bold")) +
+#     geom_line(aes(colour = DEST)) +
+#     scale_y_continuous(name = "Passengers per 100K (pop in ST dest)") +
+#     guides(colour = "none") +
+#     facet_wrap(~STNAME)
+#   
+#   labs <- fullDat2 %>% filter(for.plot>= i & for.plot < i+num) %>% select(STNAME) %>% distinct %>% slice(c(i, i+num-1))  %>% unlist
+#   ggsave(sprintf("passengers_BTS_T100D_destAirport_%s-%s.png", labs[1], labs[2]), dplots, width = w2, height = h2, dpi = dp)
+#   ggsave(sprintf("passNorm_BTS_T100D_destAirport_%s-%s.png", labs[1], labs[2]), dplots2, width = w2, height = h2, dpi = dp)
+#   
+# } # 11/17/15
+# 
+# #### map ################################
+dir.create('../maps', showWarnings = FALSE)
+setwd('../maps')
+# bg.map <- get_map(location = "United States", zoom = 4, maptype = "roadmap", color = "bw", crop = FALSE)
+# 
+# for (m in monthnum){
+#   mplots <- ggmap(bg.map) + 
+#     geom_point(data = fullDat2 %>% filter(MONTH == m), aes(x = lon, y = lat, color = sqrt(pass_to_dest)), size = 1) +
+#     scale_color_gradient(low = "#67a9cf", high = "#ef8a62") +
+#     theme_minimal() +
+#     theme(text = element_text(size = 12), axis.ticks = element_blank(), axis.text = element_blank(), axis.title = element_blank(), panel.grid = element_blank(), legend.position = "bottom", panel.background = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank()) +
+#     # coord_cartesian(xlim = c(-124.7844079, -66.9513812), ylim = c(24.7433195, 49.3457868)) +
+#     facet_wrap(~YEAR, nrow=3)
+#   ggsave(sprintf("passengers_BTS_T100D_destAirport_mo%s.png", m), mplots, width = w, height = h, dpi = dp)
+#   
+#   mplots2 <- ggmap(bg.map) + 
+#     geom_point(data = fullDat2 %>% filter(MONTH == m), aes(x = lon, y = lat, color = sqrt(passNorm_to_dest)), size = 1) +
+#     scale_color_gradient(low = "#67a9cf", high = "#ef8a62") +
+#     theme_minimal() +
+#     theme(text = element_text(size = 12), axis.ticks = element_blank(), axis.text = element_blank(), axis.title = element_blank(), panel.grid = element_blank(), legend.position = "bottom", panel.background = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank()) +
+#     # coord_cartesian(xlim = c(-124.7844079, -66.9513812), ylim = c(24.7433195, 49.3457868)) +
+#     facet_wrap(~YEAR, nrow=3)
+#   ggsave(sprintf("passNorm_BTS_T100D_destAirport_mo%s.png", m), mplots2, width = w, height = h, dpi = dp)
+# } # 11/17/15
 
-#### map ################################
-bg.map <- get_map(location = "United States", zoom = 4, maptype = "roadmap", color = "bw", crop = FALSE)
 
-for (m in monthnum){
-  mplots <- ggmap(bg.map) + 
-    geom_point(data = fullDat2 %>% filter(MONTH == m), aes(x = lon, y = lat, color = sqrt(pass_to_dest)), size = 1) +
-    scale_color_gradient(low = "#67a9cf", high = "#ef8a62") +
-    theme_minimal() +
-    theme(text = element_text(size = 12), axis.ticks = element_blank(), axis.text = element_blank(), axis.title = element_blank(), panel.grid = element_blank(), legend.position = "bottom", panel.background = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank()) +
-    # coord_cartesian(xlim = c(-124.7844079, -66.9513812), ylim = c(24.7433195, 49.3457868)) +
-    facet_wrap(~YEAR, nrow=3)
-  ggsave(sprintf("passengers_BTS_T100D_destAirport_mo%s.png", m), mplots, width = w, height = h, dpi = dp)
-  
-  mplots2 <- ggmap(bg.map) + 
-    geom_point(data = fullDat2 %>% filter(MONTH == m), aes(x = lon, y = lat, color = sqrt(passNorm_to_dest)), size = 1) +
-    scale_color_gradient(low = "#67a9cf", high = "#ef8a62") +
-    theme_minimal() +
-    theme(text = element_text(size = 12), axis.ticks = element_blank(), axis.text = element_blank(), axis.title = element_blank(), panel.grid = element_blank(), legend.position = "bottom", panel.background = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank()) +
-    # coord_cartesian(xlim = c(-124.7844079, -66.9513812), ylim = c(24.7433195, 49.3457868)) +
-    facet_wrap(~YEAR, nrow=3)
-  ggsave(sprintf("passNorm_BTS_T100D_destAirport_mo%s.png", m), mplots2, width = w, height = h, dpi = dp)
-} # 11/17/15
-
+#### scatter bw access & population variables ################################
+dir.create(sprintf('../scatterPop'), showWarnings=FALSE)
+setwd('../scatterPop')
+for (y in yearlist){
+  dummy <- fullDat2 %>% filter(YEAR == y)
+  scatters <- ggplot(dummy, aes(x = pass_to_dest,  y = stPopEst)) +
+    geom_point(color = 'black') +
+    theme_bw(base_size = 12, base_family = "") +
+    scale_y_log10(limits = c(1, 30000000)) + scale_x_log10(limits = c(1, 30000000)) +
+    # coord_cartesian(xlim = c(1, 30000000), ylim = c(1, 30000000)) +
+    facet_wrap(~MONTH, nrow = 3)
+  ggsave(sprintf("scatter_transport_airFlows_dest_%s.png", y), scatters, width = w, height = h, dpi = dp)
+} # 11/18/15
 
 
