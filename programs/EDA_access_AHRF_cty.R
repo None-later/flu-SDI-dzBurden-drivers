@@ -97,3 +97,21 @@ for (y in years){
 
   } # 11/17/15
 
+#### data cleaning: scatter bw access & population variables ################################
+fullDat3 <- fullDat2 %>% 
+  select(FIPS, Abbreviation, year, hosp, outpatient, physicians, population) %>%
+  gather(accVar, n, 4:6)
+
+#### scatter bw access & population variables ################################
+dir.create(sprintf('../scatterPop'), showWarnings=FALSE)
+setwd('../scatterPop')
+for (y in years){
+  dummy <- fullDat3 %>% filter(year == y)
+  scatters <- ggplot(dummy, aes(x = n,  y = population)) +
+    geom_point(color = 'black') +
+    theme_bw(base_size = 12, base_family = "") +
+    coord_cartesian(xlim = c(1, 10000000), ylim = c(1, 10000000)) +
+    scale_y_log10() + scale_x_log10() +
+    facet_wrap(~accVar, nrow = 1)
+  ggsave(sprintf("scatter_access_pop_cty_%s.png", y), scatters, width = w, height = h, dpi = dp)
+} # 11/18/15
