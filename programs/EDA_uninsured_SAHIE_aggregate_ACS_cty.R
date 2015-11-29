@@ -59,12 +59,12 @@ setwd(dirname(sys.frame(1)$ofile))
 dir.create("../graph_outputs/EDA_uninsured_SAHIE_cty", showWarnings = F)
 setwd("../graph_outputs/EDA_uninsured_SAHIE_cty")
 
-# for (y in years){
-#   pltDat <- fullDat %>%
-#     filter(year == substr.Right(y, 4))
-#   choro[[eval(y)]] <- county_choropleth(pltDat, legend = "Uninsured (%)") 
-#   ggsave(sprintf("pctui_SAHIE_ACS_cty_%s.png", substr.Right(y, 4)), choro[[eval(y)]], width = w, height = h, dpi = dp)
-# }
+for (y in years){
+  pltDat <- fullDat %>%
+    filter(year == substr.Right(y, 4))
+  choro[[eval(y)]] <- county_choropleth(pltDat, legend = "Uninsured (%)") 
+  ggsave(sprintf("pctui_SAHIE_ACS_cty_%s.png", substr.Right(y, 4)), choro[[eval(y)]], width = w, height = h, dpi = dp)
+}
 
 ## not easy to format everything in the same figure
 # png(filename = "pctui_cty_0813.png", height = h, width = w*3, units = "in", res = dp)
