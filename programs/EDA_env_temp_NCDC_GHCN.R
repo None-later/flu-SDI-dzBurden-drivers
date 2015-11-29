@@ -103,7 +103,7 @@ for(i in indexes){
     theme_classic(base_size = 14, base_family = "") +
     theme(legend.position = "bottom") +
     facet_wrap(~ID, ncol = 8)
-  plabs <- pltDat2 %>% filter(for.ts >= i & for.ts < i+num) %>% select(for.ts) %>% distinct %>% arrange(for.ts) %>% slice(c(i, i+num-1)) %>% unlist
+  plabs <- pltDat2 %>% filter(for.ts == min(for.ts) | for.ts == max(for.ts)) %>% select(for.ts) %>% distinct %>% unlist
   ggsave(sprintf("temp_NCDC_GHCN_%s-%s.png", plabs[1], plabs[2]), tsP, width = w2, height = h2, dpi = dp)
   
 } # saved 11/29/15
