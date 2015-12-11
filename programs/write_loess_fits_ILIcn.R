@@ -70,8 +70,12 @@ write_loess_fits_ILIcn <- function(span.var, degree.var, spatial){
   #### write data to file ####################################
   print('writing loess fits')
   setwd('../R_export')
+  
+  # rename scale variable
+  allLoessMods_fit_ILI2 <- scaleRename(spatial$scale, allLoessMods_fit_ILI)
+  
   # write fitted and original loess smoothed ILI data 
-  write.csv(allLoessMods_fit_ILI, file=sprintf('loess%s_all%sMods_ILIcn.csv', code.str, spatial$stringcode), row.names=FALSE)
+  write.csv(allLoessMods_fit_ILI2, file=sprintf('loess%s_all%sMods_ILIcn.csv', code.str, spatial$stringcode), row.names=FALSE)
 
 }
 
