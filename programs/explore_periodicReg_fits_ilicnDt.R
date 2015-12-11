@@ -4,14 +4,14 @@
 ## Function: 1. explore periodic regression fits of detrended ilicn (ilicn/fitted.loess) through plotting
 ## Filenames: 
 ## Data Source: 
-## Notes: 
+## Notes: 12-10-15 - add spatial scale option (zip3 or state)
 ## 
 ## useful commands:
 ## install.packages("pkg", dependencies=TRUE, lib="/usr/local/lib/R/site-library") # in sudo R
 ## update.packages(lib.loc = "/usr/local/lib/R/site-library")
 
 
-explore_periodicReg_fits_ilicnDt <- function(span.var, degree.var){
+explore_periodicReg_fits_ilicnDt <- function(span.var, degree.var, spatial){
   print(deparse(sys.call()))
   
   #### header ####################################
@@ -24,6 +24,8 @@ explore_periodicReg_fits_ilicnDt <- function(span.var, degree.var){
   code <-"" # linear time trend term
   code2 <- "_Octfit" # fit = Apr to Oct and fluseason = Oct to Apr
   
+  ## uncomment when running script separately
+  # spatial <- list(scale = "state", stringcode = "State", stringabbr = "_st")
   # span.var <- 0.4 # 0.4, 0.6
   # degree.var <- 2
   code.str <- sprintf('_span%s_degree%s', span.var, degree.var)
@@ -34,29 +36,39 @@ explore_periodicReg_fits_ilicnDt <- function(span.var, degree.var){
   
   #### import data ################################
   setwd('../R_export')
-  data <- read_csv(file=sprintf('periodicReg_%sallZip3Mods_ilicnDt%s%s.csv', code, code2, code.str), col_types=list(zip3 = col_character(), ili = col_integer(), pop = col_integer(), cov_z.y = col_double(), alpha_z.y = col_double(), ILIc = col_double(), cov_below5 = col_logical(), .fitted = col_double(), .se.fit = col_double(), .fittedLoess = col_double(), .se.fitLoess = col_double(), ilicn.dt = col_double(), ILIcn = col_double()))
   
-  fitdata <- read_csv(file=sprintf('summaryStats_periodicReg_%sallZip3Mods_ilicnDt%s%s.csv', code, code2, code.str), col_types=list(zip3 = col_character()))
+  if (spatial$scale == 'zip3'){
+    data <- read_csv(file=sprintf('periodicReg_%sall%sMods_ilicnDt%s%s.csv', code, spatial$stringcode, code2, code.str), col_types=list(zip3 = col_character(), ili = col_integer(), pop = col_integer(), cov_z.y = col_double(), alpha_z.y = col_double(), ILIc = col_double(), cov_below5 = col_logical(), .fitted = col_double(), .se.fit = col_double(), .fittedLoess = col_double(), .se.fitLoess = col_double(), ilicn.dt = col_double(), ILIcn = col_double())) %>%
+      rename(scale = zip3)
+    fitdata <- read_csv(file=sprintf('summaryStats_periodicReg_%sall%sMods_ilicnDt%s%s.csv', code, spatial$stringcode, code2, code.str), col_types=list(zip3 = col_character())) %>%
+      rename(scale = zip3)
+    
+  } else if (spatial$scale == 'state'){
+    data <- read_csv(file=sprintf('periodicReg_%sall%sMods_ilicnDt%s%s.csv', code, spatial$stringcode, code2, code.str), col_types=list(state = col_character(), ili = col_integer(), pop = col_integer(), cov_z.y = col_double(), alpha_z.y = col_double(), ILIc = col_double(), cov_below5 = col_logical(), .fitted = col_double(), .se.fit = col_double(), .fittedLoess = col_double(), .se.fitLoess = col_double(), ilicn.dt = col_double(), ILIcn = col_double())) %>%
+      rename(scale = state)
+    fitdata <- read_csv(file=sprintf('summaryStats_periodicReg_%sall%sMods_ilicnDt%s%s.csv', code, spatial$stringcode, code2, code.str), col_types=list(state = col_character())) %>%
+      rename(scale = state)
+  }
   
   #### initial time series plots ################################
   print(sprintf('plotting time series %s', code.str))
-  dir.create(sprintf('../graph_outputs/explore_periodicReg_%sfits_ilicnDt%s%s', code, code2, code.str), showWarnings = FALSE)
-  setwd(sprintf('../graph_outputs/explore_periodicReg_%sfits_ilicnDt%s%s', code, code2, code.str))
+  dir.create(sprintf('../graph_outputs/explore_periodicReg_%sfits_ilicnDt%s%s%s', code, code2, code.str, spatial$stringabbr), showWarnings = FALSE)
+  setwd(sprintf('../graph_outputs/explore_periodicReg_%sfits_ilicnDt%s%s%s', code, code2, code.str, spatial$stringabbr))
   
-  zip3list <- data %>% filter(incl.lm) %>% select(zip3) %>% distinct %>% mutate(for.plot = seq_along(1:nrow(.)))
-  data_plot <- right_join(data, zip3list, by="zip3")
+  zip3list <- data %>% filter(incl.lm) %>% select(scale) %>% distinct %>% mutate(for.plot = seq_along(1:nrow(.)))
+  data_plot <- right_join(data, zip3list, by="scale")
   indexes <- seq(1, max(data_plot %>% select(for.plot)), by=num)
   
   for(i in indexes){
-    dummyplots <- ggplot(data_plot %>% filter(for.plot>= i & for.plot < i+num), aes(x=week, y=ilicn.dt, group=zip3)) +
+    dummyplots <- ggplot(data_plot %>% filter(for.plot>= i & for.plot < i+num), aes(x=week, y=ilicn.dt, group=scale)) +
       theme(axis.text=element_text(size=12), axis.title=element_text(size=14,face="bold")) +
       geom_line(aes(color = flu.week)) + scale_color_discrete(name='flu.week (fit: Apr to Oct)') + 
       geom_line(aes(y = .fitted), color = 'black') + 
       geom_ribbon(aes(ymin = .fitted-(1.96*.se.fit), ymax = .fitted+(1.96*.se.fit), alpha=0.7), fill = 'green') +
       scale_alpha_continuous(name='', breaks=c(0.7), labels=c('95% CI fit')) + 
-      facet_wrap(~zip3, scales="free_y")
+      facet_wrap(~scale, scales="free_y")
     # grab zip3s in plot for file name
-    ziplabels <- data_plot %>% select(zip3) %>% distinct %>% slice(c(i, i+num-1)) 
+    ziplabels <- data_plot %>% select(scale) %>% distinct %>% slice(c(i, i+num-1)) 
     ggsave(sprintf("periodicReg_%sfits_ilicnDt%s%s_%s-%s.png", code, code2, code.str, ziplabels[1,], ziplabels[2,]), dummyplots, width=w, height=h)
   } 
   
@@ -69,15 +81,15 @@ explore_periodicReg_fits_ilicnDt <- function(span.var, degree.var){
   indexes2 <- indexes
   
   for (i in indexes2){
-    dummyplots <- ggplot(data_plot2 %>% filter(for.plot>= i & for.plot < i+num), aes(x=.fitted, y=resid, group=zip3)) +
+    dummyplots <- ggplot(data_plot2 %>% filter(for.plot>= i & for.plot < i+num), aes(x=.fitted, y=resid, group=scale)) +
       geom_point(aes(colour = data95indic)) +
       scale_colour_discrete(name = 'In 95%CI of model fit') + # Do 95% of observed data fit within the 95%CI?
       theme(axis.text=element_text(size=12), axis.title=element_text(size=14,face="bold")) +
-      facet_wrap(~zip3, scales="free") +
+      facet_wrap(~scale, scales="free") +
       xlab('Fitted Values (fit.week = T)') +
       ylab('Residuals (obs - fitted)')
     # grab zip3s in plot for file name
-    ziplabels <- data_plot %>% select(zip3) %>% distinct %>% slice(c(i, i+num-1)) 
+    ziplabels <- data_plot %>% select(scale) %>% distinct %>% slice(c(i, i+num-1)) 
     ggsave(sprintf("periodicReg_%sresidualsVsFitted_ilicnDt%s%s_%s-%s.png", code, code2, code.str, ziplabels[1,], ziplabels[2,]), dummyplots, width=w, height=h)
   } 
   

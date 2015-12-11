@@ -55,14 +55,15 @@ write_fullIndic_periodicReg_ilicnDt <- function(span.var, degree.var, spatial){
   
   #### data processing (based on explore_fluSeasonDefinition_ILI.R) ####################################
   setwd('../R_export')
+  
   if (spatial$scale == 'zip3'){
     data <- read_csv(file=sprintf('periodicReg_%sall%sMods_ilicnDt%s%s.csv', code, spatial$stringcode, code2, code.str), col_types=list(zip3 = col_character(), ili = col_integer(), pop = col_integer(), cov_z.y = col_double(), alpha_z.y = col_double(), ILIc = col_double(), cov_below5 = col_logical(), .fitted = col_double(), .se.fit = col_double(), .fittedLoess = col_double(), .se.fitLoess = col_double(), ilicn.dt = col_double(), ILIcn = col_double())) %>%
       rename(scale = zip3)
-  } else if (spatial$scale == 'state'){
+  
+    } else if (spatial$scale == 'state'){
     data <- read_csv(file=sprintf('periodicReg_%sall%sMods_ilicnDt%s%s.csv', code, spatial$stringcode, code2, code.str), col_types=list(state = col_character(), ili = col_integer(), pop = col_integer(), cov_z.y = col_double(), alpha_z.y = col_double(), ILIc = col_double(), cov_below5 = col_logical(), .fitted = col_double(), .se.fit = col_double(), .fittedLoess = col_double(), .se.fitLoess = col_double(), ilicn.dt = col_double(), ILIcn = col_double())) %>%
       rename(scale = state)
   }
-  
   
   # 1) add ISO week numbers; 2) add season numbers ; 3) add real zip3 names
   data2 <- data %>% mutate(wknum = as.numeric(substr.Right(ISOweek(Thu.week), 2))) %>% mutate(season = ifelse(wknum<40, as.integer(substr(Thu.week, 3, 4)), as.integer(substr(Thu.week, 3, 4))+1)) 

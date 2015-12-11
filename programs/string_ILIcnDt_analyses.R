@@ -22,18 +22,27 @@ source("explore_periodicReg_fits_ilicnDt.R")
 source("write_relativeDiseaseBurden_ilicnDt.R")
 source("explore_dbMetricsDistribution_ilicnDt.R")
 
+#### set these! ####################################
+spatial.scale <- "state"
+span.list <- seq(0.4, 0.4, by=0.1)
 
-span.list <- seq(0.4, 0.6, by=0.1)
+#### control flow for spatial scale ####################################
+spatial.params <- list()
+if (spatial.scale == "state"){
+  spatial.params <- list(scale = spatial.scale, stringcode = "State", stringabbr = "_st")
+} else if (spatial.scale == "zip3"){
+  spatial.params <- list(scale = spatial.scale, stringcode = "Zip3", stringabbr = "")
+}
 
 for (span in span.list){
-  params <- list(span.var = span, degree.var = 2)
+  params <- list(span.var = span, degree.var = 2, spatial = spatial.params)
 
-#   do.call(write_loess_fits_ILIcn, c(params))
-#   do.call(explore_loess_fits_ILIcn, c(params))
-#   do.call(write_periodicReg_fits_ilicnDt_Octfit, c(params))
-#   do.call(write_fullIndic_periodicReg_ilicnDt, c(params))
-  do.call(explore_periodicReg_fits_ilicnDt, c(params))
-#   do.call(write_relativeDiseaseBurden_ilicnDt, c(params))
-#   do.call(explore_dbMetricsDistribution_ilicnDt, c(params))
+  # do.call(write_loess_fits_ILIcn, c(params))
+  # do.call(explore_loess_fits_ILIcn, c(params))
+  # do.call(write_periodicReg_fits_ilicnDt_Octfit, c(params))
+  # do.call(write_fullIndic_periodicReg_ilicnDt, c(params))
+  # do.call(explore_periodicReg_fits_ilicnDt, c(params))
+  # do.call(write_relativeDiseaseBurden_ilicnDt, c(params))
+  do.call(explore_dbMetricsDistribution_ilicnDt, c(params))
 }
 
