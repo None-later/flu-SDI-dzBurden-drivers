@@ -15,8 +15,8 @@
 ## install.packages("pkg", dependencies=TRUE, lib="/usr/local/lib/R/site-library") # in sudo R
 ## update.packages(lib.loc = "/usr/local/lib/R/site-library")
 
-write_loess_fits_ILIcn <- function(span.var, degree.var){
-
+write_loess_fits_ILIcn <- function(span.var, degree.var, spatial){
+  print(deparse(sys.call()))
   #### header ####################################
   require(dplyr)
   require(ggplot2)
@@ -25,13 +25,19 @@ write_loess_fits_ILIcn <- function(span.var, degree.var){
   require(readr)
   setwd(dirname(sys.frame(1)$ofile))
   
-  #### import data ####################################
-  setwd('../R_export')
-  ilic_df <- read_csv('ilicByallZip_allWeekly_totServ_totAge.csv', col_types = list("zip3" = col_character(), ili = col_integer(), pop = col_integer(), cov_z.y = col_double(), alpha_z.y = col_double(), ILIc = col_double(), cov_below5 = col_logical()))
-  
-  #### set these! ################################
+#   # uncomment when running script separately
+#   spatial <- list(scale = "state", stringcode = "State", stringabbr = "_st")
 #   span.var <- 0.4 # 0.4, 0.6
 #   degree.var <- 2
+  #### import data ####################################
+  setwd('../R_export')
+  if (spatial$scale == 'zip3'){
+    ilic_df <- read_csv(sprintf('ilicByall%s_allWeekly_totServ_totAge.csv', spatial$stringcode), col_types = list(zip3 = col_character(), ili = col_integer(), pop = col_integer(), cov_z.y = col_double(), alpha_z.y = col_double(), ILIc = col_double(), cov_below5 = col_logical()))
+  } else if (spatial$scale == 'state'){
+    ilic_df <- read_csv(sprintf('ilicByall%s_allWeekly_totServ_totAge.csv', spatial$stringcode), col_types = list(state = col_character(), ili = col_integer(), pop = col_integer(), cov_z.y = col_double(), alpha_z.y = col_double(), ILIc = col_double(), cov_below5 = col_logical()))
+  }
+ 
+  #### set these! ################################
   code.str <- sprintf('_span%s_degree%s', span.var, degree.var)
   
   #### data cleaning ####################################
@@ -47,25 +53,23 @@ write_loess_fits_ILIcn <- function(span.var, degree.var){
     filter(fit.week) %>% 
     filter(Thu.week < as.Date('2009-05-01')) %>% 
     filter(incl.lm) %>%
-    group_by(zip3) %>%
+    group_by_(spatial$scale) %>%
     do(fitZip3 = loess(ILIcn ~ t, span = span.var, degree = degree.var, data = ., na.action=na.exclude))
     
   allLoessMods_aug <- augment(allLoessMods, fitZip3, newdata= newbasedata)
  
   # after augment - join ILI data to fits
-  allLoessMods_fit_ILI <- right_join((allLoessMods_aug %>% ungroup %>% select(-t)), (ilic_df2 %>% filter(Thu.week < as.Date('2009-05-01'))), by=c('Thu.week', 'zip3')) %>% 
+  allLoessMods_fit_ILI <- right_join((allLoessMods_aug %>% ungroup %>% select(-t)), (ilic_df2 %>% filter(Thu.week < as.Date('2009-05-01'))), by=c('Thu.week', spatial$scale)) %>% 
     mutate(week=as.Date(week, origin="1970-01-01")) %>% 
     mutate(Thu.week=as.Date(Thu.week, origin="1970-01-01")) %>% 
    mutate(ilicn.dt = ifelse(.fitted <= 1, ILIcn, ILIcn/.fitted)) 
   
- 
   #### write data to file ####################################
   print('writing loess fits')
   setwd('../R_export')
   # write fitted and original loess smoothed ILI data 
-  write.csv(allLoessMods_fit_ILI, file=sprintf('loess%s_allZip3Mods_ILIcn.csv', code.str), row.names=FALSE)
-  
-  
+  write.csv(allLoessMods_fit_ILI, file=sprintf('loess%s_all%sMods_ILIcn.csv', code.str, spatial$stringcode), row.names=FALSE)
+
 }
 
 
