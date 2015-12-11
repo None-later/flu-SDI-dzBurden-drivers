@@ -97,7 +97,7 @@ ilicDat <- left_join(iliDat2, alphaDat, by = c("zip3", "year")) %>%
 
 #### write Data to file ####################################
 write.csv(alphaDat_Full2, file = 'vizPhysRatio_zipYear_corrections.csv', row.names=F)
-write.csv(ilicDat, file = 'ilicByallZip_allWeekly_totServ_totAge.csv', row.names=F)
+write.csv(ilicDat, file = 'ilicByallZip3_allWeekly_totServ_totAge.csv', row.names=F)
 # exported 10/25/15
 
 

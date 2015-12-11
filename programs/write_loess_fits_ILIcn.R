@@ -32,9 +32,11 @@ write_loess_fits_ILIcn <- function(span.var, degree.var, spatial){
   #### import data ####################################
   setwd('../R_export')
   if (spatial$scale == 'zip3'){
-    ilic_df <- read_csv(sprintf('ilicByall%s_allWeekly_totServ_totAge.csv', spatial$stringcode), col_types = list(zip3 = col_character(), ili = col_integer(), pop = col_integer(), cov_z.y = col_double(), alpha_z.y = col_double(), ILIc = col_double(), cov_below5 = col_logical()))
+    ilic_df <- read_csv(sprintf('ilicByall%s_allWeekly_totServ_totAge.csv', spatial$stringcode), col_types = list(zip3 = col_character(), ili = col_integer(), pop = col_integer(), cov_z.y = col_double(), alpha_z.y = col_double(), ILIc = col_double(), cov_below5 = col_logical())) %>%
+      rename(scale = zip3)
   } else if (spatial$scale == 'state'){
-    ilic_df <- read_csv(sprintf('ilicByall%s_allWeekly_totServ_totAge.csv', spatial$stringcode), col_types = list(state = col_character(), ili = col_integer(), pop = col_integer(), cov_z.y = col_double(), alpha_z.y = col_double(), ILIc = col_double(), cov_below5 = col_logical()))
+    ilic_df <- read_csv(sprintf('ilicByall%s_allWeekly_totServ_totAge.csv', spatial$stringcode), col_types = list(state = col_character(), ili = col_integer(), pop = col_integer(), cov_z.y = col_double(), alpha_z.y = col_double(), ILIc = col_double(), cov_below5 = col_logical())) %>%
+      rename(scale = state)
   }
  
   #### set these! ################################
@@ -53,13 +55,13 @@ write_loess_fits_ILIcn <- function(span.var, degree.var, spatial){
     filter(fit.week) %>% 
     filter(Thu.week < as.Date('2009-05-01')) %>% 
     filter(incl.lm) %>%
-    group_by_(spatial$scale) %>%
+    group_by(scale) %>%
     do(fitZip3 = loess(ILIcn ~ t, span = span.var, degree = degree.var, data = ., na.action=na.exclude))
     
   allLoessMods_aug <- augment(allLoessMods, fitZip3, newdata= newbasedata)
  
   # after augment - join ILI data to fits
-  allLoessMods_fit_ILI <- right_join((allLoessMods_aug %>% ungroup %>% select(-t)), (ilic_df2 %>% filter(Thu.week < as.Date('2009-05-01'))), by=c('Thu.week', spatial$scale)) %>% 
+  allLoessMods_fit_ILI <- right_join((allLoessMods_aug %>% ungroup %>% select(-t)), (ilic_df2 %>% filter(Thu.week < as.Date('2009-05-01'))), by=c('Thu.week', 'scale')) %>% 
     mutate(week=as.Date(week, origin="1970-01-01")) %>% 
     mutate(Thu.week=as.Date(Thu.week, origin="1970-01-01")) %>% 
    mutate(ilicn.dt = ifelse(.fitted <= 1, ILIcn, ILIcn/.fitted)) 
