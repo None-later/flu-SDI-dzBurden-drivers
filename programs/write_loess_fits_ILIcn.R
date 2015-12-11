@@ -10,6 +10,7 @@
 ## Data Source: 
 ## Notes: code2 = 'Octfit' --> October to April is flu period, but we fit the seasonal regression from April to October (i.e., expanded definition of summer) in order to improve phase of regression fits
 ## 52.18 weeks per year in the regression model
+## 12-10-15 - add spatial scale option (zip3 or state)
 ## 
 ## useful commands:
 ## install.packages("pkg", dependencies=TRUE, lib="/usr/local/lib/R/site-library") # in sudo R

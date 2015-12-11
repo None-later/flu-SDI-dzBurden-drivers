@@ -4,7 +4,7 @@
 ## Function: explore loess regression fits of ILIcn through plotting; the loess fits will serve as a baseline to process the ILIc data, removing time trends
 ## Filenames: R_export/sprintf('loess%s_allZip3Mods_ILIc.csv', code.str)
 ## Data Source: 
-## Notes: 
+## Notes: 12-10-15 - add spatial scale option (zip3 or state)
 ## 
 ## useful commands:
 ## install.packages("pkg", dependencies=TRUE, lib="/usr/local/lib/R/site-library") # in sudo R

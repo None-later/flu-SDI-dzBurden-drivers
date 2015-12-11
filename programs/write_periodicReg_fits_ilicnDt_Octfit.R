@@ -10,6 +10,7 @@
 ## Data Source: 
 ## Notes: code2 = 'Octfit' --> October to April is flu period, but we fit the seasonal regression from April to October (i.e., expanded definition of summer) in order to improve phase of regression fits
 ## 52.18 weeks per year in the regression model
+## 12-10-15 - add spatial scale option (zip3 or state)
 ## 
 ## useful commands:
 ## install.packages("pkg", dependencies=TRUE, lib="/usr/local/lib/R/site-library") # in sudo R
@@ -61,18 +62,24 @@ write_periodicReg_fits_ilicnDt_Octfit <- function(span.var, degree.var, spatial)
   # after augment - join ILI data to fits
   allMods_fit_ILI <- right_join((allMods_aug %>% select(-t)), (ILI_full_df %>% filter(Thu.week < as.Date('2009-05-01'))), by=c('Thu.week', 'scale')) %>% 
     mutate(Thu.week=as.Date(Thu.week, origin="1970-01-01")) %>% 
-    mutate(week=as.Date(week, origin="1970-01-01"))
+    mutate(week=as.Date(week, origin="1970-01-01")) 
   
   
   #### write data to file ####################################
   print(sprintf('writing periodic reg data to file %s', code.str))
   setwd('../R_export')
+  
+  # rename variable "scale" to zip3 or state
+  perReg <- scaleRename(spatial$scale, allMods_fit_ILI)
+  tidCoef <- scaleRename(spatial$scale, allMods_tidy)
+  sumStats <- scaleRename(spatial$scale, allMods_glance)
+  
   # write fitted and original IR data 
-  write.csv(allMods_fit_ILI, file=sprintf('periodicReg_%sall%sMods_ilicnDt%s%s.csv', code, spatial$stringcode, code2, code.str), row.names=FALSE)
+  write.csv(perReg, file=sprintf('periodicReg_%sall%sMods_ilicnDt%s%s.csv', code, spatial$stringcode, code2, code.str), row.names=FALSE)
   # write tidy coefficient dataset
-  write.csv(allMods_tidy, file=sprintf('tidyCoef_periodicReg_%sall%sMods_ilicnDt%s%s.csv', code, spatial$stringcode, code2, code.str), row.names=FALSE)
+  write.csv(tidCoef, file=sprintf('tidyCoef_periodicReg_%sall%sMods_ilicnDt%s%s.csv', code, spatial$stringcode, code2, code.str), row.names=FALSE)
   # write summary statistics for all models
-  write.csv(allMods_glance, file=sprintf('summaryStats_periodicReg_%sall%sMods_ilicnDt%s%s.csv', code, spatial$stringcode, code2, code.str), row.names=FALSE)
+  write.csv(sumStats, file=sprintf('summaryStats_periodicReg_%sall%sMods_ilicnDt%s%s.csv', code, spatial$stringcode, code2, code.str), row.names=FALSE)
   
 }
 
