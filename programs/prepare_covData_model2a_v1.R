@@ -70,9 +70,10 @@ covData <- bind_rows(firsthalf, secondhalf, remainder) %>%
 setwd("../reference_data")
 abbrDat <- read_csv("state_abbreviations_FIPS.csv", col_types = "_cc") %>%
   rename(fips_st = FIPS, abbr_st = Abbreviation)
-covData2 <- left_join(covData, abbrDat, by = "fips_st")
+covData2 <- left_join(covData, abbrDat, by = "fips_st") %>%
+  mutate(season = substr.Right(as.character(year), 1))
 
 #### write data to file ################################
 setwd("../R_export/jagsModelData_import")
-write_csv(covData2, "covData_2a_popDens_pov_insur.csv")
+write_csv(covData2, "covData_2a_v1.csv")
 # export 12/12/15
