@@ -29,7 +29,7 @@ source("source_jags_posterior_plots.R")
 # version 1: set.seed(19)
 
 #### set these ################################
-version <- 'v3' 
+version <- 'v5' 
 var <- list(span = 0.5, degree = 2)
 
 #### string formatting ################################

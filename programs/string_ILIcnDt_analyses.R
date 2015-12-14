@@ -4,7 +4,7 @@
 ## Function: string together analyses for detrended ilic metric divided by population size (ilicn)
 ## Filenames: 
 ## Data Source: 
-## Notes: 
+## Notes: 12/12/15 - add switch between state-level and zip3-level
 ## 
 ## useful commands:
 ## install.packages("pkg", dependencies=TRUE, lib="/usr/local/lib/R/site-library") # in sudo R
@@ -21,10 +21,11 @@ source("write_fullIndic_periodicReg_ilicnDt.R")
 source("explore_periodicReg_fits_ilicnDt.R")
 source("write_relativeDiseaseBurden_ilicnDt.R")
 source("explore_dbMetricsDistribution_ilicnDt.R")
+source("explore_periodicReg_inSeasonFits_ilicnDt.R")
 
 #### set these! ####################################
 spatial.scale <- "state"
-span.list <- seq(0.5, 0.6, by=0.1)
+span.list <- seq(0.4, 0.6, by=0.1)
 
 #### control flow for spatial scale ####################################
 spatial.params <- list()
@@ -44,5 +45,6 @@ for (span in span.list){
   do.call(explore_periodicReg_fits_ilicnDt, c(params))
   do.call(write_relativeDiseaseBurden_ilicnDt, c(params))
   do.call(explore_dbMetricsDistribution_ilicnDt, c(params))
+  do.call(explore_periodicReg_inSeasonFits_ilicnDt, c(params))
 }
 
