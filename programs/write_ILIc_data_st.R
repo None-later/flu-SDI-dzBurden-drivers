@@ -81,14 +81,14 @@ setwd("../graph_outputs/explore_allILI_st_ts")
 # plot raw ili at state level
 eda.ili <- ggplot(iliDat, aes(x = Thu.week, y = ili)) +
   geom_line() +
-  facet_wrap(~STATE) +
+  facet_wrap(~state) +
   ylab("ILI cases")
 ggsave("ili_state_ts.png", eda.ili, width = w, height = h, dpi = dp)
 
 # plot rate of ILI per 10,000 at state level
 eda.ilirate <- ggplot(iliDat %>% mutate(iliRate = ili/pop*10000), aes(x = Thu.week, y = iliRate)) +
   geom_line() +
-  facet_wrap(~STATE) + 
+  facet_wrap(~state) + 
   ylab("ILI rate per 10,000 population") + coord_cartesian(ylim = c(0, 25))
 ggsave("ilin_state_ts.png", eda.ilirate, width = w, height = h, dpi = dp)
 
@@ -117,7 +117,7 @@ alphaDat_Full <- left_join(cov_df2, mn_viz_phys, by = 'year') %>%
 dummy2001Dat <- alphaDat_Full %>% filter(year == 2002) %>%
   mutate(year = 2001)
 alphaDat_Full2 <- bind_rows(alphaDat_Full, dummy2001Dat)
-alphaDat_Full2 <- arrange(alphaDat_Full2, eval(parse(text = "state")), year)
+alphaDat_Full2 <- arrange(alphaDat_Full2, state, year)
 
 # shorten dataset
 alphaDat <- alphaDat_Full2 %>% select(eval(parse(text = "state")), year, cov_z.y, alpha_z.y, cov_below5) 
