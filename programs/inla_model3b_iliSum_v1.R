@@ -4,7 +4,7 @@
 ## Function: Model 3b sampling effort model
 ## Filenames: physicianCoverage_IMSHealth_state.csv, dbMetrics_periodicReg_ilinDt_Octfit_span0.4_degree2_analyzeDB_st.csv
 ## Data Source: IMS Health
-## Notes: 
+## Notes: need to SSH into snow server
 ## 
 ## useful commands:
 ## install.packages("pkg", dependencies=TRUE, lib="/usr/local/lib/R/site-library") # in sudo R
@@ -58,7 +58,7 @@ path_list <- list(path_pop_st = path_pop_st,
 
 #### MAIN #################################
 #### Import and process data ####
-modData <- model3b_iliSum_v1(path_list)
+modData <- model3b_iliSum_v1(path_list) # with sampling effort variables
 
 
 #### INLA modeling ################################
@@ -82,11 +82,13 @@ labVec <- paste("Tier", 1:5)
 colVec <- brewer.pal(length(labVec), 'RdYlGn')
 
 
-#### run model for season 2 only ####
+#### run models by season ####
 for (s in seasons){
   modData_full <- combine_shapefile_modelData_st(path_list, modData, s)
   mod <- inla(formula, family = "gaussian", data = modData_full, 
               control.predictor = list(compute = TRUE), # compute summary statistics on fitted values
+              control.compute = list(dic = TRUE),
+              verbose = TRUE,
               offset = logE) # offset (log link with Gaussian)
  
   #### assign seasonal paths ####
@@ -97,6 +99,8 @@ for (s in seasons){
   path_plotExport_fixedFxMarginals <- paste0(getwd())
   path_plotExport_predMu_st <- paste0(getwd(), sprintf("/choro_predMu_%s_S%s.png", modCodeStr, s))
   path_plotExport_obsY_st <- paste0(getwd(), sprintf("/choro_obsY_%s_S%s.png", modCodeStr, s))
+  path_plotExport_predDBRatio_st <- paste0(getwd(), sprintf("/choro_dbRatio_%s_S%s.png", modCodeStr, s))
+  
   
   setwd(dirname(sys.frame(1)$ofile))
   setwd(sprintf("../R_export/inlaModelData_export/%s", modCodeStr))
@@ -110,12 +114,11 @@ for (s in seasons){
     mutate(predMu = exp(logE + Prednu_mode)) %>%
     mutate(predMu_bin = cut(predMu, breaks = quantile(predMu, probs = seq(0, 1, by = 1/5), na.rm=T), ordered_result = TRUE, include.lowest = TRUE)) %>%
     mutate(predMu_bin = factor(predMu_bin, levels = rev(levels(predMu_bin)))) %>% 
-    mutate(predMu_bin_color = factor(predMu_bin, levels = levels(predMu_bin), labels = colVec)) %>%
-    mutate(predMu_col_string = as.character(predMu_bin_color)) %>%
     mutate(obsY_bin = cut(y, breaks = quantile(y, probs = seq(0, 1, by = 1/5), na.rm=T), include.lowest = TRUE, ordered_result = TRUE)) %>%
     mutate(obsY_bin = factor(obsY_bin, levels = rev(levels(obsY_bin)))) %>% 
-    mutate(obsY_bin_color = factor(obsY_bin, levels = levels(obsY_bin), labels = colVec)) %>%
-    mutate(obsY_col_string = as.character(obsY_bin_color))
+    mutate(dbRatio = predMu/E) %>%
+    mutate(dbRatio_bin = cut(dbRatio, breaks = quantile(dbRatio, probs = seq(0, 1, by = 1/5), na.rm=T), ordered_result = TRUE, include.lowest = TRUE)) %>%
+    mutate(dbRatio_bin = factor(dbRatio_bin, levels = rev(levels(dbRatio_bin))))
  
   
   #### INLA diagnostic plots ####
@@ -144,6 +147,8 @@ for (s in seasons){
   plot_state_choropleth(path_plotExport_obsY_st, plotDat, "obsY_bin", "tier")
   # plot_state_choropleth(path_plotExport_obsY_st, plotDat, "y", "gradient")
   
+  # plot choropleth of burden ratio (mu_i/E) 
+  plot_state_choropleth(path_plotExport_predDBRatio_st, plotDat, "dbRatio_bin", "tier")
   
   #### INLA summary statistics export ####
   # write csv of marginal posterior summary statistics -- fixed and random coefficients

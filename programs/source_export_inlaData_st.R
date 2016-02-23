@@ -100,6 +100,31 @@ plot_rdmFx_summary_map <- function(exportPath, pltDat, rdmFxTxt){
   
 }
 
+#### functions for data processing prior to export  ################################
+
+# process_binVariable <- function(dataset, variable, varname){
+#   # for the passed variable, bin to quintiles and add color strings
+#   print(match.call())
+#   
+#   #### plot formatting ####
+#   labVec <- paste("Tier", 1:5)
+#   colVec <- brewer.pal(length(labVec), 'RdYlGn')
+#   
+#   #### variable name formatting ####
+#   bin_name <- paste0(varname, "_bin")
+#   bincolor_name <- sprintf("%s_bin_color", varname)
+#   colstring_name <- sprintf("%s_col_string", varname)
+#   
+#   #### processing ####
+#   dataset2 <- dataset %>%
+#     rename_(variable = variable) %>%
+#     mutate_(binName = cut(variable, breaks = quantile(variable = seq(0, 1, by = 1/5), na.rm=T), ordered_result = TRUE, include.lowest = TRUE)) %>%
+#     rename_(bin_name = binName)
+#            
+#   return(dataset2)
+# }
+
+
 #### functions for data export  ################################
 
 export_summaryStats <- function(exportPath, modelOutput, rdmFxTxt){
