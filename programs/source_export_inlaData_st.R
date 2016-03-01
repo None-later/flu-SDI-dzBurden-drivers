@@ -53,6 +53,7 @@ plot_fixedFx_marginals <- function(exportPath, modelOutput, modCodeStr, s){
   w <- 4; h <- 4; dp <- 300
   
   names_fixedFx <- names(modelOutput$marginals.fixed)
+  # standard naming system "O_samplingeffort" or "X_driver"
   names_fixedFx_cl <- grep("[OX]{1}[_]{1}", unlist(strsplit(names_fixedFx, split = "[()]")), value = TRUE)
   
   for (i in 1:length(names_fixedFx)){
@@ -170,6 +171,44 @@ export_summaryStats_rdmOnly <- function(exportPath, modelOutput, rdmFxTxt){
   
 }
 
+export_summaryStats_fitted <- function(exportPath, modelOutput){
+  # export summary statistics of INLA fitted values
+  print(match.call())
+  
+  # variable name output from INLA
+  names(modelOutput$summary.fitted.values) <- c("mean", "sd", "q_025", "q_5", "q_975", "mode")
+  idvar <- paste0("yhat", as.character(as.numeric(substr.Right(rownames(modelOutput$summary.fitted.values), 2))))
+  
+  # clean summary statistics output for fitted values (yhat)
+  summaryFitted <- tbl_df(modelOutput$summary.fitted.values) %>%
+    mutate(ID = idvar) %>%
+    select(ID, mean, sd, q_025, q_5, q_975, mode)
+  
+  # export data to file
+  write_csv(summaryFitted, exportPath)
+  return(summaryFitted)
+}
 
+export_DIC <- function(exportPath, dicDataframe){
+  # export DIC values across all seasons for a given model set
+  print(match.call())
+  
+  # parse modCodeStr
+  parsed <- strsplit(modCodeStr, "_")[[1]]
+  
+  # clean data frame
+  dicOutput <- tbl_df(dicDataframe) %>%
+    mutate(modCode = parsed[1], dbMetric = parsed[2], version = parsed[3]) %>%
+    select(modCodeStr, modCode, dbMetric, version, season, exportDate, DIC)
+  
+  if(dim(dicOutput)[1] == 8){
+    # export data to file
+    write_csv(dicOutput, exportPath)
+  } else{
+    # print message
+    print("DICs not written to file. Fewer than 8 seasons present in DIC output dataframe.")
+  }
+  
+}
 
 

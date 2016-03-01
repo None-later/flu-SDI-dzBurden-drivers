@@ -15,8 +15,8 @@ require(dplyr); require(tidyr); require(maptools); require(spdep)
 #### functions for model data aggregation  ################################
 
 model3a_iliSum_v1 <- function(filepathList){
-  # null model: unstructured spatial only
-    # y = response, E = expected response
+  # iliSum response only: models 3a, 3c
+  # y = response, E = expected response
   print(match.call())
   print(filepathList)
   
@@ -26,14 +26,14 @@ model3a_iliSum_v1 <- function(filepathList){
 ################################
 
 model3b_iliSum_v1 <- function(filepathList){
-  # unstructured spatial and sampling effort variables (IMS database cov, IMS viz/phys, % insured)
+  # iliSum response and sampling effort variables (IMS database cov, IMS viz/phys, % insured): models 3b, 3d
   # y = response, E = expected response
   print(match.call())
   print(filepathList)
   
   mod_df <- cleanR_iliSum_st(filepathList)
-  imsCov_df <- cleanC_imsCoverage_st(filepathList)
-  cpsasecInsured_df <- cleanC_cpsasecInsured_st()
+  imsCov_df <- cleanO_imsCoverage_st(filepathList)
+  cpsasecInsured_df <- cleanO_cpsasecInsured_st()
   
   dummy_df <- left_join(mod_df, imsCov_df, by = c("year", "abbr"))
   full_df <- left_join(dummy_df, cpsasecInsured_df, by = c("year", "fips")) %>%
@@ -41,6 +41,48 @@ model3b_iliSum_v1 <- function(filepathList){
     rename(O_careseek = visitsPerProvider) %>%
     rename(O_insured = insured)
                         
+  return(full_df)
+}
+################################
+
+model3e_iliSum_v1 <- function(filepathList){
+  # iliSum response and driver variables: models 3e, 3g
+  # v1 = proportion in poverty
+  # y = response, E = expected response
+  print(match.call())
+  print(filepathList)
+  
+  mod_df <- cleanR_iliSum_st(filepathList)
+  saipePoverty_df <- cleanX_saipePoverty_st()
+
+  full_df <- left_join(mod_df, saipePoverty_df, by = c("year", "fips")) %>%
+    rename(X_poverty = poverty) 
+  
+  return(full_df)
+}
+################################
+
+model3f_iliSum_v1 <- function(filepathList){
+  # iliSum response, sampling effort, and driver variables: models 3f, 3h
+  # v1 = proportion in poverty
+  # y = response, E = expected response
+  print(match.call())
+  print(filepathList)
+  
+  mod_df <- cleanR_iliSum_st(filepathList)
+  imsCov_df <- cleanO_imsCoverage_st(filepathList)
+  cpsasecInsured_df <- cleanO_cpsasecInsured_st()
+  saipePoverty_df <- cleanX_saipePoverty_st()
+  
+  
+  dummy_df <- left_join(mod_df, imsCov_df, by = c("year", "abbr"))
+  dummy_df2 <- left_join(dummy_df, cpsasecInsured_df, by = c("year", "fips")) %>%
+    rename(O_imscoverage = adjProviderCoverage) %>%
+    rename(O_careseek = visitsPerProvider) %>%
+    rename(O_insured = insured)
+  full_df <- left_join(dummy_df2, saipePoverty_df, by = c("year", "fips")) %>%
+    rename(X_poverty = poverty) 
+  
   return(full_df)
 }
 

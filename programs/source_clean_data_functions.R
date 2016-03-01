@@ -57,7 +57,7 @@ clean_pop_st <- function(filepathList){
 }
 
 ##### SAMPLING EFFORT DATA ##########
-cleanC_imsCoverage_st <- function(filepathList){
+cleanO_imsCoverage_st <- function(filepathList){
   # clean IMS Health adjusted physician coverage (database coverage) and physician per visit ratio (care-seeking behavior)
   # logit transform the adjusted percentage of provider coverage in IMS database; log transform the ratio of visits per provider in the IMS database
   # center and standardize the transformed variables
@@ -67,6 +67,7 @@ cleanC_imsCoverage_st <- function(filepathList){
     rename(abbr = state) %>%
     rename(adjProviderCoverage = covAdjProv) %>%
     mutate(visitsPerProvider_raw = sampViz/sampProv) %>%
+    group_by(year) %>%
     mutate(adjProviderCoverage = centerStandardize(log(adjProviderCoverage/(1-adjProviderCoverage)))) %>%
     mutate(visitsPerProvider = centerStandardize(log(visitsPerProvider_raw))) %>%
     select(year, abbr, adjProviderCoverage, visitsPerProvider)
@@ -74,9 +75,10 @@ cleanC_imsCoverage_st <- function(filepathList){
   return(cov_data)
   
 }
+################################
 
-cleanC_cpsasecInsured_st <- function(){
-  # clean CSP-ASEC insured data exported from mysql
+cleanO_cpsasecInsured_st <- function(){
+  # clean CPS-ASEC insured data exported from mysql
   print(match.call())
   
   con <- dbConnect(RMySQL::MySQL(), group = "rmysql-fludrivers")
@@ -90,6 +92,7 @@ cleanC_cpsasecInsured_st <- function(){
   dbDisconnect(con)
   
   insured <- tbl_df(dummy) %>%
+    group_by(year) %>%
     mutate(insured = centerStandardize(log(insured_prop/(1-insured_prop)))) %>%
     select(-insured_prop)
   
@@ -97,5 +100,32 @@ cleanC_cpsasecInsured_st <- function(){
 }
 
 
-
 ##### DRIVER DATA ##########
+
+cleanX_saipePoverty_st <- function(){
+  # clean SAIPE percentage of population in poverty data exported from mysql
+  print(match.call())
+  
+  con <- dbConnect(RMySQL::MySQL(), group = "rmysql-fludrivers")
+  dbListTables(con)
+  
+  dbListFields(con, "SAIPE_poverty")
+  # sel.head.poverty <- "SELECT * from SAIPE_poverty limit 5"
+  sel.statement.poverty <- "SELECT year, state_id AS fips, all_poverty_percent/100 AS inPoverty_prop FROM SAIPE_poverty WHERE type = 'state'"
+  dummy <- dbGetQuery(con, sel.statement.poverty)
+  
+  dbDisconnect(con)
+  
+  poverty <- tbl_df(dummy) %>%
+    group_by(year) %>%
+    mutate(poverty = centerStandardize(log(inPoverty_prop/(1-inPoverty_prop)))) %>%
+    select(-inPoverty_prop)
+  
+  return(poverty)
+}
+
+
+#### testing area ################################
+# test <- cleanX_saipePoverty_st()
+# print(test %>% filter(year == "2002"))
+# test %>% group_by(year) %>% summarise(mn_poverty = mean(poverty, na.rm=T))
