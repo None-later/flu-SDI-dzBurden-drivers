@@ -20,7 +20,7 @@ require(RColorBrewer); require(ggplot2) # export_inlaData_st dependencies
 #### set these! ################################
 dbCodeStr <- "_ilinDt_Octfit_span0.4_degree2"
 modCodeStr <- "3h_iliSum_v1"
-seasons <- 2:9
+seasons <- 2:2
 rdmFx_RV <- "phi"
 
 #### SOURCE: clean and import model data #################################
@@ -112,6 +112,7 @@ for (s in seasons){
   fittedDat <- export_summaryStats_fitted(path_csvExport_summaryStatsFitted, mod) %>%
     select(ID, mean, sd, mode) %>% 
     mutate(ID = as.numeric(substring(ID, 5, nchar(ID)))) %>%
+    mutate(mean = exp(mean), sd = exp(sd), mode = exp(mode)) %>%
     rename(yhat_mn = mean, yhat_sd = sd, yhat_mode = mode)
   
   plotDat <- left_join(modData_full, mod$summary.random$ID, by = "ID") %>%

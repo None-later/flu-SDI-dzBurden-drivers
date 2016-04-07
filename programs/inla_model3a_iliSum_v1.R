@@ -20,7 +20,7 @@ require(RColorBrewer); require(ggplot2) # export_inlaData_st dependencies
 #### set these! ################################
 dbCodeStr <- "_ilinDt_Octfit_span0.4_degree2"
 modCodeStr <- "3a_iliSum_v1"
-seasons <- 2:9      
+seasons <- 2:2      
 rdmFx_RV <- "nu"
 
 

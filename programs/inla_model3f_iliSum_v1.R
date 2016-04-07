@@ -115,6 +115,7 @@ for (s in seasons){
   fittedDat <- export_summaryStats_fitted(path_csvExport_summaryStatsFitted, mod) %>%
     select(ID, mean, sd, mode) %>% 
     mutate(ID = as.numeric(substring(ID, 5, nchar(ID)))) %>%
+    mutate(mean = exp(mean), sd = exp(sd), mode = exp(mode)) %>%
     rename(yhat_mn = mean, yhat_sd = sd, yhat_mode = mode)
   
   plotDat <- left_join(modData_full, mod$summary.random$ID, by = "ID") %>%
@@ -123,7 +124,7 @@ for (s in seasons){
     left_join(fittedDat, by = "ID") %>%
     mutate(yhat_bin = cut(yhat_mode, breaks = quantile(yhat_mode, probs = seq(0, 1, by = 1/3), na.rm=T), ordered_result = TRUE, include.lowest = TRUE)) %>%
     mutate(yhat_bin = factor(yhat_bin, levels = rev(levels(yhat_bin)))) %>% 
-    mutate(obsY_bin = cut(y, breaks = quantile(y, probs = seq(0, 1, by = 1/5), na.rm=T), include.lowest = TRUE, ordered_result = TRUE)) %>%
+    mutate(obsY_bin = cut(y, breaks = quantile(y, probs = seq(0, 1, by = 1/3), na.rm=T), include.lowest = TRUE, ordered_result = TRUE)) %>%
     # mutate(obsY_bin = factor(obsY_bin, levels = rev(levels(obsY_bin)), labels = labVec)) %>% 
     mutate(obsY_bin = factor(obsY_bin, levels = rev(levels(obsY_bin)))) %>% 
     mutate(dbRatio = yhat_mode/E) %>%

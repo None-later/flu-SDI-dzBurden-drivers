@@ -111,6 +111,7 @@ for (s in seasons){
   fittedDat <- export_summaryStats_fitted(path_csvExport_summaryStatsFitted, mod) %>%
     select(ID, mean, sd, mode) %>% 
     mutate(ID = as.numeric(substring(ID, 5, nchar(ID)))) %>%
+    mutate(mean = exp(mean), sd = exp(sd), mode = exp(mode)) %>%
     rename(yhat_mn = mean, yhat_sd = sd, yhat_mode = mode)
   
   plotDat <- left_join(modData_full, mod$summary.random$ID, by = "ID") %>%
