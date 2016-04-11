@@ -80,14 +80,17 @@ for (s in seas){
 dir.create("../ts", showWarnings = FALSE)
 setwd("../ts")
 
-tsplot <- ggplot(fullDat, aes(x=season, y=humidity)) +
+fullDat2 <- fullDat %>%
+  mutate(State = ifelse(FIPS == "72", "puerto rico", State))
+
+tsplot <- ggplot(fullDat2, aes(x=season, y=humidity)) +
   theme_bw() +
   theme(axis.text=element_text(size=12), axis.title=element_text(size=14,face="bold")) +
   geom_line(colour = 'black') +
   geom_point(colour = 'black') +
   scale_y_continuous(name = "Flu Season Specific Humidity") +
   guides(colour = "none") +
-  coord_cartesian(xlim = c(2002, 2009)) +
+  coord_cartesian(xlim = c(2, 9)) +
   facet_wrap(~State)
 ggsave(sprintf("specificHumidity_NOAANARR_AL-WY.png"), tsplot, width = w2, height = h2, dpi = dp)
 # saved 4/10/16
