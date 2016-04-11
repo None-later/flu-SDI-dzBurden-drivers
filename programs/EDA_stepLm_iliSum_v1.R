@@ -24,7 +24,7 @@ seasons <- 2:9
 #### SOURCE: clean and import model data #################################
 setwd(dirname(sys.frame(1)$ofile))
 source("source_clean_data_functions.R") # functions to clean original data sources
-source("source_prepare_lmData_st.R") # functions to aggregate all data sources for model
+source("source_variableSelection_st.R") # functions for variable selection analyses
 source("source_export_inlaData_st.R") # functions to export data and plots related to model
 
 
