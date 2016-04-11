@@ -37,9 +37,12 @@ model3b_iliSum_v1 <- function(filepathList){
   
   dummy_df <- left_join(mod_df, imsCov_df, by = c("year", "abbr"))
   full_df <- left_join(dummy_df, cpsasecInsured_df, by = c("year", "fips")) %>%
-    rename(O_imscoverage = adjProviderCoverage) %>%
-    rename(O_careseek = visitsPerProvider) %>%
-    rename(O_insured = insured)
+    group_by(year) %>%
+    mutate(O_imscoverage = centerStandardize(adjProviderCoverage)) %>%
+    mutate(O_careseek = centerStandardize(visitsPerProvider)) %>%
+    mutate(O_insured = centerStandardize(insured)) %>%
+    select(-adjProviderCoverage, -visitsPerProvider, -insured) %>%
+    ungroup
                         
   return(full_df)
 }
@@ -56,7 +59,9 @@ model3e_iliSum_v1 <- function(filepathList){
   saipePoverty_df <- cleanX_saipePoverty_st()
 
   full_df <- left_join(mod_df, saipePoverty_df, by = c("year", "fips")) %>%
-    rename(X_poverty = poverty) 
+    group_by(year) %>%
+    mutate(X_poverty = centerStandardize(poverty)) %>%
+    ungroup
   
   return(full_df)
 }
@@ -77,11 +82,16 @@ model3f_iliSum_v1 <- function(filepathList){
   
   dummy_df <- left_join(mod_df, imsCov_df, by = c("year", "abbr"))
   dummy_df2 <- left_join(dummy_df, cpsasecInsured_df, by = c("year", "fips")) %>%
-    rename(O_imscoverage = adjProviderCoverage) %>%
-    rename(O_careseek = visitsPerProvider) %>%
-    rename(O_insured = insured)
+    group_by(year) %>%
+    mutate(O_imscoverage = centerStandardize(adjProviderCoverage)) %>%
+    mutate(O_careseek = centerStandardize(visitsPerProvider)) %>%
+    mutate(O_insured = centerStandardize(insured)) %>%
+    select(-adjProviderCoverage, -visitsPerProvider, -insured) %>%
+    ungroup
   full_df <- left_join(dummy_df2, saipePoverty_df, by = c("year", "fips")) %>%
-    rename(X_poverty = poverty) 
+    group_by(year) %>%
+    mutate(X_poverty = centerStandardize(poverty)) %>%
+    ungroup 
   
   return(full_df)
 }

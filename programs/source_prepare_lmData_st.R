@@ -39,32 +39,33 @@ stepLm_iliSum_v1 <- function(filepathList){
   
   #### join data ####
   dummy_df <- left_join(mod_df, imsCov_df, by = c("year", "abbr"))
-  dummy_df2 <- left_join(dummy_df, cpsasecInsured_df, by = c("year", "fips")) %>%
-    rename(O_imscoverage = adjProviderCoverage) %>%
-    rename(O_careseek = visitsPerProvider) %>%
-    rename(O_insured = insured)
+  dummy_df2 <- left_join(dummy_df, cpsasecInsured_df, by = c("year", "fips"))
+  
   full_df <- left_join(dummy_df2, saipePoverty_df, by = c("year", "fips")) %>%
-    rename(X_poverty = poverty) %>%
     left_join(saipeIncome_df, by = c("year", "fips")) %>%
-    rename(X_income = income) %>%
     left_join(ahrfMcaidElig_df, by = c("year", "fips")) %>%
-    rename(X_mcaid = mcaidElig) %>%
     left_join(ahrfMcareElig_df, by = c("year", "fips")) %>%
-    rename(X_elderly = mcareElig) %>%
     left_join(ahrfHospAccess_df, by = c("year", "fips")) %>%
-    rename(X_hcaccess = hospitalAccess) %>% 
     left_join(ahrfPhysAccess_df, by = c("year", "fips")) %>%
-    rename(X_physaccess = physicianAccess) %>%
     left_join(censusPopDens_df, by = c("year", "fips")) %>%
-    rename(X_popdensity = popDensity) %>%
     left_join(censusHousDens_df, by = c("year", "fips")) %>%
-    rename(X_housdensity = housDensity) %>%
     left_join(acsCommut_prep, by = c("year", "fips" = "fips_wrk")) %>%
-    mutate(X_commute = commutInflows_prep/pop) %>%
-    select(-commutInflows_prep) %>%
     left_join(btsPass_prep, by = c("season", "fips" = "fips_dest")) %>%
-    mutate(X_flight = pass_prep/pop) %>%
-    select(-pass_prep)
+    group_by(year) %>%
+    mutate(O_imscoverage = centerStandardize(adjProviderCoverage)) %>%
+    mutate(O_careseek = centerStandardize(visitsPerProvider)) %>%
+    mutate(O_insured = centerStandardize(insured)) %>%
+    mutate(X_poverty = centerStandardize(poverty)) %>%
+    mutate(X_income = centerStandardize(income)) %>%
+    mutate(X_mcaid = centerStandardize(mcaidElig)) %>%
+    mutate(X_elderly = centerStandardize(mcareElig)) %>%
+    mutate(X_hcaccess = centerStandardize(hospitalAccess)) %>% 
+    mutate(X_physaccess = centerStandardize(physicianAccess)) %>%
+    mutate(X_popdensity = centerStandardize(popDensity)) %>%
+    mutate(X_housdensity = centerStandardize(housDensity)) %>%
+    mutate(X_commute = centerStandardize(commutInflows_prep/pop)) %>%
+    mutate(X_flight = centerStandardize(pass_prep/pop)) %>%
+    select(-adjProviderCoverage, -visitsPerProvider, -insured, -poverty, -income, -mcaidElig, -mcareElig, -hospitalAccess, -physicianAccess, -popDensity, -housDensity, -commutInflows_prep, -pass_prep)
   
   return(full_df)
 }

@@ -67,12 +67,8 @@ cleanO_imsCoverage_st <- function(filepathList){
   cov_data <- read_csv(filepathList$path_imsCov_st, col_types = "iciiiidddi") %>% 
     rename(abbr = state) %>%
     rename(adjProviderCoverage = covAdjProv) %>%
-    mutate(visitsPerProvider_raw = sampViz/sampProv) %>%
-    group_by(year) %>%
-    mutate(adjProviderCoverage = centerStandardize(adjProviderCoverage)) %>%
-    mutate(visitsPerProvider = centerStandardize(visitsPerProvider_raw)) %>%
-    select(year, abbr, adjProviderCoverage, visitsPerProvider) %>%
-    ungroup
+    mutate(visitsPerProvider = sampViz/sampProv) %>%
+    select(year, abbr, adjProviderCoverage, visitsPerProvider) 
     
   return(cov_data)
   
@@ -94,10 +90,8 @@ cleanO_cpsasecInsured_st <- function(){
   dbDisconnect(con)
   
   insured <- tbl_df(dummy) %>%
-    group_by(year) %>%
-    mutate(insured = centerStandardize(insured_prop)) %>%
-    select(fips, year, insured) %>%
-    ungroup
+    rename(insured = insured_prop) %>%
+    select(fips, year, insured) 
   
   return(insured)
 }
@@ -121,10 +115,8 @@ cleanX_saipePoverty_st <- function(){
   dbDisconnect(con)
   
   poverty <- tbl_df(dummy) %>%
-    group_by(year) %>%
-    mutate(poverty = centerStandardize(inPoverty_prop)) %>%
-    select(fips, year, poverty) %>%
-    ungroup
+    rename(poverty = inPoverty_prop) %>%
+    select(fips, year, poverty)
   
   return(poverty)
 }
@@ -144,10 +136,8 @@ cleanX_saipeIncome_st <- function(){
   dbDisconnect(con)
   
   income <- tbl_df(dummy) %>%
-    group_by(year) %>%
-    mutate(income = centerStandardize(medianIncome)) %>%
-    select(fips, year, income) %>%
-    ungroup
+    rename(income = medianIncome) %>%
+    select(fips, year, income) 
   
   return(income)
 }
@@ -172,12 +162,9 @@ cleanX_ahrfMedicaidEligibles_st <- function(){
     group_by(fips, year) %>%
     summarise(mcaidEligTot = sum(mcaidEligTot, na.rm=TRUE), pop = sum(pop, na.rm=TRUE)) %>%
     mutate(mcaidEligTot = ifelse(mcaidEligTot == 0, NA, mcaidEligTot)) %>%
-    mutate(mcaidElig_prop = mcaidEligTot/pop) %>%
+    mutate(mcaidElig = mcaidEligTot/pop) %>%
     filter(year %in% 2004:2008) %>% # 3/2/16: 2005 mcaidElig is NA if years before 2004 are included; not sure why
-    group_by(year) %>%
-    mutate(mcaidElig = centerStandardize(mcaidElig_prop)) %>%
-    select(fips, year, mcaidElig) %>%
-    ungroup 
+    select(fips, year, mcaidElig) 
   
   return(mcaidElig)
 }
@@ -206,11 +193,8 @@ cleanX_ahrfMedicareEligibles_st <- function(){
     group_by(fips, year) %>%
     summarise(mcareEligTot = sum(mcareEligTot, na.rm=TRUE), pop = sum(pop, na.rm=TRUE)) %>%
     mutate(mcareEligTot = ifelse(mcareEligTot == 0, NA, mcareEligTot)) %>%
-    mutate(mcareElig_prop = mcareEligTot/pop) %>%
-    group_by(year) %>%
-    mutate(mcareElig = centerStandardize(mcareElig_prop)) %>%
-    select(fips, year, mcareElig) %>%
-    ungroup
+    mutate(mcareElig = mcareEligTot/pop) %>%
+    select(fips, year, mcareElig) 
   
   return(mcareElig)
 }
@@ -238,11 +222,8 @@ cleanX_ahrfHospitals_st <- function(){
     group_by(fips, year) %>%
     summarise(hospCt = sum(hosp, na.rm=TRUE), pop = sum(pop, na.rm=TRUE)) %>%
     mutate(hospCt = ifelse(hospCt == 0, NA, hospCt)) %>%
-    mutate(hospPerPop = hospCt/pop) %>%
-    group_by(year) %>%
-    mutate(hospitalAccess = centerStandardize(hospPerPop)) %>%
-    select(fips, year, hospitalAccess) %>%
-    ungroup
+    mutate(hospitalAccess = hospCt/pop) %>%
+    select(fips, year, hospitalAccess) 
   
   return(hospitalAccess)
 }
@@ -267,11 +248,8 @@ cleanX_ahrfPhysicians_st <- function(){
     group_by(fips, year) %>%
     summarise(physCt = sum(physicians, na.rm=TRUE), pop = sum(pop, na.rm=TRUE)) %>%
     mutate(physCt = ifelse(physCt == 0, NA, physCt)) %>%
-    mutate(physPerPop = physCt/pop) %>%
-    group_by(year) %>%
-    mutate(physicianAccess = centerStandardize(physPerPop)) %>%
-    select(fips, year, physicianAccess) %>%
-    ungroup
+    mutate(physicianAccess = physCt/pop) %>%
+    select(fips, year, physicianAccess) 
   
   return(physicianAccess)
 }
@@ -323,10 +301,8 @@ cleanX_popDensity_st <- function(){
   dbDisconnect(con)
   
   popDensity <- tbl_df(dummy) %>%
-    group_by(year) %>%
-    mutate(popDensity = centerStandardize(popDens_land)) %>%
-    select(fips, year, popDensity) %>%
-    ungroup
+    rename(popDensity = popDens_land) %>%
+    select(fips, year, popDensity) 
   
   return(popDensity)
 }
@@ -347,10 +323,8 @@ cleanX_housDensity_st <- function(){
   dbDisconnect(con)
   
   housDensity <- tbl_df(dummy) %>%
-    group_by(year) %>%
-    mutate(housDensity = centerStandardize(housDens_land)) %>%
-    select(fips, year, housDensity) %>%
-    ungroup
+    rename(housDensity = housDens_land) %>%
+    select(fips, year, housDensity) 
   
   return(housDensity)
 }
@@ -425,50 +399,38 @@ cleanX_btsPassInflows_st <- function(){
 ##### immunity ##########
 ## 3/30/16 - Kristofer is cleaning a new version of this data which will need to be uploaded into mysql
 
-# cleanX_nisteenFluVax_st <- function(){
-#   # clean  data exported from mysql
-#   print(match.call())
-#   
-#   con <- dbConnect(RMySQL::MySQL(), group = "rmysql-fludrivers")
-#   dbListTables(con)
-#   
-#   dbListFields(con, "NISTEEN_CDC_FLU")
-#   sel.statement.nisteenFluVax <- "SELECT * from NISTEEN_CDC_FLU limit 5"
-#   # sel.statement.nisteenFluVax <- "SELECT year, FIPS AS fips_cty, physicians, population AS pop FROM AHRF_access"
-#   dummy <- dbGetQuery(con, sel.statement.nisteenFluVax)
-#   
-#   dbDisconnect(con)
-#   
-#   return(dummy)
-# }
-################################
 
-## 3/30/16 - Kristofer is cleaning a new version of this data which will need to be uploaded into mysql
-
-# cleanX_nisFluVax_st <- function(){
-#   # clean  data exported from mysql
-#   print(match.call())
-#   
-#   con <- dbConnect(RMySQL::MySQL(), group = "rmysql-fludrivers")
-#   dbListTables(con)
-#   
-#   dbListFields(con, "NIS_CDC_FLU")
-#   sel.statement.nisFluVax <- "SELECT * from NIS_CDC_FLU limit 5"
-#   # sel.statement.nisFluVax <- "SELECT year, FIPS AS fips_cty, physicians, population AS pop FROM AHRF_access"
-#   dummy <- dbGetQuery(con, sel.statement.nisFluVax)
-#   
-#   dbDisconnect(con)
-#   
-#   
-#   return(dummy)
-# }
 ################################
 
 ##### environmental factors ##########
-
+cleanX_noaanarrSpecHum_st <- function(){
+  # clean average specific humidity near population-weighted centroid of the state during flu months (daily)
+  print(match.call())
+  
+  con <- dbConnect(RMySQL::MySQL(), group = "rmysql-fludrivers")
+  dbListTables(con)
+  
+  dbListFields(con, "env_NOAANARR_specHum_state")
+  # sel.statement.noaanarrSpecHum <- "SELECT * from env_NOAANARR_specHum_state limit 5"
+  sel.statement.noaanarrSpecHum <- "SELECT fips, year, date as dayDate, humidity from env_NOAANARR_specHum_state where (date >= '2001-11-01' and date < '2009-05-01' and (MONTH(date) <= 4 or MONTH(date) >= 11))"
+  dummy <- dbGetQuery(con, sel.statement.noaanarrSpecHum)
+  
+  dbDisconnect(con)
+  
+  specHum <- tbl_df(dummy) %>%
+    mutate(season = as.numeric(substr.Right(as.character(year), 2))) %>%
+    mutate(season = ifelse(as.numeric(substring(dayDate, 6, 7)) >= 11, season + 1, season)) %>%
+    group_by(fips, season) %>%
+    summarise(humidity = mean(humidity, na.rm = TRUE)) %>%
+    ungroup
+          
+  
+  return(specHum)
+  
+}
 
 #### testing area ################################
-# test <- cleanX_nisteenFluVax_st()
+# test <- cleanX_noaanarrSpecHum_st()
 
 
 # To do:
