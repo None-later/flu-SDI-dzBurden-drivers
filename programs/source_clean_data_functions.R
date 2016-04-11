@@ -428,9 +428,36 @@ cleanX_noaanarrSpecHum_st <- function(){
   return(specHum)
   
 }
+################################
+
+cleanX_noaanarrSfcTemp_st <- function(){
+  # clean average surface temperature near population-weighted centroid of the state during flu months (daily, Kelvin)
+  print(match.call())
+  
+  con <- dbConnect(RMySQL::MySQL(), group = "rmysql-fludrivers")
+  dbListTables(con)
+  
+  dbListFields(con, "env_NOAANARR_sfcTemp_state")
+  # sel.statement.noaanarrSfcTemp <- "SELECT * from env_NOAANARR_sfcTemp_state limit 5"
+  sel.statement.noaanarrSfcTemp <- "SELECT fips, year, date as dayDate, temperature from env_NOAANARR_sfcTemp_state where (date >= '2001-11-01' and date < '2009-05-01' and (MONTH(date) <= 4 or MONTH(date) >= 11))"
+  dummy <- dbGetQuery(con, sel.statement.noaanarrSfcTemp)
+  
+  dbDisconnect(con)
+  
+  sfcTemp <- tbl_df(dummy) %>%
+    mutate(season = as.numeric(substr.Right(as.character(year), 2))) %>%
+    mutate(season = ifelse(as.numeric(substring(dayDate, 6, 7)) >= 11, season + 1, season)) %>%
+    group_by(fips, season) %>%
+    summarise(temperature = mean(temperature, na.rm = TRUE)) %>%
+    ungroup
+  
+  
+  return(sfcTemp)
+  
+}
 
 #### testing area ################################
-# test <- cleanX_noaanarrSpecHum_st()
+# test <- cleanX_noaanarrSfcTemp_st()
 
 
 # To do:
@@ -439,7 +466,6 @@ cleanX_noaanarrSpecHum_st <- function(){
 #   cleanX_nisteenFluVax_st -- uncertain aggregation
 #   cleanX_nisFluVax_st -- uncertain aggregation
 #   prior immunity from last year's seasonal burden
-#   ghcnm_temp -- see if the NOAA routines from Cecile might clean state-level temperature data more readily
 #   skip spatialcw tables -- these are just crosswalks between different areal units
 
 
