@@ -17,6 +17,7 @@ require(RColorBrewer); require(ggplot2)
 
 #### set these! ################################
 dbCodeStr <- "_ilinDt_Octfit_span0.4_degree2"
+rCode <- "iliSum"
 seasons <- 2:9
 
 #### SOURCE: clean and import model data #################################
@@ -33,6 +34,7 @@ path_latlon_st <- paste0(getwd(), "/state_latlon.csv")
 setwd("../R_export")
 path_response_st <- paste0(getwd(), sprintf("/dbMetrics_periodicReg%s_analyzeDB_st.csv", dbCodeStr))
 path_imsCov_st <- paste0(getwd(), "/physicianCoverage_IMSHealth_state.csv")
+path_coefDat <- paste0(getwd(), sprintf("/VS_coefDat_%s_st.csv", rCode))
 
 setwd(dirname(sys.frame(1)$ofile))
 setwd("../graph_outputs")
@@ -57,16 +59,41 @@ allDat2 <- allDat %>%
   select(-X_popdensity, -X_housdensity) # these var were available only for Census 2000 and Census 2010
 summary(allDat2)
 
+
 #### Pairwise variable comparisons ####
 # full scatterplot matrix
-png(sprintf("scatterMx_iliSum_st%s.png", dbCodeStr), width = w, height = h, units = "in", res = dp)
+png(sprintf("scatterMx_%s_st%s.png", rCode, dbCodeStr), width = w, height = h, units = "in", res = dp)
 scatterMx <- pairs_scatterplotMatrix(allDat2)
 print(scatterMx)
 dev.off()
 
 # full correlation matrix
-png(sprintf("corrMx_spearman_iliSum_st%s.png", dbCodeStr), width = w, height = h, units = "in", res = dp)
+png(sprintf("corrMx_spearman_%s_st%s.png", rCode, dbCodeStr), width = w, height = h, units = "in", res = dp)
 corrMx <- pairs_corrMatrix(allDat2)
 print(corrMx)
 dev.off()
 
+
+#### Single variable models ####
+varlist <- grep("[OX]{1}[_]{1}", names(allDat2), value = TRUE)  # grab all varnames
+# generate empty data frame to store coefficient data
+coefDat <- tbl_df(data.frame(respCode = c(), singleCov = c(), season = c(), exportDate = c(), coefMode = c(), coefQ025 = c(), coefQ975 = c(), DIC = c()))
+
+# loop through all variables and seasons
+for (varInterest in varlist){
+  for (s in seasons){
+    modDat <- subset_singleVariable_data(allDat2, s, varInterest)
+    if (all(is.na(modDat$varInterest))){
+      print(sprintf("%s is all NA for season %s", varInterest, s))
+      next
+      }
+    # save row of model data
+    else{
+      coefRow <- model_singleVariable_inla_st(modDat, rCode, s, varInterest) # N.B. model includes intercept
+      # append to model data object
+      coefDat <- bind_rows(coefDat, coefRow)
+    }
+     }
+}
+# write to file
+write_csv(coefDat, path_coefDat)

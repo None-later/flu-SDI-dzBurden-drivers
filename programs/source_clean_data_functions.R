@@ -32,7 +32,8 @@ cleanR_iliSum_st <- function(filepathList){
     select(fips, abbr, state, lat, lon, season, year, pop, y) %>% 
     group_by(season) %>%
     mutate(E = weighted.mean(y, pop)) %>%
-    ungroup
+    ungroup %>%
+    mutate(logy = log(y), logE = log(E))
   
   return(return_data)
 }
@@ -450,7 +451,6 @@ cleanX_noaanarrSfcTemp_st <- function(){
     group_by(fips, season) %>%
     summarise(temperature = mean(temperature, na.rm = TRUE)) %>%
     ungroup
-  
   
   return(sfcTemp)
   

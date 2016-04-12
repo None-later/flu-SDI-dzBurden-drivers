@@ -132,7 +132,6 @@ combine_shapefile_modelData_st <- function(filepathList, modelData, seasNum){
     mutate(state = tolower(as.character(NAME))) %>%
     select(-STATE, -NAME) %>%
     full_join(modelData2, by = "fips") %>%
-    mutate(logy = log(y), logE = log(E)) %>%
     mutate(ID = seq_along(fips)) 
  
   return(modelData3)

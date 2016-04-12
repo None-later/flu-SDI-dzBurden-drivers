@@ -11,6 +11,7 @@
 ## update.packages(lib.loc = "/usr/local/lib/R/site-library")
 
 require(dplyr); require(tidyr); require(GGally) 
+require(INLA)
 
 #### functions for data aggregation  ################################
 
@@ -136,6 +137,8 @@ prepare_allCov_iliSum <- function(filepathList){
 #### functions for pairwise comparison ################################
 pairs_scatterplotMatrix <- function(full_df){
   # return scatterplot matrix of all variables pooled across states & seasons
+  print(match.call())
+  
   datOnly <- full_df %>%
     select(-fips, -abbr, -state, -lat, -lon, -season, -year, -pop, -E)
   
@@ -145,6 +148,8 @@ pairs_scatterplotMatrix <- function(full_df){
 
 pairs_corrMatrix <- function(full_df){
   # return correlation matrix for all variables pooled across states & seasons
+  print(match.call())
+  
   datOnly <- full_df %>% 
     select(-fips, -abbr, -state, -lat, -lon, -season, -year, -pop, -E)
   
@@ -152,6 +157,47 @@ pairs_corrMatrix <- function(full_df){
 }
 
 
+#### functions for single variable modeling ################################
+subset_singleVariable_data <- function(full_df, s, covariate){
+  # subset data for single response & covariate modeling
+  print(match.call())
+  
+  # subset data according to season and covariate in function arguments
+  mod_df <- full_df %>%
+    filter(season == s) %>%
+    rename_(varInterest = covariate) %>%
+    select(fips, season, logy, logE, varInterest) %>%
+    mutate(ID = seq_along(fips))
+  
+  return(mod_df)
+}
 ################################
+
+model_singleVariable_inla_st <- function(mod_df, respCode, s, covariate){
+  # inla model for single response and covariate, output fixed effect coeff
+  print(match.call())
+  
+  formula <- logy ~ varInterest + f(ID, model = "iid")
+  
+  mod <- inla(formula, family = "gaussian", data = mod_df, 
+              control.predictor = list(compute = TRUE), # compute summary statistics on fitted values
+              control.compute = list(dic = TRUE),
+              # verbose = TRUE,
+              offset = logE) # offset of expected cases
+  
+  names(mod$summary.fixed) <- c("mean", "sd", "q_025", "q_5", "q_975", "mode", "kld")
+  modOutput <- tbl_df(mod$summary.fixed) %>%
+    mutate(RV = rownames(mod$summary.fixed)) %>%
+    filter(RV == "varInterest") %>%
+    select(RV, mode, q_025, q_975) 
+  
+  # data to save
+  coefRow <- list(respCode = respCode, singleCov = covariate, season = s, exportDate = as.character(Sys.Date()), coefMode = modOutput$mode, coefQ025 = modOutput$q_025, coefQ975 = modOutput$q_975, DIC = mod$dic$dic)
+
+  return(coefRow)
+}
+
+
 #### test the functions here  ################################
 
+# test <- model_singleVariable_inla_st(allDat2, "iliSum", 2, "X_poverty")
