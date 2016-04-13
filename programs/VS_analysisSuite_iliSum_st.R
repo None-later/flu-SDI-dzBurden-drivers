@@ -19,7 +19,7 @@ require(RColorBrewer); require(ggplot2)
 dbCodeStr <- "_ilinDt_Octfit_span0.4_degree2"
 rCode <- "iliSum"
 seasons <- 2:9
-analysesOn <- c("pairwise", "singleVarWrite") # pairwise, singleVarWrite 
+analysesOn <- c("singleVarPlot") # pairwise, singleVarWrite, singleVarPlot 
 
 
 #### SOURCE: clean and import model data #################################
@@ -51,6 +51,7 @@ path_list <- list(path_pop_st = path_pop_st,
 
 #### PLOT FORMATTING ################################
 w <- 14; h <- 14; dp <- 200
+w2 <- 7; h2 <- 7
 setwd(path_pltExport)
 
 #### MAIN #################################################################
@@ -108,5 +109,17 @@ if("singleVarWrite" %in% analysesOn){
   
 } # end singleVarWrite
 
-
+#### Single variable models - plot coef ####################################
+if("singleVarPlot" %in% analysesOn){
+  setwd(dirname(sys.frame(1)$ofile))
+  setwd("../R_export")
   
+  coefDat <- read_csv(path_coefDat)
+  varlist <- coefDat %>% select(singleCov) %>% unique %>% unlist
+  
+  setwd(path_pltExport)
+  plt_coefTime <- plot_singleVarCoef_time(coefDat)
+  ggsave(sprintf("singleVar_coefSeason_%s_st.png", rCode), width = w2, height = h2, dpi = dp)
+}
+
+

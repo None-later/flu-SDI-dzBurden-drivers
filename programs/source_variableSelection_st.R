@@ -198,6 +198,18 @@ model_singleVariable_inla_st <- function(mod_df, respCode, s, covariate){
   return(coefRow)
 }
 
+#### functions for single variable coef plotting ################################
+plot_singleVarCoef_time <- function(coefDat){
+  # plot all coef modes, Q.025 - Q0.975 over time
+  print(match.call())
+  
+  figure <- ggplot(coefDat, aes(x = season, y = coefMode, group = singleCov)) +
+    geom_pointrange(aes(ymin = coefQ025, ymax = coefQ975)) +
+    facet_wrap(~singleCov, scales = "free_y")
+  
+  return(figure)
+}
+
 
 #### test the functions here  ################################
 
