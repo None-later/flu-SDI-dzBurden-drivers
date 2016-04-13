@@ -26,12 +26,12 @@ cleanR_iliSum_st <- function(filepathList){
     select(-metric) %>%
     rename(y = burden, abbr = state)
   
-  pop_data <- clean_pop_st(filepathList)
+  pop_data <- clean_pop_st(filepathList) # 4/12/16 all 51 pops are there
   
-  return_data <- left_join(iliSum_data, pop_data, by = c("season", "abbr")) %>%
+  return_data <- full_join(iliSum_data, pop_data, by = c("season", "abbr")) %>% # 4/12/16 full_join so pops don't drop
     select(fips, abbr, state, lat, lon, season, year, pop, y) %>% 
     group_by(season) %>%
-    mutate(E = weighted.mean(y, pop)) %>%
+    mutate(E = weighted.mean(y, pop, na.rm=TRUE)) %>%
     ungroup %>%
     mutate(logy = log(y), logE = log(E))
   

@@ -19,6 +19,8 @@ require(RColorBrewer); require(ggplot2)
 dbCodeStr <- "_ilinDt_Octfit_span0.4_degree2"
 rCode <- "iliSum"
 seasons <- 2:9
+analysesOn <- c("pairwise", "singleVarWrite") # pairwise, singleVarWrite 
+
 
 #### SOURCE: clean and import model data #################################
 setwd(dirname(sys.frame(1)$ofile))
@@ -51,49 +53,60 @@ path_list <- list(path_pop_st = path_pop_st,
 w <- 14; h <- 14; dp <- 200
 setwd(path_pltExport)
 
-#### MAIN #################################
-#### Import and process response & covariate data ####
+#### MAIN #################################################################
+
+#### Import and process response & covariate data ####################################
 # with all available cleaned variables
 allDat <- prepare_allCov_iliSum(path_list) 
 allDat2 <- allDat %>% 
   select(-X_popdensity, -X_housdensity) # these var were available only for Census 2000 and Census 2010
 summary(allDat2)
 
+#### Pairwise variable comparisons ####################################
+if("pairwise" %in% analysesOn){
+  
+  # full scatterplot matrix
+  png(sprintf("scatterMx_%s_st%s.png", rCode, dbCodeStr), width = w, height = h, units = "in", res = dp)
+  scatterMx <- pairs_scatterplotMatrix(allDat2)
+  print(scatterMx)
+  dev.off()
+  
+  # full correlation matrix
+  png(sprintf("corrMx_spearman_%s_st%s.png", rCode, dbCodeStr), width = w, height = h, units = "in", res = dp)
+  corrMx <- pairs_corrMatrix(allDat2)
+  print(corrMx)
+  dev.off()
+  
+} # end pairwise
 
-#### Pairwise variable comparisons ####
-# full scatterplot matrix
-png(sprintf("scatterMx_%s_st%s.png", rCode, dbCodeStr), width = w, height = h, units = "in", res = dp)
-scatterMx <- pairs_scatterplotMatrix(allDat2)
-print(scatterMx)
-dev.off()
-
-# full correlation matrix
-png(sprintf("corrMx_spearman_%s_st%s.png", rCode, dbCodeStr), width = w, height = h, units = "in", res = dp)
-corrMx <- pairs_corrMatrix(allDat2)
-print(corrMx)
-dev.off()
-
-
-#### Single variable models ####
-varlist <- grep("[OX]{1}[_]{1}", names(allDat2), value = TRUE)  # grab all varnames
-# generate empty data frame to store coefficient data
-coefDat <- tbl_df(data.frame(respCode = c(), singleCov = c(), season = c(), exportDate = c(), coefMode = c(), coefQ025 = c(), coefQ975 = c(), DIC = c()))
-
-# loop through all variables and seasons
-for (varInterest in varlist){
-  for (s in seasons){
-    modDat <- subset_singleVariable_data(allDat2, s, varInterest)
-    if (all(is.na(modDat$varInterest))){
-      print(sprintf("%s is all NA for season %s", varInterest, s))
-      next
+#### Single variable models - Write to file ####################################
+if("singleVarWrite" %in% analysesOn){
+  
+  varlist <- grep("[OX]{1}[_]{1}", names(allDat2), value = TRUE)  # grab all varnames
+  # generate empty data frame to store coefficient data
+  coefDat <- tbl_df(data.frame(respCode = c(), singleCov = c(), season = c(), exportDate = c(), coefMode = c(), coefQ025 = c(), coefQ975 = c(), DIC = c()))
+  
+  # loop through all variables and seasons
+  for (varInterest in varlist){
+    for (s in seasons){
+      modDat <- subset_singleVariable_data(allDat2, s, varInterest)
+      if (all(is.na(modDat$varInterest))){
+        print(sprintf("%s is all NA for season %s", varInterest, s))
+        next
       }
-    # save row of model data
-    else{
-      coefRow <- model_singleVariable_inla_st(modDat, rCode, s, varInterest) # N.B. model includes intercept
-      # append to model data object
-      coefDat <- bind_rows(coefDat, coefRow)
-    }
-     }
-}
-# write to file
-write_csv(coefDat, path_coefDat)
+      # save row of model data
+      else{
+        coefRow <- model_singleVariable_inla_st(modDat, rCode, s, varInterest) # N.B. model includes intercept
+        # append to model data object
+        coefDat <- bind_rows(coefDat, coefRow)
+      } # end else
+    } # end for seasons
+  } # end for varlist
+  
+  # write to file
+  write_csv(coefDat, path_coefDat)
+  
+} # end singleVarWrite
+
+
+  

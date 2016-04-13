@@ -97,22 +97,22 @@ prepare_allCov_iliSum <- function(filepathList){
   narrSfcTemp_df <- cleanX_noaanarrSfcTemp_st()
   
   #### join data ####
-  dummy_df <- left_join(mod_df, imsCov_df, by = c("year", "abbr"))
-  dummy_df2 <- left_join(dummy_df, cpsasecInsured_df, by = c("year", "fips"))
+  dummy_df <- full_join(mod_df, imsCov_df, by = c("year", "abbr"))
+  dummy_df2 <- full_join(dummy_df, cpsasecInsured_df, by = c("year", "fips"))
   
-  full_df <- left_join(dummy_df2, saipePoverty_df, by = c("year", "fips")) %>%
-    left_join(saipeIncome_df, by = c("year", "fips")) %>%
-    left_join(ahrfMcaidElig_df, by = c("year", "fips")) %>%
-    left_join(ahrfMcareElig_df, by = c("year", "fips")) %>%
-    left_join(ahrfHospAccess_df, by = c("year", "fips")) %>%
-    left_join(ahrfPhysAccess_df, by = c("year", "fips")) %>%
-    left_join(censusPopDens_df, by = c("year", "fips")) %>%
-    left_join(censusHousDens_df, by = c("year", "fips")) %>%
-    left_join(acsCommut_prep, by = c("year", "fips" = "fips_wrk")) %>%
-    left_join(btsPass_prep, by = c("season", "fips" = "fips_dest")) %>%
-    left_join(narrSpecHum_df, by = c("season", "fips")) %>%
-    left_join(narrSfcTemp_df, by = c("season", "fips")) %>%
-    group_by(year) %>%
+  full_df <- full_join(dummy_df2, saipePoverty_df, by = c("year", "fips")) %>%
+    full_join(saipeIncome_df, by = c("year", "fips")) %>%
+    full_join(ahrfMcaidElig_df, by = c("year", "fips")) %>%
+    full_join(ahrfMcareElig_df, by = c("year", "fips")) %>%
+    full_join(ahrfHospAccess_df, by = c("year", "fips")) %>%
+    full_join(ahrfPhysAccess_df, by = c("year", "fips")) %>%
+    full_join(censusPopDens_df, by = c("year", "fips")) %>%
+    full_join(censusHousDens_df, by = c("year", "fips")) %>%
+    full_join(acsCommut_prep, by = c("year", "fips" = "fips_wrk")) %>%
+    full_join(btsPass_prep, by = c("season", "fips" = "fips_dest")) %>%
+    full_join(narrSpecHum_df, by = c("season", "fips")) %>%
+    full_join(narrSfcTemp_df, by = c("season", "fips")) %>%
+    group_by(season) %>%
     mutate(O_imscoverage = centerStandardize(adjProviderCoverage)) %>%
     mutate(O_careseek = centerStandardize(visitsPerProvider)) %>%
     mutate(O_insured = centerStandardize(insured)) %>%
@@ -128,8 +128,9 @@ prepare_allCov_iliSum <- function(filepathList){
     mutate(X_flight = centerStandardize(pass_prep/pop)) %>%
     mutate(X_humidity = centerStandardize(humidity)) %>%
     mutate(X_temperature = centerStandardize(temperature)) %>%
+    ungroup %>%
     select(-adjProviderCoverage, -visitsPerProvider, -insured, -poverty, -income, -mcaidElig, -mcareElig, -hospitalAccess, -physicianAccess, -popDensity, -housDensity, -commutInflows_prep, -pass_prep, -humidity, -temperature) %>%
-    ungroup
+    filter(season %in% 2:9)
   
   return(full_df)
 }
