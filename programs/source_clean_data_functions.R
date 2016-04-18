@@ -84,17 +84,17 @@ cleanO_cpsasecInsured_st <- function(){
   dbListTables(con)
   
   dbListFields(con, "HI_CPSasec_state")
-  # sel.head.uninsured <- "Select * from HI_CPSasec_state limit 5"
-  sel.statement.insured <- "SELECT year, state_id AS fips, Percent_covered/100 AS insured_prop FROM HI_CPSasec_state WHERE type = 'state'"
-  dummy <- dbGetQuery(con, sel.statement.insured)
+  # sel.statement <- "Select * from HI_CPSasec_state limit 5"
+  sel.statement <- "SELECT year, state_id AS fips, Percent_covered/100 AS insured_prop FROM HI_CPSasec_state WHERE type = 'state'"
+  dummy <- dbGetQuery(con, sel.statement)
  
   dbDisconnect(con)
   
-  insured <- tbl_df(dummy) %>%
+  output <- tbl_df(dummy) %>%
     rename(insured = insured_prop) %>%
     select(fips, year, insured) 
   
-  return(insured)
+  return(output)
 }
 
 
@@ -109,17 +109,17 @@ cleanX_saipePoverty_st <- function(){
   dbListTables(con)
   
   dbListFields(con, "SAIPE_poverty")
-  # sel.head.poverty <- "SELECT * from SAIPE_poverty limit 5"
-  sel.statement.poverty <- "SELECT year, state_id AS fips, all_poverty_percent/100 AS inPoverty_prop FROM SAIPE_poverty WHERE type = 'state'"
-  dummy <- dbGetQuery(con, sel.statement.poverty)
+  # sel.statement <- "SELECT * from SAIPE_poverty limit 5"
+  sel.statement <- "SELECT year, state_id AS fips, all_poverty_percent/100 AS inPoverty_prop FROM SAIPE_poverty WHERE type = 'state'"
+  dummy <- dbGetQuery(con, sel.statement)
   
   dbDisconnect(con)
   
-  poverty <- tbl_df(dummy) %>%
+  output <- tbl_df(dummy) %>%
     rename(poverty = inPoverty_prop) %>%
     select(fips, year, poverty)
   
-  return(poverty)
+  return(output)
 }
 ################################
 cleanX_saipeIncome_st <- function(){
@@ -130,17 +130,17 @@ cleanX_saipeIncome_st <- function(){
   dbListTables(con)
   
   dbListFields(con, "SAIPE_income")
-  # sel.head.income <- "SELECT * from SAIPE_income limit 5"
-  sel.statement.income <- "SELECT year, state_id AS fips, med_income as medianIncome FROM SAIPE_income WHERE type = 'state'"
-  dummy <- dbGetQuery(con, sel.statement.income)
+  # sel.statement <- "SELECT * from SAIPE_income limit 5"
+  sel.statement <- "SELECT year, state_id AS fips, med_income as medianIncome FROM SAIPE_income WHERE type = 'state'"
+  dummy <- dbGetQuery(con, sel.statement)
   
   dbDisconnect(con)
   
-  income <- tbl_df(dummy) %>%
+  output <- tbl_df(dummy) %>%
     rename(income = medianIncome) %>%
     select(fips, year, income) 
   
-  return(income)
+  return(output)
 }
 ################################
 
@@ -152,13 +152,13 @@ cleanX_ahrfMedicaidEligibles_st <- function(){
   dbListTables(con)
   
   dbListFields(con, "access_medicare_medicaid")
-  # sel.statement.medicaid <- "SELECT * from access_medicare_medicaid limit 5"
-  sel.statement.medicaid <- "SELECT year, FIPS AS fips_cty, (mcaid_child + mcaid_adult) AS mcaidEligTot, population as pop FROM access_medicare_medicaid"
-  dummy <- dbGetQuery(con, sel.statement.medicaid)
+  # sel.statement <- "SELECT * from access_medicare_medicaid limit 5"
+  sel.statement <- "SELECT year, FIPS AS fips_cty, (mcaid_child + mcaid_adult) AS mcaidEligTot, population as pop FROM access_medicare_medicaid"
+  dummy <- dbGetQuery(con, sel.statement)
   
   dbDisconnect(con)
   
-  mcaidElig <- tbl_df(dummy) %>%
+  output <- tbl_df(dummy) %>%
     mutate(fips = substring(fips_cty, 1, 2)) %>%
     group_by(fips, year) %>%
     summarise(mcaidEligTot = sum(mcaidEligTot, na.rm=TRUE), pop = sum(pop, na.rm=TRUE)) %>%
@@ -167,7 +167,7 @@ cleanX_ahrfMedicaidEligibles_st <- function(){
     filter(year %in% 2004:2008) %>% # 3/2/16: 2005 mcaidElig is NA if years before 2004 are included; not sure why
     select(fips, year, mcaidElig) 
   
-  return(mcaidElig)
+  return(output)
 }
 
 
@@ -183,13 +183,13 @@ cleanX_ahrfMedicareEligibles_st <- function(){
   dbListTables(con)
   
   dbListFields(con, "access_medicare_medicaid")
-  # sel.statement.medicare <- "SELECT * from access_medicare_medicaid limit 5"
-  sel.statement.medicare <- "SELECT year, FIPS AS fips_cty, mdcr_elig AS mcareEligTot, population AS pop FROM access_medicare_medicaid"
-  dummy <- dbGetQuery(con, sel.statement.medicare)
+  # sel.statement <- "SELECT * from access_medicare_medicaid limit 5"
+  sel.statement <- "SELECT year, FIPS AS fips_cty, mdcr_elig AS mcareEligTot, population AS pop FROM access_medicare_medicaid"
+  dummy <- dbGetQuery(con, sel.statement)
   
   dbDisconnect(con)
   
-  mcareElig <- tbl_df(dummy) %>%
+  output <- tbl_df(dummy) %>%
     mutate(fips = substring(fips_cty, 1, 2)) %>%
     group_by(fips, year) %>%
     summarise(mcareEligTot = sum(mcareEligTot, na.rm=TRUE), pop = sum(pop, na.rm=TRUE)) %>%
@@ -197,10 +197,123 @@ cleanX_ahrfMedicareEligibles_st <- function(){
     mutate(mcareElig = mcareEligTot/pop) %>%
     select(fips, year, mcareElig) 
   
-  return(mcareElig)
+  return(output)
 }
+################################
 
+cleanX_censusInfantPop_st <- function(){
+  # clean Census population data for <=2 yo, exported from mysql
+  print(match.call())
+  
+  con <- dbConnect(RMySQL::MySQL(), group = "rmysql-fludrivers")
+  dbListTables(con)
+  
+  dbListFields(con, "demog_Census_agePop_state")
+  # sel.statement <- "SELECT * from demog_Census_agePop_state limit 5"
+  sel.statement <- "SELECT year, fips, scale, agegroup, pop FROM demog_Census_agePop_state WHERE scale = 'state' AND (agegroup = 'infant' OR agegroup = 'total') AND year >= 2002 AND year <= 2009"
+  dummy <- dbGetQuery(con, sel.statement)
+  
+  dbDisconnect(con)
+  
+  output <- tbl_df(dummy) %>%
+    spread(agegroup, pop) %>%
+    mutate(infant = infant/total) %>%
+    select(-total) 
+  
+  return(output)
+}
+################################
 
+cleanX_censusToddlerPop_st <- function(){
+  # clean Census population data for 3-4 yo, exported from mysql
+  print(match.call())
+  
+  con <- dbConnect(RMySQL::MySQL(), group = "rmysql-fludrivers")
+  dbListTables(con)
+  
+  dbListFields(con, "demog_Census_agePop_state")
+  # sel.statement.toddler <- "SELECT * from demog_Census_agePop_state limit 5"
+  sel.statement.toddler <- "SELECT year, fips, scale, agegroup, pop FROM demog_Census_agePop_state WHERE scale = 'state' AND (agegroup = 'toddler' OR agegroup = 'total') AND year >= 2002 AND year <= 2009"
+  dummy <- dbGetQuery(con, sel.statement.toddler)
+  
+  dbDisconnect(con)
+  
+  output <- tbl_df(dummy) %>%
+    spread(agegroup, pop) %>%
+    mutate(toddler = toddler/total) %>%
+    select(-total) 
+  
+  return(output)
+}
+################################
+
+cleanX_censusChildPop_st <- function(){
+  # clean Census population data for 5-19 yo, exported from mysql
+  print(match.call())
+  
+  con <- dbConnect(RMySQL::MySQL(), group = "rmysql-fludrivers")
+  dbListTables(con)
+  
+  dbListFields(con, "demog_Census_agePop_state")
+  # sel.statement.child <- "SELECT * from demog_Census_agePop_state limit 5"
+  sel.statement.child <- "SELECT year, fips, scale, agegroup, pop FROM demog_Census_agePop_state WHERE scale = 'state' AND (agegroup = 'child' OR agegroup = 'total') AND year >= 2002 AND year <= 2009"
+  dummy <- dbGetQuery(con, sel.statement.child)
+  
+  dbDisconnect(con)
+  
+  output <- tbl_df(dummy) %>%
+    spread(agegroup, pop) %>%
+    mutate(child = child/total) %>%
+    select(-total) 
+  
+  return(output)
+}
+################################
+
+cleanX_censusAdultPop_st <- function(){
+  # clean Census population data for 20-64 yo, exported from mysql
+  print(match.call())
+  
+  con <- dbConnect(RMySQL::MySQL(), group = "rmysql-fludrivers")
+  dbListTables(con)
+  
+  dbListFields(con, "demog_Census_agePop_state")
+  # sel.statement <- "SELECT * from demog_Census_agePop_state limit 5"
+  sel.statement <- "SELECT year, fips, scale, agegroup, pop FROM demog_Census_agePop_state WHERE scale = 'state' AND (agegroup = 'adult' OR agegroup = 'total') AND year >= 2002 AND year <= 2009"
+  dummy <- dbGetQuery(con, sel.statement)
+  
+  dbDisconnect(con)
+  
+  output <- tbl_df(dummy) %>%
+    spread(agegroup, pop) %>%
+    mutate(adult = adult/total) %>%
+    select(-total) 
+  
+  return(output)
+}
+################################
+
+cleanX_censusElderlyPop_st <- function(){
+  # clean Census population data for 65+ yo, exported from mysql
+  print(match.call())
+  
+  con <- dbConnect(RMySQL::MySQL(), group = "rmysql-fludrivers")
+  dbListTables(con)
+  
+  dbListFields(con, "demog_Census_agePop_state")
+  # sel.statement <- "SELECT * from demog_Census_agePop_state limit 5"
+  sel.statement <- "SELECT year, fips, scale, agegroup, pop FROM demog_Census_agePop_state WHERE scale = 'state' AND (agegroup = 'elderly' OR agegroup = 'total') AND year >= 2002 AND year <= 2009"
+  dummy <- dbGetQuery(con, sel.statement)
+  
+  dbDisconnect(con)
+  
+  output <- tbl_df(dummy) %>%
+    spread(agegroup, pop) %>%
+    mutate(elderly = elderly/total) %>%
+    select(-total) 
+  
+  return(output)
+}
 ################################
 
 ##### access to care ##########
@@ -212,13 +325,13 @@ cleanX_ahrfHospitals_st <- function(){
   dbListTables(con)
   
   dbListFields(con, "AHRF_access")
-  # sel.statement.ahrfHospitals <- "SELECT * from AHRF_access limit 5"
-  sel.statement.ahrfHospitals <- "SELECT year, FIPS AS fips_cty, hosp, population AS pop FROM AHRF_access"
-  dummy <- dbGetQuery(con, sel.statement.ahrfHospitals)
+  # sel.statement <- "SELECT * from AHRF_access limit 5"
+  sel.statement <- "SELECT year, FIPS AS fips_cty, hosp, population AS pop FROM AHRF_access"
+  dummy <- dbGetQuery(con, sel.statement)
   
   dbDisconnect(con)
   
-  hospitalAccess <- tbl_df(dummy) %>%
+  output <- tbl_df(dummy) %>%
     mutate(fips = substring(fips_cty, 1, 2)) %>%
     group_by(fips, year) %>%
     summarise(hospCt = sum(hosp, na.rm=TRUE), pop = sum(pop, na.rm=TRUE)) %>%
@@ -226,7 +339,7 @@ cleanX_ahrfHospitals_st <- function(){
     mutate(hospitalAccess = hospCt/pop) %>%
     select(fips, year, hospitalAccess) 
   
-  return(hospitalAccess)
+  return(output)
 }
 ################################
 
@@ -238,13 +351,13 @@ cleanX_ahrfPhysicians_st <- function(){
   dbListTables(con)
   
   dbListFields(con, "AHRF_access")
-  # sel.statement.ahrfPhysicians <- "SELECT * from AHRF_access limit 5"
-  sel.statement.ahrfPhysicians <- "SELECT year, FIPS AS fips_cty, physicians, population AS pop FROM AHRF_access"
-  dummy <- dbGetQuery(con, sel.statement.ahrfPhysicians)
+  # sel.statement <- "SELECT * from AHRF_access limit 5"
+  sel.statement <- "SELECT year, FIPS AS fips_cty, physicians, population AS pop FROM AHRF_access"
+  dummy <- dbGetQuery(con, sel.statement)
   
   dbDisconnect(con)
   
-  physicianAccess <- tbl_df(dummy) %>%
+  output <- tbl_df(dummy) %>%
     mutate(fips = substring(fips_cty, 1, 2)) %>%
     group_by(fips, year) %>%
     summarise(physCt = sum(physicians, na.rm=TRUE), pop = sum(pop, na.rm=TRUE)) %>%
@@ -252,7 +365,7 @@ cleanX_ahrfPhysicians_st <- function(){
     mutate(physicianAccess = physCt/pop) %>%
     select(fips, year, physicianAccess) 
   
-  return(physicianAccess)
+  return(output)
 }
 ################################
 
@@ -264,13 +377,13 @@ cleanX_ahrfPhysicians_st <- function(){
 #   dbListTables(con)
 #   
 #   dbListFields(con, "HPSA_PC")
-#   sel.statement.hpsa <- "SELECT * from HPSA_PC limit 5"
-#   # sel.statement.hpsa <- "SELECT year, FIPS AS fips_cty, hosp, population AS pop FROM AHRF_access"
-#   dummy <- dbGetQuery(con, sel.statement.hpsa)
+#   sel.statement <- "SELECT * from HPSA_PC limit 5"
+#   # sel.statement <- "SELECT year, FIPS AS fips_cty, hosp, population AS pop FROM AHRF_access"
+#   dummy <- dbGetQuery(con, sel.statement)
 #   
 #   dbDisconnect(con)
 #   
-# #   hospitalAccess <- tbl_df(dummy) %>%
+# #   output <- tbl_df(dummy) %>%
 # #     mutate(fips = substring(fips_cty, 1, 2)) %>%
 # #     group_by(fips, year) %>%
 # #     summarise(hospCt = sum(hosp, na.rm=TRUE), pop = sum(pop, na.rm=TRUE)) %>%
@@ -281,7 +394,7 @@ cleanX_ahrfPhysicians_st <- function(){
 # #     select(fips, year, hospitalAccess) %>%
 # #     ungroup
 #   
-#   return(dummy)
+#   return(output)
 # }
 ################################
 
@@ -295,17 +408,17 @@ cleanX_popDensity_st <- function(){
   dbListTables(con)
   
   dbListFields(con, "Census_popdensity_county")
-  # sel.statement.censusPopdensity <- "SELECT * from Census_popdensity_county limit 5"
-  sel.statement.censusPopdensity <- "SELECT year, fips_st AS fips, popDens_land FROM Census_popdensity_county WHERE type = 'state'"
-  dummy <- dbGetQuery(con, sel.statement.censusPopdensity)
+  # sel.statement <- "SELECT * from Census_popdensity_county limit 5"
+  sel.statement <- "SELECT year, fips_st AS fips, popDens_land FROM Census_popdensity_county WHERE type = 'state'"
+  dummy <- dbGetQuery(con, sel.statement)
   
   dbDisconnect(con)
   
-  popDensity <- tbl_df(dummy) %>%
+  output <- tbl_df(dummy) %>%
     rename(popDensity = popDens_land) %>%
     select(fips, year, popDensity) 
   
-  return(popDensity)
+  return(output)
 }
 ################################
 
@@ -317,17 +430,17 @@ cleanX_housDensity_st <- function(){
   dbListTables(con)
   
   dbListFields(con, "Census_popdensity_county")
-  # sel.statement.censusHousdensity <- "SELECT * from Census_popdensity_county limit 5"
-  sel.statement.censusHousdensity <- "SELECT year, fips_st AS fips, housDens_land FROM Census_popdensity_county WHERE type = 'state'"
-  dummy <- dbGetQuery(con, sel.statement.censusHousdensity)
+  # sel.statement <- "SELECT * from Census_popdensity_county limit 5"
+  sel.statement <- "SELECT year, fips_st AS fips, housDens_land FROM Census_popdensity_county WHERE type = 'state'"
+  dummy <- dbGetQuery(con, sel.statement)
   
   dbDisconnect(con)
   
-  housDensity <- tbl_df(dummy) %>%
+  output <- tbl_df(dummy) %>%
     rename(housDensity = housDens_land) %>%
     select(fips, year, housDensity) 
   
-  return(housDensity)
+  return(output)
 }
 ################################
 
@@ -340,13 +453,13 @@ cleanX_acsCommutInflows_st <- function(){
   dbListTables(con)
   
   dbListFields(con, "transport_ACS0610_iconv")
-  # sel.statement.acsCommutingInflows <- "SELECT * from transport_ACS0610_iconv limit 5"
-  sel.statement.acsCommutingInflows <- "SELECT state_id_residence_2digit, county_id_residence_3digit, state_id_workplace_3digit, state_workplace, Number FROM transport_ACS0610_iconv"
-  dummy <- dbGetQuery(con, sel.statement.acsCommutingInflows)
+  # sel.statement <- "SELECT * from transport_ACS0610_iconv limit 5"
+  sel.statement <- "SELECT state_id_residence_2digit, county_id_residence_3digit, state_id_workplace_3digit, state_workplace, Number FROM transport_ACS0610_iconv"
+  dummy <- dbGetQuery(con, sel.statement)
   
   dbDisconnect(con)
   
-  commutInflows <- tbl_df(dummy) %>%
+  output <- tbl_df(dummy) %>%
     mutate(domesticWork = ifelse(substring(state_id_workplace_3digit, 1, 1) == "0", TRUE, FALSE)) %>%
     filter(domesticWork) %>%
     mutate(fips_wrk = substr.Right(state_id_workplace_3digit, 2)) %>%
@@ -361,7 +474,7 @@ cleanX_acsCommutInflows_st <- function(){
     ungroup %>%
     select(fips_wrk, year, commutInflows_prep)
   
-  return(commutInflows)
+  return(output)
 }
 ################################
 
@@ -374,13 +487,13 @@ cleanX_btsPassInflows_st <- function(){
   dbListTables(con)
   
   dbListFields(con, "transport_BTS0014_T100D_Market_All_Carrier")
-  # sel.statement.btsPassInflows <- "SELECT * from transport_BTS0014_T100D_Market_All_Carrier limit 5"
-  sel.statement.btsPassInflows <- "SELECT PASSENGERS, ORIGIN, ORIGIN_STATE_FIPS, DEST, DEST_STATE_FIPS, YEAR, MONTH from transport_BTS0014_T100D_Market_All_Carrier where (PASSENGERS > 0 and YEAR >= 2001 and YEAR <= 2009 and (MONTH <= 4 or MONTH >= 11))"
-  dummy <- dbGetQuery(con, sel.statement.btsPassInflows)
+  # sel.statement <- "SELECT * from transport_BTS0014_T100D_Market_All_Carrier limit 5"
+  sel.statement <- "SELECT PASSENGERS, ORIGIN, ORIGIN_STATE_FIPS, DEST, DEST_STATE_FIPS, YEAR, MONTH from transport_BTS0014_T100D_Market_All_Carrier where (PASSENGERS > 0 and YEAR >= 2001 and YEAR <= 2009 and (MONTH <= 4 or MONTH >= 11))"
+  dummy <- dbGetQuery(con, sel.statement)
   
   dbDisconnect(con)
  
-  passInflows <- tbl_df(dummy) %>%
+  output <- tbl_df(dummy) %>%
     rename(pass = PASSENGERS, fips_origin = ORIGIN_STATE_FIPS, fips_dest = DEST_STATE_FIPS, year = YEAR, month = MONTH) %>%
     filter(!(year == 2001 & month <= 4)) %>%
     filter(!(year == 2009 & month >= 11)) %>%
@@ -394,7 +507,7 @@ cleanX_btsPassInflows_st <- function(){
     ungroup %>%
     select(season, fips_dest, pass_prep)
   
-  return(passInflows)
+  return(output)
 }
 
 ##### immunity ##########
@@ -412,13 +525,13 @@ cleanX_noaanarrSpecHum_st <- function(){
   dbListTables(con)
   
   dbListFields(con, "env_NOAANARR_specHum_state")
-  # sel.statement.noaanarrSpecHum <- "SELECT * from env_NOAANARR_specHum_state limit 5"
-  sel.statement.noaanarrSpecHum <- "SELECT fips, year, date as dayDate, humidity from env_NOAANARR_specHum_state where (date >= '2001-11-01' and date < '2009-05-01' and (MONTH(date) <= 4 or MONTH(date) >= 11))"
-  dummy <- dbGetQuery(con, sel.statement.noaanarrSpecHum)
+  # sel.statement <- "SELECT * from env_NOAANARR_specHum_state limit 5"
+  sel.statement <- "SELECT fips, year, date as dayDate, humidity from env_NOAANARR_specHum_state where (date >= '2001-11-01' and date < '2009-05-01' and (MONTH(date) <= 4 or MONTH(date) >= 11))"
+  dummy <- dbGetQuery(con, sel.statement)
   
   dbDisconnect(con)
   
-  specHum <- tbl_df(dummy) %>%
+  output <- tbl_df(dummy) %>%
     mutate(season = as.numeric(substr.Right(as.character(year), 2))) %>%
     mutate(season = ifelse(as.numeric(substring(dayDate, 6, 7)) >= 11, season + 1, season)) %>%
     group_by(fips, season) %>%
@@ -426,7 +539,7 @@ cleanX_noaanarrSpecHum_st <- function(){
     ungroup
           
   
-  return(specHum)
+  return(output)
   
 }
 ################################
@@ -439,25 +552,25 @@ cleanX_noaanarrSfcTemp_st <- function(){
   dbListTables(con)
   
   dbListFields(con, "env_NOAANARR_sfcTemp_state")
-  # sel.statement.noaanarrSfcTemp <- "SELECT * from env_NOAANARR_sfcTemp_state limit 5"
-  sel.statement.noaanarrSfcTemp <- "SELECT fips, year, date as dayDate, temperature from env_NOAANARR_sfcTemp_state where (date >= '2001-11-01' and date < '2009-05-01' and (MONTH(date) <= 4 or MONTH(date) >= 11))"
-  dummy <- dbGetQuery(con, sel.statement.noaanarrSfcTemp)
+  # sel.statement <- "SELECT * from env_NOAANARR_sfcTemp_state limit 5"
+  sel.statement <- "SELECT fips, year, date as dayDate, temperature from env_NOAANARR_sfcTemp_state where (date >= '2001-11-01' and date < '2009-05-01' and (MONTH(date) <= 4 or MONTH(date) >= 11))"
+  dummy <- dbGetQuery(con, sel.statement)
   
   dbDisconnect(con)
   
-  sfcTemp <- tbl_df(dummy) %>%
+  output <- tbl_df(dummy) %>%
     mutate(season = as.numeric(substr.Right(as.character(year), 2))) %>%
     mutate(season = ifelse(as.numeric(substring(dayDate, 6, 7)) >= 11, season + 1, season)) %>%
     group_by(fips, season) %>%
     summarise(temperature = mean(temperature, na.rm = TRUE)) %>%
     ungroup
   
-  return(sfcTemp)
+  return(output)
   
 }
 
 #### testing area ################################
-# test <- cleanX_noaanarrSfcTemp_st()
+test <- cleanX_censusAdultPop_st()
 
 
 # To do:
