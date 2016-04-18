@@ -29,6 +29,11 @@ prepare_allCov_iliSum <- function(filepathList){
   saipeIncome_df <- cleanX_saipeIncome_st() 
   ahrfMcaidElig_df <- cleanX_ahrfMedicaidEligibles_st() 
   ahrfMcareElig_df <- cleanX_ahrfMedicareEligibles_st() 
+  censusInfantPop_st <- cleanX_censusInfantPop_st()
+  censusToddlerPop_st <- cleanX_censusToddlerPop_st()
+  censusChildPop_st <- cleanX_censusChildPop_st()
+  censusAdultPop_st <- cleanX_censusAdultPop_st()
+  censusElderlyPop_st <- cleanX_censusElderlyPop_st()
   ahrfHospAccess_df <- cleanX_ahrfHospitals_st() 
   ahrfPhysAccess_df <- cleanX_ahrfPhysicians_st() 
   censusPopDens_df <- cleanX_popDensity_st()
@@ -46,6 +51,11 @@ prepare_allCov_iliSum <- function(filepathList){
     full_join(saipeIncome_df, by = c("year", "fips")) %>%
     full_join(ahrfMcaidElig_df, by = c("year", "fips")) %>%
     full_join(ahrfMcareElig_df, by = c("year", "fips")) %>%
+    full_join(censusInfantPop_st, by = c("year", "fips")) %>%
+    full_join(censusToddlerPop_st, by = c("year", "fips")) %>%
+    full_join(censusChildPop_st, by = c("year", "fips")) %>%
+    full_join(censusAdultPop_st, by = c("year", "fips")) %>%
+    full_join(censusElderlyPop_st, by = c("year", "fips")) %>%
     full_join(ahrfHospAccess_df, by = c("year", "fips")) %>%
     full_join(ahrfPhysAccess_df, by = c("year", "fips")) %>%
     full_join(censusPopDens_df, by = c("year", "fips")) %>%
@@ -62,6 +72,11 @@ prepare_allCov_iliSum <- function(filepathList){
     mutate(X_income = centerStandardize(income)) %>%
     mutate(X_mcaid = centerStandardize(mcaidElig)) %>%
     mutate(X_mcare = centerStandardize(mcareElig)) %>%
+    mutate(X_infant = centerStandardize(infant)) %>%
+    mutate(X_toddler = centerStandardize(toddler)) %>%
+    mutate(X_child = centerStandardize(child)) %>%
+    mutate(X_adult = centerStandardize(adult)) %>%
+    mutate(X_elderly = centerStandardize(elderly)) %>%
     mutate(X_hospaccess = centerStandardize(hospitalAccess)) %>% 
     mutate(X_physaccess = centerStandardize(physicianAccess)) %>%
     mutate(X_popdensity = centerStandardize(popDensity)) %>%
@@ -71,7 +86,7 @@ prepare_allCov_iliSum <- function(filepathList){
     mutate(X_humidity = centerStandardize(humidity)) %>%
     mutate(X_temperature = centerStandardize(temperature)) %>%
     ungroup %>%
-    select(-adjProviderCoverage, -visitsPerProvider, -insured, -poverty, -income, -mcaidElig, -mcareElig, -hospitalAccess, -physicianAccess, -popDensity, -housDensity, -commutInflows_prep, -pass_prep, -humidity, -temperature) %>%
+    select(-adjProviderCoverage, -visitsPerProvider, -insured, -poverty, -income, -mcaidElig, -mcareElig, -infant, -toddler, -child, -adult, -elderly, -hospitalAccess, -physicianAccess, -popDensity, -housDensity, -commutInflows_prep, -pass_prep, -humidity, -temperature) %>%
     filter(season %in% 2:9)
   
   return(full_df)

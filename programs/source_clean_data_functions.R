@@ -218,7 +218,7 @@ cleanX_censusInfantPop_st <- function(){
   output <- tbl_df(dummy) %>%
     spread(agegroup, pop) %>%
     mutate(infant = infant/total) %>%
-    select(-total) 
+    select(-total, -scale) 
   
   return(output)
 }
@@ -241,7 +241,7 @@ cleanX_censusToddlerPop_st <- function(){
   output <- tbl_df(dummy) %>%
     spread(agegroup, pop) %>%
     mutate(toddler = toddler/total) %>%
-    select(-total) 
+    select(-total, -scale) 
   
   return(output)
 }
@@ -264,7 +264,7 @@ cleanX_censusChildPop_st <- function(){
   output <- tbl_df(dummy) %>%
     spread(agegroup, pop) %>%
     mutate(child = child/total) %>%
-    select(-total) 
+    select(-total, -scale) 
   
   return(output)
 }
@@ -287,7 +287,7 @@ cleanX_censusAdultPop_st <- function(){
   output <- tbl_df(dummy) %>%
     spread(agegroup, pop) %>%
     mutate(adult = adult/total) %>%
-    select(-total) 
+    select(-total, -scale) 
   
   return(output)
 }
@@ -310,7 +310,7 @@ cleanX_censusElderlyPop_st <- function(){
   output <- tbl_df(dummy) %>%
     spread(agegroup, pop) %>%
     mutate(elderly = elderly/total) %>%
-    select(-total) 
+    select(-total, -scale) 
   
   return(output)
 }
@@ -510,8 +510,30 @@ cleanX_btsPassInflows_st <- function(){
   return(output)
 }
 
-##### immunity ##########
+##### flu-related ##########
 ## 3/30/16 - Kristofer is cleaning a new version of this data which will need to be uploaded into mysql
+
+################################
+
+cleanX_cdcFluview_H3_region <- function(){
+  # proportion of seasonal flu positives that are H3
+  print(match.call())
+  
+  con <- dbConnect(RMySQL::MySQL(), group = "rmysql-fludrivers")
+  dbListTables(con)
+  
+  dbListFields(con, "flu_cdcFluview9714_subtype_region")
+  # sel.statement <- "SELECT * from flu_cdcFluview9714_subtype_region limit 5"
+  sel.statement <- "SELECT season, region, prop_aAllH3 from flu_cdcFluview9714_subtype_region where (season >= 2 & season <= 9)"
+  dummy <- dbGetQuery(con, sel.statement)
+  
+  dbDisconnect(con)
+  
+  output <- tbl_df(dummy) 
+  
+  return(output)
+  
+}
 
 
 ################################

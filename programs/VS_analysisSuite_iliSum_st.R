@@ -19,7 +19,8 @@ require(RColorBrewer); require(ggplot2)
 dbCodeStr <- "_ilinDt_Octfit_span0.4_degree2"
 rCode <- "iliSum"
 seasons <- 2:9
-analysesOn <- c("pairwise", "singleVarWrite", "singleVarPlot") # pairwise, singleVarWrite, singleVarPlot 
+analysesOn <- c("dataQuality") 
+# dataQuality, pairwise, singleVarWrite, singleVarPlot 
 
 
 #### SOURCE: clean and import model data #################################
@@ -37,6 +38,7 @@ setwd("../R_export")
 path_response_st <- paste0(getwd(), sprintf("/dbMetrics_periodicReg%s_analyzeDB_st.csv", dbCodeStr))
 path_imsCov_st <- paste0(getwd(), "/physicianCoverage_IMSHealth_state.csv")
 path_coefDat <- paste0(getwd(), sprintf("/VS_coefDat_%s_st.csv", rCode))
+path_tempDatQuality <- paste0(getwd(), sprintf("/VS_tempDatQuality_%s_st.csv", rCode))
 
 setwd(dirname(sys.frame(1)$ofile))
 setwd("../graph_outputs")
@@ -62,6 +64,16 @@ allDat <- prepare_allCov_iliSum(path_list)
 allDat2 <- allDat %>% 
   select(-X_popdensity, -X_housdensity) # these var were available only for Census 2000 and Census 2010
 summary(allDat2)
+
+#### Check data quality ####################################
+if("dataQuality" %in% analysesOn){
+  
+  # Drivers spreadsheet, output for Avail st-seas table
+  # check counts in each column
+  dataQuality <- allDat2 %>% group_by(season) %>% summarise_each(funs(ct = sum(!is.na(.))))
+  write_csv(dataQuality, path_tempDatQuality)
+  
+} # end dataQuality
 
 #### Pairwise variable comparisons ####################################
 if("pairwise" %in% analysesOn){
