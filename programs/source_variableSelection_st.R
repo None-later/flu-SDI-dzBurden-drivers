@@ -40,6 +40,8 @@ prepare_allCov_iliSum <- function(filepathList){
   censusHousDens_df <- cleanX_housDensity_st()
   acsCommut_prep <- cleanX_acsCommutInflows_st()
   btsPass_prep <- cleanX_btsPassInflows_st()
+  cdcFluPos_df <- cleanX_cdcFluview_fluPos_region()
+  cdcH3_df <- cleanX_cdcFluview_H3_region() %>% select(-region)
   narrSpecHum_df <- cleanX_noaanarrSpecHum_st()
   narrSfcTemp_df <- cleanX_noaanarrSfcTemp_st()
   
@@ -62,6 +64,8 @@ prepare_allCov_iliSum <- function(filepathList){
     full_join(censusHousDens_df, by = c("year", "fips")) %>%
     full_join(acsCommut_prep, by = c("year", "fips" = "fips_wrk")) %>%
     full_join(btsPass_prep, by = c("season", "fips" = "fips_dest")) %>%
+    full_join(cdcFluPos_df, by = c("season", "fips")) %>%
+    full_join(cdcH3_df, by = c("season", "fips")) %>%
     full_join(narrSpecHum_df, by = c("season", "fips")) %>%
     full_join(narrSfcTemp_df, by = c("season", "fips")) %>%
     group_by(season) %>%
@@ -83,10 +87,12 @@ prepare_allCov_iliSum <- function(filepathList){
     mutate(X_housdensity = centerStandardize(housDensity)) %>%
     mutate(X_commute = centerStandardize(commutInflows_prep/pop)) %>%
     mutate(X_flight = centerStandardize(pass_prep/pop)) %>%
+    mutate(X_fluPos = centerStandardize(fluPos)) %>%
+    mutate(X_H3 = centerStandardize(H3)) %>%
     mutate(X_humidity = centerStandardize(humidity)) %>%
     mutate(X_temperature = centerStandardize(temperature)) %>%
     ungroup %>%
-    select(-adjProviderCoverage, -visitsPerProvider, -insured, -poverty, -income, -mcaidElig, -mcareElig, -infant, -toddler, -child, -adult, -elderly, -hospitalAccess, -physicianAccess, -popDensity, -housDensity, -commutInflows_prep, -pass_prep, -humidity, -temperature) %>%
+    select(-adjProviderCoverage, -visitsPerProvider, -insured, -poverty, -income, -mcaidElig, -mcareElig, -infant, -toddler, -child, -adult, -elderly, -hospitalAccess, -physicianAccess, -popDensity, -housDensity, -commutInflows_prep, -pass_prep, -fluPos, -H3, -humidity, -temperature) %>%
     filter(season %in% 2:9)
   
   return(full_df)

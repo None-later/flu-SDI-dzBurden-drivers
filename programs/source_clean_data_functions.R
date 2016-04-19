@@ -513,6 +513,26 @@ cleanX_btsPassInflows_st <- function(){
 ##### flu-related ##########
 ## 3/30/16 - Kristofer is cleaning a new version of this data which will need to be uploaded into mysql
 
+cleanX_cdcFluview_fluPos_region <- function(){
+  # percentage of laboratory samples that are positive
+  print(match.call())
+  
+  con <- dbConnect(RMySQL::MySQL(), group = "rmysql-fludrivers")
+  dbListTables(con)
+  
+  dbListFields(con, "flu_cdcFluview9714_subtype_region")
+  # sel.statement <- "SELECT * from flu_cdcFluview9714_subtype_region limit 5"
+  sel.statement <- "SELECT season, region, fips, perc_fluPositive from flu_cdcFluview9714_subtype_region where (season >= 2 & season <= 9)"
+  dummy <- dbGetQuery(con, sel.statement)
+  
+  dbDisconnect(con)
+  
+  output <- tbl_df(dummy) %>%
+    rename(fluPos = perc_fluPositive)
+  
+  return(output)
+}
+
 ################################
 
 cleanX_cdcFluview_H3_region <- function(){
@@ -524,18 +544,16 @@ cleanX_cdcFluview_H3_region <- function(){
   
   dbListFields(con, "flu_cdcFluview9714_subtype_region")
   # sel.statement <- "SELECT * from flu_cdcFluview9714_subtype_region limit 5"
-  sel.statement <- "SELECT season, region, prop_aAllH3 from flu_cdcFluview9714_subtype_region where (season >= 2 & season <= 9)"
+  sel.statement <- "SELECT season, region, fips, prop_aAllH3 from flu_cdcFluview9714_subtype_region where (season >= 2 & season <= 9)"
   dummy <- dbGetQuery(con, sel.statement)
   
   dbDisconnect(con)
   
-  output <- tbl_df(dummy) 
+  output <- tbl_df(dummy) %>%
+    rename(H3 = prop_aAllH3)
   
   return(output)
-  
 }
-
-
 ################################
 
 ##### environmental factors ##########
@@ -592,7 +610,7 @@ cleanX_noaanarrSfcTemp_st <- function(){
 }
 
 #### testing area ################################
-test <- cleanX_censusAdultPop_st()
+test <- cleanX_cdcFluview_H3_region()
 
 
 # To do:
