@@ -11,7 +11,7 @@
 ## update.packages(lib.loc = "/usr/local/lib/R/site-library")
 
 #### header #################################
-rm(list = ls())
+# rm(list = ls())
 require(dplyr); require(tidyr); require(readr) # clean_data_functions dependencies
 require(RColorBrewer); require(ggplot2)
 
@@ -19,8 +19,8 @@ require(RColorBrewer); require(ggplot2)
 dbCodeStr <- "_ilinDt_Octfit_span0.4_degree2"
 rCode <- "iliSum"
 seasons <- 2:9
-analysesOn <- c("dataQuality") 
-# dataQuality, pairwise, singleVarWrite, singleVarPlot 
+analysesOn <- c("singleVarPlot") 
+# loadData, dataQuality, pairwise, singleVarWrite, singleVarPlot 
 
 
 #### SOURCE: clean and import model data #################################
@@ -52,18 +52,22 @@ path_list <- list(path_pop_st = path_pop_st,
                   path_imsCov_st = path_imsCov_st)
 
 #### PLOT FORMATTING ################################
-w <- 14; h <- 14; dp <- 200
+w <- 13; h <- 13; dp <- 200
 w2 <- 7; h2 <- 7
 setwd(path_pltExport)
 
 #### MAIN #################################################################
 
 #### Import and process response & covariate data ####################################
-# with all available cleaned variables
-allDat <- prepare_allCov_iliSum(path_list) 
-allDat2 <- allDat %>% 
-  select(-X_popdensity, -X_housdensity) # these var were available only for Census 2000 and Census 2010
-summary(allDat2)
+if("loadData" %in% analysesOn){
+  
+  # load data frame with all available cleaned variables
+  allDat <- prepare_allCov_iliSum(path_list) 
+  allDat2 <- allDat %>% 
+    select(-X_popdensity, -X_housdensity) # these var were available only for Census 2000 and Census 2010
+  summary(allDat2)
+  
+} # end loadData
 
 #### Check data quality ####################################
 if("dataQuality" %in% analysesOn){

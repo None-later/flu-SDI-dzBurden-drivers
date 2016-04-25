@@ -610,7 +610,7 @@ cleanX_noaanarrSfcTemp_st <- function(){
 }
 
 #### testing area ################################
-test <- cleanX_cdcFluview_H3_region()
+# test <- cleanX_cdcFluview_H3_region()
 
 
 # To do:

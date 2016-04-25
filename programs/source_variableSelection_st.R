@@ -166,7 +166,10 @@ pairs_scatterplotMatrix <- function(full_df){
   datOnly <- full_df %>%
     select(-fips, -abbr, -state, -lat, -lon, -season, -year, -pop, -E)
   
-  return(ggpairs(datOnly))
+  pairPlt <- ggpairs(datOnly) +
+    theme(axis.text.x = element_blank(), axis.text.y = element_blank(), axis.ticks = element_blank())
+  
+  return(pairPlt)
 }
 ################################
 
@@ -228,7 +231,9 @@ plot_singleVarCoef_time <- function(coefDat){
   
   figure <- ggplot(coefDat, aes(x = season, y = coefMode, group = singleCov)) +
     geom_pointrange(aes(ymin = coefQ025, ymax = coefQ975)) +
-    facet_wrap(~singleCov, scales = "free_y")
+    geom_hline(yintercept = 0) +
+    facet_wrap(~singleCov, scales = "free_y") +
+    ylab("coefMode (95%CI)")
   
   return(figure)
 }
