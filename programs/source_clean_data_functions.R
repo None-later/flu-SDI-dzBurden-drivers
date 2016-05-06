@@ -91,12 +91,33 @@ cleanO_cpsasecInsured_st <- function(){
   dbDisconnect(con)
   
   output <- tbl_df(dummy) %>%
+    dplyr::rename(insured = insured_prop) %>%
+    select(fips, year, insured) 
+  
+  return(output)
+}
+################################
+
+cleanO_sahieACSInsured_cty <- function(){
+  # clean ACS-based SAHIE insured data exported from mysql
+  print(match.call())
+  
+  con <- dbConnect(RMySQL::MySQL(), group = "rmysql-fludrivers")
+  dbListTables(con)
+  
+  dbListFields(con, "HI_SAHIE_aggregate_ACS")
+  # sel.statement <- "Select * from HI_SAHIE_aggregate_ACS limit 5"
+  sel.statement <- "SELECT year, county_id AS fips, pctic/100 AS insured_prop FROM HI_SAHIE_aggregate_ACS WHERE type = 'county'"
+  dummy <- dbGetQuery(con, sel.statement)
+  
+  dbDisconnect(con)
+  
+  output <- tbl_df(dummy) %>%
     rename(insured = insured_prop) %>%
     select(fips, year, insured) 
   
   return(output)
 }
-
 
 ##### DRIVER DATA ##########################################
 
