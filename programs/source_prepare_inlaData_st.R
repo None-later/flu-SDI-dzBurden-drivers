@@ -148,6 +148,61 @@ model4a_iliSum_v1 <- function(filepathList){
   return(full_df)
 }
 
+################################
+
+model4a_iliSum_v2 <- function(filepathList){
+  # iliSum response, sampling effort, and driver variables: models 3f, 3h
+  # v1 = no vaxcov, variable selection -- one var per proxy
+  # y = response, E = expected response
+  print(match.call())
+  print(filepathList)
+  
+  mod_df <- cleanR_iliSum_st(filepathList)
+  imsCov_df <- cleanO_imsCoverage_st(filepathList)
+  cpsasecInsured_df <- cleanO_cpsasecInsured_st()
+  saipeIncome_df <- cleanX_saipeIncome_st() 
+  censusChildPop_st <- cleanX_censusChildPop_st()
+  censusAdultPop_st <- cleanX_censusAdultPop_st()
+  ahrfHospAccess_df <- cleanX_ahrfHospitals_st() 
+  acsCommut_prep <- cleanX_acsCommutInflows_st()
+  btsPass_prep <- cleanX_btsPassInflows_st()
+  cdcFluPos_df <- cleanX_cdcFluview_fluPos_region()
+  cdcH3_df <- cleanX_cdcFluview_H3_region() %>% select(-region)
+  narrSpecHum_df <- cleanX_noaanarrSpecHum_st()
+  
+  #### join data ####
+  dummy_df <- full_join(mod_df, imsCov_df, by = c("year", "abbr"))
+  dummy_df2 <- full_join(dummy_df, cpsasecInsured_df, by = c("year", "fips"))
+  
+  full_df <- full_join(dummy_df2, saipeIncome_df, by = c("year", "fips")) %>%
+    full_join(censusChildPop_st, by = c("year", "fips")) %>%
+    full_join(censusAdultPop_st, by = c("year", "fips")) %>%
+    full_join(ahrfHospAccess_df, by = c("year", "fips")) %>%
+    full_join(acsCommut_prep, by = c("year", "fips" = "fips_wrk")) %>%
+    full_join(btsPass_prep, by = c("season", "fips" = "fips_dest")) %>%
+    full_join(cdcFluPos_df, by = c("season", "fips")) %>%
+    full_join(cdcH3_df, by = c("season", "fips")) %>%
+    full_join(narrSpecHum_df, by = c("season", "fips")) %>%
+    group_by(season) %>%
+    mutate(O_imscoverage = centerStandardize(adjProviderCoverage)) %>%
+    mutate(O_careseek = centerStandardize(visitsPerProvider)) %>%
+    mutate(O_insured = centerStandardize(insured)) %>%
+    mutate(X_income = centerStandardize(income)) %>%
+    mutate(X_child = centerStandardize(child)) %>%
+    mutate(X_adult = centerStandardize(adult)) %>%
+    mutate(X_hospaccess = centerStandardize(hospitalAccess)) %>% 
+    mutate(X_commute = centerStandardize(commutInflows_prep/pop)) %>%
+    mutate(X_flight = centerStandardize(pass_prep/pop)) %>%
+    mutate(X_fluPos = centerStandardize(fluPos)) %>%
+    mutate(X_H3 = centerStandardize(H3)) %>%
+    mutate(X_humidity = centerStandardize(humidity)) %>%
+    ungroup %>%
+    select(-adjProviderCoverage, -visitsPerProvider, -insured, -income, -child, -adult, -hospitalAccess, -commutInflows_prep, -pass_prep, -fluPos, -H3, -humidity) %>%
+    filter(season %in% 2:9)
+  
+  return(full_df)
+}
+
 
 #### functions for shapefile manipulation ################################
 
@@ -183,7 +238,7 @@ combine_shapefile_modelData_st <- function(filepathList, modelData, seasNum){
     mutate(fips = as.character(STATE)) %>%
     mutate(state = tolower(as.character(NAME))) %>%
     select(-STATE, -NAME) %>%
-    full_join(modelData2, by = "fips") %>%
+    left_join(modelData2, by = "fips") %>%
     mutate(ID = seq_along(fips)) 
  
   return(modelData3)

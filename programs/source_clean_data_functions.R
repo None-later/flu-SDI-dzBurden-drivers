@@ -21,7 +21,7 @@ cleanR_iliSum_st <- function(filepathList){
   # grab disease burden metric (e.g., ilinDt): match "ili" 1+ times
   dbCode <- grep("ili+", strsplit(filepathList$path_response_st, "_")[[1]], value=T)
   # clean data
-  iliSum_data <- read_csv(filepathList$path_response_st, col_types = "iccd") %>%
+  iliSum_data <- read_csv(filepathList$path_response_st, col_types = "iclcd") %>%
     filter(metric == sprintf("%s.sum", dbCode)) %>%
     select(-metric) %>%
     rename(y = burden, abbr = state)
@@ -29,11 +29,11 @@ cleanR_iliSum_st <- function(filepathList){
   pop_data <- clean_pop_st(filepathList) # 4/12/16 all 51 pops are there
   
   return_data <- full_join(iliSum_data, pop_data, by = c("season", "abbr")) %>% # 4/12/16 full_join so pops don't drop
-    select(fips, abbr, state, lat, lon, season, year, pop, y) %>% 
+    select(fips, abbr, state, lat, lon, season, year, pop, y, has.epi) %>% 
     group_by(season) %>%
     mutate(E = weighted.mean(y, pop, na.rm=TRUE)) %>%
     ungroup %>%
-    mutate(logy = log(y), logE = log(E))
+    mutate(logy = ifelse(has.epi, log(y), log(1E-2)), logE = log(E)) # 5/9/16 log(1E-2) so no -Inf as db metric
   
   return(return_data)
 }
@@ -654,7 +654,7 @@ cleanX_noaanarrSfcTemp_st <- function(){
 }
 
 #### testing area ################################
-# test <- cleanX_cdcFluview_H3_region()
+# test <- cleanX_acsCommutInflows_st()
 
 
 # To do:

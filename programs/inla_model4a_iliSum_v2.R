@@ -1,8 +1,8 @@
 
 ## Name: Elizabeth Lee
-## Date: 3/9/16
+## Date: 5/9/16
 ## Function: Model 4a covariate & sampling effort model -- after variable selection
-## v1: include only variables with data for the entire study period
+## v2: include variables for each proxy, with NAs for years where data are not available
 ## Filenames: physicianCoverage_IMSHealth_state.csv, dbMetrics_periodicReg_ilinDt_Octfit_span0.4_degree2_analyzeDB_st.csv
 ## Data Source: IMS Health
 ## Notes: need to SSH into snow server
@@ -21,7 +21,7 @@ require(RColorBrewer); require(ggplot2) # export_inlaData_st dependencies
 
 #### set these! ################################
 dbCodeStr <- "_ilinDt_Octfit_span0.4_degree2"
-modCodeStr <- "4a_iliSum_v1"
+modCodeStr <- "4a_iliSum_v2"
 seasons <- 2:9
 rdmFx_RV <- "nu"
 
@@ -58,13 +58,13 @@ path_list <- list(path_pop_st = path_pop_st,
 
 #### MAIN #################################
 #### Import and process data ####
-modData <- model4a_iliSum_v1(path_list) # with driver & sampling effort variables
+modData <- model4a_iliSum_v2(path_list) # with driver & sampling effort variables
 
 
 #### INLA modeling ################################
 # Model 4a: Covariates, sampling effort
 # Covariates & sampling effort: after variable selection w/o vaxcov
-formula <- logy ~ -1 + f(ID, model = "iid") + f(region, model = "iid") + O_imscoverage + O_careseek + O_insured + X_income + X_child + X_adult + X_hospaccess + X_flight + X_fluPos + X_H3 + X_humidity
+formula <- logy ~ -1 + f(ID, model = "iid") + f(region, model = "iid") + O_imscoverage + O_careseek + O_insured + X_income + X_child + X_adult + X_hospaccess + X_commute + X_flight + X_fluPos + X_H3 + X_humidity
 
 
 #### export formatting ####
