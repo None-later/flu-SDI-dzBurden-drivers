@@ -36,7 +36,7 @@ explore_dbMetricsDistribution_ilinDt <- function(span.var, degree.var, spatial){
   
   #### import data ####################################
   setwd('../R_export')
-  dbMetrics.g <- read_csv(sprintf('dbMetrics_periodicReg_%silinDt%s%s_analyzeDB%s.csv', code, code2, code.str, spatial$stringabbr), col_types="iccd") %>% filter(season!=1)
+  dbMetrics.g <- read_csv(sprintf('dbMetrics_periodicReg_%silinDt%s%s_analyzeDB%s.csv', code, code2, code.str, spatial$stringabbr), col_types="iclcd") %>% filter(season!=1)
   # standardized data
   dbMetrics.gz <- dbMetrics.g %>% group_by(season, metric) %>% mutate(burden.z = (burden - mean(burden))/sd(burden))
   

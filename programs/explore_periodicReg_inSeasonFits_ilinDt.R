@@ -51,7 +51,7 @@ explore_periodicReg_inSeasonFits_ilinDt <- function(span.var, degree.var, spatia
   dir.create(sprintf('../graph_outputs/explore_periodicReg_%sfits_ilinDt%s%s%s/inSeason', code, code2, code.str, spatial$stringabbr), showWarnings = FALSE)
   setwd(sprintf('../graph_outputs/explore_periodicReg_%sfits_ilinDt%s%s%s/inSeason', code, code2, code.str, spatial$stringabbr))
   
-  zip3list2 <- data5 %>% select(scale) %>% distinct %>% arrange(scale) %>% mutate(for.plot = seq_along(1:nrow(.)))
+  zip3list2 <- data5 %>% select(scale) %>% distinct(scale) %>% arrange(scale) %>% mutate(for.plot = seq_along(1:nrow(.)))
   data_plot2 <- right_join(data5, zip3list2, by="scale")
   indexes2 <- seq(1, max(data_plot2 %>% select(for.plot)), by=num)
   
@@ -64,7 +64,7 @@ explore_periodicReg_inSeasonFits_ilinDt <- function(span.var, degree.var, spatia
       geom_line(aes(y = .fitted), color = 'black') + 
       facet_wrap(~scale, scales="free_y")
     # grab zip3s in plot for file name
-    ziplabels <- data_plot2 %>% select(scale) %>% distinct %>% slice(c(i, i+num-1)) 
+    ziplabels <- data_plot2 %>% select(scale) %>% distinct(scale) %>% slice(c(i, i+num-1)) 
     ggsave(sprintf("periodicReg_inSeas_%sfits_ilinDt%s%s_%s-%s.png", code, code2, code.str, ziplabels[1,], ziplabels[2,]), dummyplots, width=w, height=h)
   } 
   

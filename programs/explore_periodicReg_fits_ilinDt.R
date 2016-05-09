@@ -55,7 +55,7 @@ explore_periodicReg_fits_ilinDt <- function(span.var, degree.var, spatial){
   dir.create(sprintf('../graph_outputs/explore_periodicReg_%sfits_ilinDt%s%s%s', code, code2, code.str, spatial$stringabbr), showWarnings = FALSE)
   setwd(sprintf('../graph_outputs/explore_periodicReg_%sfits_ilinDt%s%s%s', code, code2, code.str, spatial$stringabbr))
   
-  zip3list <- data %>% filter(incl.lm) %>% select(scale) %>% distinct %>% mutate(for.plot = seq_along(1:nrow(.)))
+  zip3list <- data %>% filter(incl.lm) %>% select(scale) %>% distinct(scale) %>% mutate(for.plot = seq_along(1:nrow(.)))
   data_plot <- right_join(data, zip3list, by="scale")
   indexes <- seq(1, max(data_plot %>% select(for.plot)), by=num)
   
@@ -68,7 +68,7 @@ explore_periodicReg_fits_ilinDt <- function(span.var, degree.var, spatial){
       scale_alpha_continuous(name='', breaks=c(0.7), labels=c('95% CI fit')) + 
       facet_wrap(~scale, scales="free_y")
     # grab zip3s in plot for file name
-    ziplabels <- data_plot %>% select(scale) %>% distinct %>% slice(c(i, i+num-1)) 
+    ziplabels <- data_plot %>% select(scale) %>% distinct(scale) %>% slice(c(i, i+num-1)) 
     ggsave(sprintf("periodicReg_%sfits_ilinDt%s%s_%s-%s.png", code, code2, code.str, ziplabels[1,], ziplabels[2,]), dummyplots, width=w, height=h)
   } 
   
@@ -89,16 +89,16 @@ explore_periodicReg_fits_ilinDt <- function(span.var, degree.var, spatial){
       xlab('Fitted Values (fit.week = T)') +
       ylab('Residuals (obs - fitted)')
     # grab zip3s in plot for file name
-    ziplabels <- data_plot %>% select(scale) %>% distinct %>% slice(c(i, i+num-1)) 
+    ziplabels <- data_plot %>% select(scale) %>% distinct(scale) %>% slice(c(i, i+num-1)) 
     ggsave(sprintf("periodicReg_%sresidualsVsFitted_ilinDt%s%s_%s-%s.png", code, code2, code.str, ziplabels[1,], ziplabels[2,]), dummyplots, width=w, height=h)
   } 
   
   #### 10/26/15 histogram of adjusted R^2 ################################
-  quantD <- fitdata %>% summarise(q05 = quantile(adj.r.squared, 0.05), q25 = quantile(adj.r.squared, 0.25), q50 = quantile(adj.r.squared, 0.5), q75 = quantile(adj.r.squared, 0.75), q95 = quantile(adj.r.squared, 0.95))
-    
+  quantD <- fitdata %>% summarise(q05 = quantile(adj.r.squared, 0.05), q25 = quantile(adj.r.squared, 0.25), q50 = quantile(adj.r.squared, 0.5), q75 = quantile(adj.r.squared, 0.75), q95 = quantile(adj.r.squared, 0.95)) %>% gather(quant, val, q05:q95)
+  
   adjR2plot <- ggplot(fitdata, aes(x = adj.r.squared)) +
     geom_histogram() + 
-    geom_vline(data = quantD, aes(xintercept = c(q05, q25, q50, q75, q95), colour = 'red'))
+    geom_vline(data = quantD, aes(xintercept = val), colour = 'red')
   ggsave(sprintf("periodicReg_%sAdjR2_ilinDt%s%s.png", code, code2, code.str), adjR2plot, width=w, height=h)
  
   #### 10/27/15 histogram of sigma hat (unexplained variance) ################################

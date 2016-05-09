@@ -85,7 +85,7 @@ write_fullIndic_periodicReg_ilinDt <- function(span.var, degree.var, spatial){
   data4 <- right_join(data3, zip3s_with_epi %>% select(-contains("consec.")), by=c("season", "scale"))
   # 9/15/15: in.season indicator: must meet flu.week, has.epi, incl.analysis, and consecutive epi.week criteria (FLU PERIOD DATA ONLY)
   data5 <- data4 %>% filter(flu.week & has.epi & incl.analysis) %>% group_by(season, scale) %>% mutate(in.season = consider.flu.season(epi.week))
-  data6 <- left_join(data4, (data5 %>% ungroup %>% select(Thu.week, scale, in.season)), by = c("Thu.week", "scale")) %>% mutate(Thu.week=as.Date(Thu.week, origin="1970-01-01")) %>% filter(has.epi & incl.analysis)
+  data6 <- left_join(data4, (data5 %>% ungroup %>% select(Thu.week, scale, in.season)), by = c("Thu.week", "scale")) %>% mutate(Thu.week=as.Date(Thu.week, origin="1970-01-01")) %>% filter(incl.analysis)
   
   # rename variable "scale" to zip3 or state
   data5_write <- scaleRename(spatial$scale, data5)

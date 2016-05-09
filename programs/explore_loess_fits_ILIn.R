@@ -46,9 +46,12 @@ explore_loess_fits_ILIn <- function(span.var, degree.var, spatial){
   dir.create(sprintf('../graph_outputs/explore_loess_fits_ILIn%s/fits%s', spatial$stringabbr, code.str), showWarnings = FALSE)
   setwd(sprintf('../graph_outputs/explore_loess_fits_ILIn%s/fits%s', spatial$stringabbr, code.str))
   
-  zip3list <- data %>% filter(incl.lm) %>% select(scale) %>% distinct %>% mutate(for.plot = seq_along(1:nrow(.)))
+  
+  test <- tbl_df(data.frame(a = c(1, 1, 1, 2, 2), b= c(1, 1, 2, 2, 2)))
+  zip3list <- data %>% filter(incl.lm) %>% select(scale) %>% distinct(scale) %>% mutate(for.plot = seq_along(1:nrow(.)))
   data_plot <- right_join(data, zip3list, by = "scale") %>% mutate(Thu.week=as.Date(Thu.week, origin="1970-01-01"))
   indexes <- seq(1, max(data_plot %>% select(for.plot)), by=6)
+  
   
   for(i in indexes){
     dummyplots <- ggplot(data_plot %>% filter(for.plot>= i & for.plot < i+6), aes(x=Thu.week, y=ILIn, group=scale)) +
@@ -59,7 +62,7 @@ explore_loess_fits_ILIn <- function(span.var, degree.var, spatial){
       scale_alpha_continuous(name='', breaks=c(0.7), labels=c('95% CI fit')) + 
       facet_wrap(~scale, scales="free_y")
     # grab zip3s in plot for file name
-    ziplabels <- data_plot %>% select(scale) %>% distinct %>% slice(c(i, i+5)) 
+    ziplabels <- data_plot %>% select(scale) %>% distinct(scale) %>% slice(c(i, i+5)) 
     ggsave(sprintf("loess%s_fits_ILIn_%s-%s.png", code.str, ziplabels[1,], ziplabels[2,]), dummyplots, width=w, height=h)
   }
   
@@ -74,7 +77,7 @@ explore_loess_fits_ILIn <- function(span.var, degree.var, spatial){
       geom_line(aes(color = fit.week)) + 
       facet_wrap(~scale, scales="free_y")
     # grab zip3s in plot for file name
-    ziplabels <- data_plot %>% select(scale) %>% distinct %>% slice(c(i, i+5)) 
+    ziplabels <- data_plot %>% select(scale) %>% distinct(scale) %>% slice(c(i, i+5)) 
     ggsave(sprintf("ilinDt%s_data_%s-%s.png", code.str, ziplabels[1,], ziplabels[2,]), dummyplots, width=w, height=h)
   } 
 }
