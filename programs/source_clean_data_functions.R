@@ -91,7 +91,7 @@ cleanO_cpsasecInsured_st <- function(){
   dbDisconnect(con)
   
   output <- tbl_df(dummy) %>%
-    dplyr::rename(insured = insured_prop) %>%
+    rename(insured = insured_prop) %>%
     select(fips, year, insured) 
   
   return(output)
@@ -113,7 +113,7 @@ cleanO_sahieACSInsured_cty <- function(){
   dbDisconnect(con)
   
   output <- tbl_df(dummy) %>%
-    rename(insured = insured_prop) %>%
+    dplyr::rename(insured = insured_prop) %>%
     select(fips, year, insured) 
   
   return(output)
@@ -143,6 +143,29 @@ cleanX_saipePoverty_st <- function(){
   return(output)
 }
 ################################
+
+cleanX_saipePoverty_cty <- function(){
+  # clean SAIPE percentage of population in poverty data exported from mysql
+  print(match.call())
+  
+  con <- dbConnect(RMySQL::MySQL(), group = "rmysql-fludrivers")
+  dbListTables(con)
+  
+  dbListFields(con, "SAIPE_poverty")
+  # sel.statement <- "SELECT * from SAIPE_poverty limit 5"
+  sel.statement <- "SELECT year, county_id AS fips, all_poverty_percent/100 AS inPoverty_prop FROM SAIPE_poverty WHERE type = 'county'"
+  dummy <- dbGetQuery(con, sel.statement)
+  
+  dbDisconnect(con)
+  
+  output <- tbl_df(dummy) %>%
+    rename(poverty = inPoverty_prop) %>%
+    select(fips, year, poverty)
+  
+  return(output)
+}
+################################
+
 cleanX_saipeIncome_st <- function(){
   # clean SAIPE median household income data exported from mysql
   print(match.call())
