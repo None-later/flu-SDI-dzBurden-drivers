@@ -129,7 +129,8 @@ plot_coefDistr_season <- function(path_csvExport, path_plotExport_coefDistr){
     geom_hline(yintercept = 0) +
     facet_wrap(~RV, scales = "free_y") +
     ylab("coefMode (95%CI)") +
-    xlim(c(1, 10))
+    xlim(c(1, 10)) +
+    ylim(c(-2, 2))
   ggsave(paste0(path_plotExport_coefDistr, "fixed.png"), fixedFig, height = h, width = w, dpi = dp)
   
   # plot random effects
