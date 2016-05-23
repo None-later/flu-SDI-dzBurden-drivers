@@ -885,7 +885,67 @@ cleanX_cdcFluview_H3_region <- function(){
 }
 ################################
 
-## add vaccine coverage
+cleanX_nisInfantAnyVaxCov_st <- function(){
+  # clean vaccination coverage by state (any level of flu vaccination)
+  print(match.call())
+  
+  con <- dbConnect(RMySQL::MySQL(), group = "rmysql-fludrivers")
+  dbListTables(con)
+  
+  dbListFields(con, "immunity_nisBRFSSVaxCoverage_state")
+  # sel.statement <- "SELECT * from immunity_nisBRFSSVaxCoverage_state limit 5"
+  sel.statement <- "SELECT season, location, scale, vaxlevel, agegroup, coverage, interval95 from immunity_nisBRFSSVaxCoverage_state where scale = 'State' and season >= 2 and season <= 9 and agegroup = 'infant' and vaxlevel = 'anyvax'"
+  dummy <- dbGetQuery(con, sel.statement)
+  
+  dbDisconnect(con)
+  
+  output <- tbl_df(dummy) %>%
+    arrange(season, location)
+    
+  return(output)
+}
+################################
+
+cleanX_nisInfantFullVaxCov_st <- function(){
+  # clean vaccination coverage by state (full 2 doses of flu vaccination)
+  print(match.call())
+  
+  con <- dbConnect(RMySQL::MySQL(), group = "rmysql-fludrivers")
+  dbListTables(con)
+  
+  dbListFields(con, "immunity_nisBRFSSVaxCoverage_state")
+  # sel.statement <- "SELECT * from immunity_nisBRFSSVaxCoverage_state limit 5"
+  sel.statement <- "SELECT season, location, scale, vaxlevel, agegroup, coverage, interval95 from immunity_nisBRFSSVaxCoverage_state where scale = 'State' and season >= 2 and season <= 9 and agegroup = 'infant' and vaxlevel = 'fullvax'"
+  dummy <- dbGetQuery(con, sel.statement)
+  
+  dbDisconnect(con)
+  
+  output <- tbl_df(dummy) %>%
+    arrange(season, location)
+  
+  return(output)
+}
+################################
+
+cleanX_brfssElderlyAnyVaxCov_st <- function(){
+  # clean vaccination coverage by state (any level of flu vaccination)
+  print(match.call())
+  
+  con <- dbConnect(RMySQL::MySQL(), group = "rmysql-fludrivers")
+  dbListTables(con)
+  
+  dbListFields(con, "immunity_nisBRFSSVaxCoverage_state")
+  # sel.statement <- "SELECT * from immunity_nisBRFSSVaxCoverage_state limit 5"
+  sel.statement <- "SELECT season, location, scale, vaxlevel, agegroup, coverage, interval95 from immunity_nisBRFSSVaxCoverage_state where scale = 'State' and season >= 2 and season <= 9 and agegroup = 'elderly' and vaxlevel = 'anyvax'"
+  dummy <- dbGetQuery(con, sel.statement)
+  
+  dbDisconnect(con)
+  
+  output <- tbl_df(dummy) %>%
+    arrange(season, location)
+  
+  return(output)
+}
 
 
 ##### environmental factors ##########
@@ -1008,7 +1068,7 @@ cleanX_noaanarrSfcTemp_cty <- function(){
 # ahrfPhys_cty_df <- cleanX_ahrfPhysicians_cty()
 # popDens_cty_df <- cleanX_popDensity_cty()
 # housDens_cty_df <- cleanX_housDensity_cty()
-acsCommutInflows_cty_prep <- cleanX_acsCommutInflows_cty()
+# acsCommutInflows_cty_prep <- cleanX_acsCommutInflows_cty()
 # narrSpecHum_cty_df <- cleanX_noaanarrSpecHum_cty()
 # narrSfcTemp_cty_df <- cleanX_noaanarrSfcTemp_cty()
 
@@ -1033,13 +1093,15 @@ acsCommutInflows_cty_prep <- cleanX_acsCommutInflows_cty()
 # housDens_df <- cleanX_housDensity_st()
 # acsCommut_prep <- cleanX_acsCommutInflows_st()
 # btsPass_prep <- cleanX_btsPassInflows_st()
+# infantAnyVax_df <- cleanX_nisInfantAnyVaxCov_st()
+# infantFullVax_df <- cleanX_nisInfantFullVaxCov_st()
+# elderlyAnyVax_df <- cleanX_brfssElderlyAnyVaxCov_st()
 # narrSpecHum_df <- cleanX_noaanarrSpecHum_st()
 # narrSfc_df <- cleanX_noaanarrSfcTemp_st()
 
 
 
 # To do:
-#   vaxcoverage
 #   prior immunity from last year's seasonal burden
 #   skip spatialcw tables -- these are just crosswalks between different areal units
 
