@@ -900,7 +900,9 @@ cleanX_nisInfantAnyVaxCov_st <- function(){
   dbDisconnect(con)
   
   output <- tbl_df(dummy) %>%
-    arrange(season, location)
+    arrange(season, location) %>%
+    select(season, location, coverage) %>%
+    rename(infantAnyVax = coverage)
     
   return(output)
 }
@@ -921,7 +923,9 @@ cleanX_nisInfantFullVaxCov_st <- function(){
   dbDisconnect(con)
   
   output <- tbl_df(dummy) %>%
-    arrange(season, location)
+    arrange(season, location) %>%
+    select(season, location, coverage) %>%
+    rename(infantFullVax = coverage)
   
   return(output)
 }
@@ -942,7 +946,9 @@ cleanX_brfssElderlyAnyVaxCov_st <- function(){
   dbDisconnect(con)
   
   output <- tbl_df(dummy) %>%
-    arrange(season, location)
+    arrange(season, location) %>%
+    select(season, location, coverage) %>%
+    rename(elderlyAnyVax = coverage)
   
   return(output)
 }
