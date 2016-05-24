@@ -75,7 +75,7 @@ choroplots <- function(dummyDat, params){
   for (s in seas){
     dummyDat2 <- dummyDat %>%
       filter(ageVax == code, season == s) %>%
-      mutate(vc_bin = cut(vaxcov, breaks = quantile(vaxcov, probs = seq(0, 1, by = 1/5), na.rm=T), ordered_result = TRUE)) %>%
+      mutate(vc_bin = cut(vaxcov, breaks = quantile(vaxcov, probs = seq(0, 1, by = 1/5), na.rm=T), ordered_result = TRUE, include.lowest = TRUE)) %>%
       mutate(vc_bin = factor(vc_bin, levels = rev(levels(vc_bin)), labels = labVec)) %>% 
       mutate(cov_color = factor(vc_bin, levels = levels(vc_bin), labels = colVec)) %>%
       mutate(cov_col_string = as.character(cov_color))

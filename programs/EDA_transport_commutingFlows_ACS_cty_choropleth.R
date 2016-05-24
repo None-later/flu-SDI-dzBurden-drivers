@@ -63,11 +63,11 @@ processData <- function(dataOb){
     group_by(wk_fips) %>%
     summarise(influx = sum(Number), pop = max(CENSUS2010POP, na.rm=T)) %>%
     mutate(inf.norm = influx/pop*1000) %>%
-    mutate(in_bin = cut(influx, breaks = quantile(influx, probs = seq(0, 1, by = 1/nq), na.rm=T), ordered_result = TRUE)) %>%
+    mutate(in_bin = cut(influx, breaks = quantile(influx, probs = seq(0, 1, by = 1/nq), na.rm=T), ordered_result = TRUE, include.lowest = TRUE)) %>%
     mutate(in_bin = factor(in_bin, levels = rev(levels(in_bin)), labels = incVec)) %>% 
     mutate(influx_color = factor(in_bin, levels = levels(in_bin), labels = colVec)) %>%
     mutate(influx_colstring = as.character(influx_color)) %>%
-    mutate(norm_bin = cut(inf.norm, breaks = quantile(inf.norm, probs = seq(0, 1, by = 1/nq), na.rm=T), ordered_result = TRUE)) %>%
+    mutate(norm_bin = cut(inf.norm, breaks = quantile(inf.norm, probs = seq(0, 1, by = 1/nq), na.rm=T), ordered_result = TRUE, include.lowest = TRUE)) %>%
     mutate(norm_bin = factor(norm_bin, levels = rev(levels(norm_bin)), labels = incVec)) %>% 
     mutate(norm_color = factor(norm_bin, levels = levels(norm_bin), labels = colVec)) %>%
     mutate(norm_colstring = as.character(norm_color))

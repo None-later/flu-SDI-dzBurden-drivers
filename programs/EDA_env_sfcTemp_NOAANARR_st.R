@@ -50,7 +50,7 @@ states_map <- map_data("state")
 for (s in seas){
   pltDat <- fullDat %>%
     filter(season == s) %>%
-    mutate(temp_bin = cut(temperature, breaks = quantile(temperature, probs = seq(0, 1, by = 1/5), na.rm=T), ordered_result = TRUE)) %>%
+    mutate(temp_bin = cut(temperature, breaks = quantile(temperature, probs = seq(0, 1, by = 1/5), na.rm=T), ordered_result = TRUE, include.lowest = TRUE)) %>%
     mutate(temp_bin = factor(temp_bin, levels = rev(levels(temp_bin)), labels = incVec)) %>% 
     mutate(temp_color = factor(temp_bin, levels = levels(temp_bin), labels = colVec)) %>%
     mutate(inc_tmp_string = as.character(temp_color))

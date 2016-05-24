@@ -69,7 +69,7 @@ for (yr in years){
     if (all(is.na(pltDat2$value))) {next}
     else{if (dim(pltDat2 %>% filter(!is.na(value)))[1] < 5) {next} # skip if there are fewer than five counties with data
     pltDat3 <- pltDat2 %>% 
-      mutate(val_bin = cut(value, breaks = quantile(value, probs = seq(0, 1, by = 1/5), na.rm=T), ordered_result = TRUE)) %>%
+      mutate(val_bin = cut(value, breaks = quantile(value, probs = seq(0, 1, by = 1/5), na.rm=T), ordered_result = TRUE, include.lowest = TRUE)) %>%
       mutate(val_bin = factor(val_bin, levels = rev(levels(val_bin)), labels = tierVec)) %>% 
       mutate(val_color = factor(val_bin, levels = levels(val_bin), labels = colVec)) %>%
       mutate(val_col_string = as.character(val_color))

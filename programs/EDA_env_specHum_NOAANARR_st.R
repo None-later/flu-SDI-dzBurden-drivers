@@ -50,7 +50,7 @@ states_map <- map_data("state")
 for (s in seas){
   pltDat <- fullDat %>%
     filter(season == s) %>%
-    mutate(hum_bin = cut(humidity, breaks = quantile(humidity, probs = seq(0, 1, by = 1/5), na.rm=T), ordered_result = TRUE)) %>%
+    mutate(hum_bin = cut(humidity, breaks = quantile(humidity, probs = seq(0, 1, by = 1/5), na.rm=T), ordered_result = TRUE, include.lowest = TRUE)) %>%
     mutate(hum_bin = factor(hum_bin, levels = rev(levels(hum_bin)), labels = incVec)) %>% 
     mutate(humidity_color = factor(hum_bin, levels = levels(hum_bin), labels = colVec)) %>%
     mutate(inc_hum_string = as.character(humidity_color))
