@@ -12,38 +12,53 @@ require(ggplot2)
 require(dplyr)
 require(readr)
 require(RColorBrewer)
-require(choroplethr)
-require(choroplethrMaps)
+require(ggcounty)
+
 setwd(dirname(sys.frame(1)$ofile))
+source("source_clean_data_functions.R")
 
 #### plot formatting ################################
-tierVec <- paste("Tier", 1:5)
-colVec <- brewer.pal(length(tierVec), 'RdYlGn')
+labVec <- paste("Tier", 1:5)
+colVec <- brewer.pal(length(labVec), 'RdYlGn')
 h <- 5; w <- 8; dp <- 300
-h2 <- 9; w2 <- 9
+h2 <- 12; w2 <- 12
 mar <- rep(0, 4)
 par(mar = mar, oma = mar)
+years <- 2002:2009
 num <- 6
 
+# set choropleth parameters
+popParams <- list(code = 'popDensity', lab = 'Population Density', src = 'Census', yr = years, h = h, w = w, dp = dp)
+housParams <- list(code = 'housDensity', lab = 'Population per Housing', src = 'Census', yr = years, h = h, w = w, dp = dp)
+
+# set ts parameters
+leg.lab <- c("Pop Density per Sq Mile", "Pop per Housing Unit")
+
+
 #### import data ################################
-setwd(dirname(sys.frame(1)$ofile))
-setwd("../../../../Sandra Goldlust's Work/Shared_Data/SG_covariate_data/Cleaned_Data")
-# poverty data
-popDat <- read_csv("clean_Census_popdensity_county.csv", col_types = "ccciidddddciccc") %>%
-  filter(type == 'county') %>%
-  select(year, fips_st, State, Abbreviation, fips, short_name, pop, housing_units, popDens_land, housDens_land) %>%
-  rename(popDens = popDens_land, housDens = housDens_land, housUnits = housing_units) %>%
-  mutate(region = as.numeric(fips))
+setwd('../reference_data')
+abbrDat <- read_csv("state_abbreviations_FIPS.csv", col_types = list(FIPS = col_character())) %>%
+  rename(fips_st = FIPS)
+# import popDensity and popHousing data
+popdensDat <- cleanX_popDensity_cty()
+housdensDat <- cleanX_housDensity_cty()
 
-#### plot variables ################################
-varnames <- names(popDat)[c(7:10)]
-leg.lab <- c("Total Population", "Housing Units", "Pop. Density per Sq. Mile", "Housing Density per Sq. Mile")
-uqst <- popDat %>% select(State) %>% distinct %>% arrange(State) %>%
+#### clean and merge data for plotting ################################
+# for choro
+fullDat <- full_join(popdensDat, housdensDat, by = c("fips", "year")) %>%
+  gather(covariate, value, popDensity, housDensity) %>%
+  arrange(fips, year) 
+
+# for ts
+uqst <- abbrDat %>% select(State) %>% distinct(State) %>% arrange(State) %>%
   mutate(for.plot = seq_along(1:nrow(.)))
-
-fullDat2 <- left_join(popDat, uqst, by = "State")
+fullDat2 <- fullDat %>%
+  mutate(fips_st = substring(fips, 1, 2)) %>%
+  left_join(abbrDat, by = "fips_st") %>%
+  left_join(uqst, by = "State")
 indexes <- seq(1, max(fullDat2 %>% select(for.plot)), by=num)
-years <- fullDat2 %>% select(year) %>% distinct %>% arrange(year) %>% unlist
+years <- fullDat2 %>% select(year) %>% distinct(year) %>% arrange(year) %>% unlist
+varnames <- fullDat2 %>% select(covariate) %>% unique %>% unlist
 
 #### plot setup ################################
 setwd(dirname(sys.frame(1)$ofile))
@@ -53,16 +68,87 @@ setwd("../graph_outputs/EDA_popDensity_Census_cty")
 #### choropleths ################################
 dir.create("./choro", showWarnings = FALSE)
 setwd("./choro")
+us <- ggcounty.us()
+gg <- us$g
 
-for (yr in years){
-  pltDat <- fullDat2 %>% filter(year == yr) 
-  for (v in varnames) {
-    pltDat2 <- pltDat %>% rename_(value = as.name(v))
-    if (all(is.na(pltDat2$value))) {next}
-    choro <- county_choropleth(pltDat2, legend = leg.lab[which(v == varnames)]) 
-    ggsave(sprintf("%s_popDensity_Census_cty_%s.png", v, yr), choro, width = w, height = h, dpi = dp)
+################################
+# function to draw tier and gradient choropleths (all years on same figure)
+choroplots <- function(dummyDat, params){
+  # import parameters
+  code <- params$code; lab <- params$lab; src <- params$src; yr <- params$yr
+  h <- params$h; w <- params$w; dp <- params$dp
+  
+  # create aggregate df for all processed seasons
+  pltDat <- data.frame()
+  # process bin categories for each season separately
+  for (y in yr){
+    dummyDat2 <- dummyDat %>%
+      filter(covariate == code, year == y) %>%
+      mutate(vbin = cut(value, breaks = quantile(value, probs = seq(0, 1, by = 1/5), na.rm=T), ordered_result = TRUE, include.lowest = TRUE)) %>%
+      mutate(vbin = factor(vbin, levels = rev(levels(vbin)), labels = labVec)) %>% 
+      mutate(cov_color = factor(vbin, levels = levels(vbin), labels = colVec)) %>%
+      mutate(cov_col_string = as.character(cov_color))
+    pltDat <- bind_rows(pltDat, dummyDat2)
   }
-} # 11/24/15
+  
+  choro.tier <- gg +
+    geom_map(data = pltDat, aes(map_id = fips, fill = vbin, group = year), map = us$map, color = "black") +
+    scale_fill_brewer(name = lab, palette = "RdYlGn") +
+    expand_limits(x = gg$long, y = gg$lat) +
+    theme_minimal() +
+    theme(text = element_text(size = 18), axis.ticks = element_blank(), axis.text = element_blank(), axis.title = element_blank(), panel.grid = element_blank(), legend.position = "bottom") +
+    facet_wrap(~year, nrow = 2) 
+  ggsave(sprintf("%s_tiers_%s_cty.png", code, src), choro.tier, height = h, width = w, dpi = dp)
+  
+  choro.grad <- gg +
+    geom_map(data = pltDat, aes(map_id = fips, fill = value, group = year), map = us$map, color = "black") +
+    scale_fill_continuous(name = lab, low = "green", high = "red") +
+    expand_limits(x = gg$long, y = gg$lat) +
+    theme_minimal() +
+    theme(text = element_text(size = 18), axis.ticks = element_blank(), axis.text = element_blank(), axis.title = element_blank(), panel.grid = element_blank(), legend.position = "bottom") +
+    facet_wrap(~year, nrow = 2) 
+  ggsave(sprintf("%s_grad_%s_cty.png", code, src), choro.grad, height = h, width = w, dpi = dp)
+} 
+
+################################
+# function to draw tier and gradient choropleths (one year per figure)
+choroplots_1yr <- function(dummyDat, params){
+  # import parameters
+  code <- params$code; lab <- params$lab; src <- params$src; yr <- params$yr
+  h <- params$h; w <- params$w; dp <- params$dp
+  
+  # process bin categories for each season separately
+  for (y in yr){
+    pltDat <- dummyDat %>%
+      filter(covariate == code, year == y) %>%
+      mutate(vbin = cut(value, breaks = quantile(value, probs = seq(0, 1, by = 1/5), na.rm=T), ordered_result = TRUE, include.lowest = TRUE)) %>%
+      mutate(vbin = factor(vbin, levels = rev(levels(vbin)), labels = labVec)) %>% 
+      mutate(cov_color = factor(vbin, levels = levels(vbin), labels = colVec)) %>%
+      mutate(cov_col_string = as.character(cov_color))
+  
+    choro.tier <- gg +
+      geom_map(data = pltDat, aes(map_id = fips, fill = vbin), map = us$map, color = "black") +
+      scale_fill_brewer(name = lab, palette = "RdYlGn") +
+      expand_limits(x = gg$long, y = gg$lat) +
+      theme_minimal() +
+      theme(text = element_text(size = 18), axis.ticks = element_blank(), axis.text = element_blank(), axis.title = element_blank(), panel.grid = element_blank(), legend.position = "bottom") 
+    ggsave(sprintf("%s_tiers_%s_cty_%s.png", code, src, y), choro.tier, height = h, width = w, dpi = dp)
+    
+    choro.grad <- gg +
+      geom_map(data = pltDat, aes(map_id = fips, fill = value), map = us$map, color = "black") +
+      scale_fill_continuous(name = lab, low = "green", high = "red") +
+      expand_limits(x = gg$long, y = gg$lat) +
+      theme_minimal() +
+      theme(text = element_text(size = 18), axis.ticks = element_blank(), axis.text = element_blank(), axis.title = element_blank(), panel.grid = element_blank(), legend.position = "bottom")
+    ggsave(sprintf("%s_grad_%s_cty_%s.png", code, src, y), choro.grad, height = h, width = w, dpi = dp)
+  }
+} 
+
+################################
+# draw plots
+choroplots_1yr(fullDat, popParams)
+choroplots_1yr(fullDat, housParams)
+# 5/25/16
 
 #### time series ################################
 dir.create("../ts", showWarnings = FALSE)
@@ -70,16 +156,16 @@ setwd("../ts")
 
 for(i in indexes){
   for(v in varnames){
-    dummyplots <- ggplot(fullDat2 %>% filter(for.plot>= i & for.plot < i+num), aes(x=year, y=eval(parse(text = v)))) +
+    dummyplots <- ggplot(fullDat2 %>% filter(for.plot>= i & for.plot < i+num & covariate == v), aes(x=year, y=value)) +
       theme_bw()+
       theme(axis.text=element_text(size=12), axis.title=element_text(size=14,face="bold")) +
       geom_line(aes(colour = fips)) +
       scale_y_continuous(name = leg.lab[which(v == varnames)]) +
-      scale_x_continuous(breaks = seq(2000, 2010, 10), limits = c(1999, 2011)) +
+      scale_x_continuous(breaks = seq(2002, 2009, 1)) +
       guides(colour = "none") +
       facet_wrap(~State)
-    labs <- fullDat2 %>% filter(for.plot>= i & for.plot < i+num) %>% select(Abbreviation) %>% distinct %>% arrange(Abbreviation) %>% slice(c(i, i+num-1))  %>% unlist
-    ggsave(sprintf("%s_popDensity_Census_cty_%s-%s.png", v, labs[1], labs[2]), dummyplots, width = w2, height = h2, dpi = dp)
+    labs <- fullDat2 %>% filter(for.plot>= i & for.plot < i+num) %>% select(Abbreviation) %>% distinct(Abbreviation) %>% arrange(Abbreviation) %>% slice(c(1, num))  %>% unlist
+    ggsave(sprintf("%s_Census_cty_%s-%s.png", v, labs[1], labs[2]), dummyplots, width = w2, height = h2, dpi = dp)
   }
-} # 11/24/15
-
+} 
+# 5/25/16
