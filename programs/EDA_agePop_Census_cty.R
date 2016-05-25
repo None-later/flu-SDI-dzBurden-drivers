@@ -1,7 +1,6 @@
 ## Name: Elizabeth Lee
 ## Date: 11/23/15
 ## Function: EDA - Census 2000 & 2010 population and population density - choropleth, county-level; time series by county grouped by state
-# 5/25/16: major overhaul to structure with addition of intercensal pop estimate data
 ## Filename: SG_covariate_data/Cleaned_Data/clean_Census_popdensity_county.csv
 ## 
 ## useful commands:
@@ -29,25 +28,30 @@ years <- 2002:2009
 num <- 6
 
 # set choropleth parameters
-popParams <- list(code = 'popDensity', lab = 'Population Density', src = 'Census', yr = years, h = h, w = w, dp = dp)
-housParams <- list(code = 'housDensity', lab = 'Population per Housing', src = 'Census', yr = years, h = h, w = w, dp = dp)
+itParams <- list(code = 'infantToddler', lab = 'Population Prop (<5 yo)', src = 'Census', yr = years, h = h, w = w, dp = dp)
+cParams <- list(code = 'child', lab = 'Population Prop (5-19 yo)', src = 'Census', yr = years, h = h, w = w, dp = dp)
+aParams <- list(code = 'adult', lab = 'Population Prop (20-64 yo)', src = 'Census', yr = years, h = h, w = w, dp = dp)
+eParams <- list(code = 'elderly', lab = 'Population Prop (65+ yo)', src = 'Census', yr = years, h = h, w = w, dp = dp)
 
 # set ts parameters
-leg.lab <- c("Pop Density per Sq Mile", "Pop per Housing Unit")
-
+leg.lab <- c('Population Prop (<5 yo)', 'Population Prop (5-19 yo)', 'Population Prop (20-64 yo)', 'Population Prop (65+ yo)')
 
 #### import data ################################
 setwd('../reference_data')
 abbrDat <- read_csv("state_abbreviations_FIPS.csv", col_types = list(FIPS = col_character())) %>%
   rename(fips_st = FIPS)
 # import popDensity and popHousing data
-popdensDat <- cleanX_popDensity_cty()
-housdensDat <- cleanX_housDensity_cty()
+itPopDat <- cleanX_censusInfantToddlerPop_cty()
+cPopDat <- cleanX_censusChildPop_cty()
+aPopDat <- cleanX_censusAdultPop_cty()
+ePopDat <- cleanX_censusElderlyPop_cty()
 
 #### clean and merge data for plotting ################################
 # for choro
-fullDat <- full_join(popdensDat, housdensDat, by = c("fips", "year")) %>%
-  gather(covariate, value, popDensity, housDensity) %>%
+fullDat <- full_join(itPopDat, cPopDat, by = c("fips", "year")) %>%
+  full_join(aPopDat, by = c("fips", "year")) %>%
+  full_join(ePopDat, by = c("fips", "year")) %>%
+  gather(covariate, value, infantToddler:elderly) %>%
   arrange(fips, year) 
 
 # for ts
@@ -63,8 +67,8 @@ varnames <- fullDat2 %>% select(covariate) %>% unique %>% unlist
 
 #### plot setup ################################
 setwd(dirname(sys.frame(1)$ofile))
-dir.create("../graph_outputs/EDA_popDensity_Census_cty", showWarnings = FALSE)
-setwd("../graph_outputs/EDA_popDensity_Census_cty")
+dir.create("../graph_outputs/EDA_agePop_Census_cty", showWarnings = FALSE)
+setwd("../graph_outputs/EDA_agePop_Census_cty")
 
 #### choropleths ################################
 dir.create("./choro", showWarnings = FALSE)
@@ -133,7 +137,7 @@ choroplots_1yr <- function(dummyDat, params){
       expand_limits(x = gg$long, y = gg$lat) +
       theme_minimal() +
       theme(text = element_text(size = 18), axis.ticks = element_blank(), axis.text = element_blank(), axis.title = element_blank(), panel.grid = element_blank(), legend.position = "bottom") 
-    ggsave(sprintf("%s_tiers_%s_cty_%s.png", code, src, y), choro.tier, height = h, width = w, dpi = dp)
+    ggsave(sprintf("%sPop_tiers_%s_cty_%s.png", code, src, y), choro.tier, height = h, width = w, dpi = dp)
     
     choro.grad <- gg +
       geom_map(data = pltDat, aes(map_id = fips, fill = value), map = us$map, color = "black") +
@@ -141,15 +145,17 @@ choroplots_1yr <- function(dummyDat, params){
       expand_limits(x = gg$long, y = gg$lat) +
       theme_minimal() +
       theme(text = element_text(size = 18), axis.ticks = element_blank(), axis.text = element_blank(), axis.title = element_blank(), panel.grid = element_blank(), legend.position = "bottom")
-    ggsave(sprintf("%s_grad_%s_cty_%s.png", code, src, y), choro.grad, height = h, width = w, dpi = dp)
+    ggsave(sprintf("%sPop_grad_%s_cty_%s.png", code, src, y), choro.grad, height = h, width = w, dpi = dp)
   }
 } 
 
-################################
-# draw plots
-choroplots_1yr(fullDat, popParams)
-choroplots_1yr(fullDat, housParams)
-# 5/25/16
+# ################################
+# # draw plots
+# choroplots_1yr(fullDat, itParams)
+# choroplots_1yr(fullDat, cParams)
+# choroplots_1yr(fullDat, aParams)
+# choroplots_1yr(fullDat, eParams)
+# # 5/25/16
 
 #### time series ################################
 dir.create("../ts", showWarnings = FALSE)
@@ -161,12 +167,13 @@ for(i in indexes){
       theme_bw()+
       theme(axis.text=element_text(size=12), axis.title=element_text(size=14,face="bold")) +
       geom_line(aes(colour = fips)) +
-      scale_y_continuous(name = leg.lab[which(v == varnames)]) +
-      scale_x_continuous(breaks = seq(2002, 2009, 1)) +
+      stat_summary(fun.y = 'median', colour = 'black', size = 1.5, geom = "line") +
+      scale_y_continuous(name = leg.lab[which(v == varnames)], limits = c(0, 1)) +
+      scale_x_continuous(breaks = seq(2002, 2009, 2)) +
       guides(colour = "none") +
       facet_wrap(~State)
     labs <- fullDat2 %>% filter(for.plot>= i & for.plot < i+num) %>% select(Abbreviation) %>% distinct(Abbreviation) %>% arrange(Abbreviation) %>% slice(c(1, num))  %>% unlist
-    ggsave(sprintf("%s_Census_cty_%s-%s.png", v, labs[1], labs[2]), dummyplots, width = w2, height = h2, dpi = dp)
+    ggsave(sprintf("%sPop_Census_cty_%s-%s.png", v, labs[1], labs[2]), dummyplots, width = w, height = h, dpi = dp)
   }
 } 
 # 5/25/16
