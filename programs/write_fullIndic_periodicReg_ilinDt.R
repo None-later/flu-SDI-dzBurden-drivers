@@ -59,7 +59,7 @@ write_fullIndic_periodicReg_ilinDt <- function(span.var, degree.var, spatial){
   if (spatial$scale == 'zip3'){
     data <- read_csv(file=sprintf('periodicReg_%sall%sMods_ilinDt%s%s.csv', code, spatial$stringcode, code2, code.str), col_types=list(zip3 = col_character(), ili = col_integer(), pop = col_integer(), .fitted = col_double(), .se.fit = col_double(), .fittedLoess = col_double(), .se.fitLoess = col_double(), ilin.dt = col_double(), ILIn = col_double())) %>%
       rename(scale = zip3)
-  
+    num.weeks <- 5 # see explore_fluSeasonDefinition_ilinDt.R
     } else if (spatial$scale == 'state'){
     data <- read_csv(file=sprintf('periodicReg_%sall%sMods_ilinDt%s%s.csv', code, spatial$stringcode, code2, code.str), col_types=list(state = col_character(), ili = col_integer(), pop = col_integer(), .fitted = col_double(), .se.fit = col_double(), .fittedLoess = col_double(), .se.fitLoess = col_double(), ilin.dt = col_double(), ILIn = col_double())) %>%
       rename(scale = state)
