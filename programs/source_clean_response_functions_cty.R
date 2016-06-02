@@ -23,9 +23,9 @@ cleanR_iliSum_cty <- function(filepathList){
   pop_data <- clean_pop_cty(filepathList)
   
   # grab disease burden metric (e.g., ilinDt): match "ili" 1+ times
-  dbCode <- grep("ili+", strsplit(filepathList$path_response_cty, "_")[[1]], value=T)
+  dbCode <- grep("ili+", strsplit(filepathList$path_response_zip3, "_")[[1]], value=T)
   # clean burden data
-  iliSum_data <- read_csv(filepathList$path_response_cty, col_types = "iclcd") %>%
+  iliSum_data <- read_csv(filepathList$path_response_zip3, col_types = "iclcd") %>%
     filter(metric == sprintf("%s.sum", dbCode)) %>%
     select(-metric) %>%
     rename(y = burden) %>%
@@ -40,9 +40,38 @@ cleanR_iliSum_cty <- function(filepathList){
     group_by(season) %>%
     mutate(E = weighted.mean(y, pop, na.rm = TRUE)) %>%
     ungroup %>%
+    filter(season != 1) %>%
     mutate(logy = ifelse(has.epi, log(y), log(1E-2)), logE = log(E)) # 6/1/16 log(1E-2) so no -Inf burden (need to do sensitivity on this)
-  
   return(return_data)
+}
+
+##### SAMPLING EFFORT DATA ##########################################
+cleanO_imsCoverage_cty <- function(){
+  # clean IMS Health adjusted physician coverage (database coverage) and physician per visit ratio (care-seeking behavior) from zip3 to county level, using overlapping pop bw zip3 & county as a weight for the weighted average
+  print(match.call())
+
+  # spatial crosswalk: fips, zip3, proportion (of overlap in zip3 & fips population)
+  cw <- cw_zip3_cty() 
+  
+  # import physician coverage data
+  con <- dbConnect(RMySQL::MySQL(), group = "rmysql-fludrivers")
+  dbListTables(con)
+  
+  dbListFields(con, "IMS_physicianCoverage_zip3")
+  # sel.statement <- "Select * from IMS_physicianCoverage_zip3 limit 5"
+  sel.statement <- "SELECT year, zip3, adjProviderCoverage FROM IMS_physicianCoverage_zip3"
+  dummy <- dbGetQuery(con, sel.statement)
+  
+  dbDisconnect(con)
+
+  # clean zip3 coverage to county coverage
+  covDat <- dummy %>%
+    full_join(cw, by = "zip3") %>%
+    group_by(fips, year) %>%
+    summarise(zOverlaps = length(zip3), adjProviderCoverage = weighted.mean(adjProviderCoverage, proportion, na.rm = TRUE)) %>% 
+    ungroup %>%
+    filter(!is.na(fips))
+  return(covDat)
 }
 
 ##### REFERENCE DATA ##########################################
@@ -61,9 +90,7 @@ cw_zip3_cty <- function(){
   dbDisconnect(con)
   
   output <- tbl_df(dummy) 
-  
   return(output)
-  
 }
 
 ################################
@@ -90,7 +117,6 @@ clean_pop_cty <- function(filepathList){
     mutate(season = as.numeric(substring(year, 3, 4))) %>%
     left_join(coord_data, by = "fips") %>%
     select(fips, county, st, season, year, pop, lat, lon)
-  
   return(output)
 }
 
