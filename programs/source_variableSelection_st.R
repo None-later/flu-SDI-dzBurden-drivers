@@ -15,7 +15,7 @@ require(INLA)
 
 #### functions for data aggregation  ################################
 
-prepare_allCov_iliSum <- function(filepathList){
+prepare_allCov_iliSum_st <- function(filepathList){
   # iliSum response, all sampling effort, and driver variables
   # y = response, E = expected response
   print(match.call())

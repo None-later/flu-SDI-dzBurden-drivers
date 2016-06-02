@@ -62,7 +62,7 @@ setwd(path_pltExport)
 if("loadData" %in% analysesOn){
   
   # load data frame with all available cleaned variables
-  allDat <- prepare_allCov_iliSum(path_list) 
+  allDat <- prepare_allCov_iliSum_st(path_list) 
   allDat2 <- allDat %>% 
     select(-X_popdensity, -X_housdensity) # these var were available only for Census 2000 and Census 2010
   summary(allDat2)
