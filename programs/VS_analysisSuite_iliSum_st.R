@@ -4,7 +4,7 @@
 ## Function: EDA suite of variable selection analyses for iliSum
 ## Filenames: dbMetrics_periodicReg_ilinDt_Octfit_span0.4_degree2_analyzeDB_st.csv
 ## Data Source: 
-## Notes: 
+## Notes: 6/2/16: moved some of the common functions to source_variableSelection.R
 ## 
 ## useful commands:
 ## install.packages("pkg", dependencies=TRUE, lib="/usr/local/lib/R/site-library") # in sudo R
@@ -26,7 +26,8 @@ analysesOn <- c("singleVarPlot")
 #### SOURCE: clean and import model data #################################
 setwd(dirname(sys.frame(1)$ofile))
 source("source_clean_data_functions.R") # functions to clean original data sources
-source("source_variableSelection_st.R") # functions for variable selection analyses
+source("source_variableSelection_st.R") # functions for variable selection analyses specific to state level
+source("source_variableSelection.R") # functions for variable selection analyses, generally
 
 #### FILEPATHS #################################
 setwd('../reference_data')
@@ -113,7 +114,7 @@ if("singleVarWrite" %in% analysesOn){
       }
       # save row of model data
       else{
-        coefRow <- model_singleVariable_inla_st(modDat, rCode, s, varInterest) # N.B. model includes intercept
+        coefRow <- model_singleVariable_inla(modDat, rCode, s, varInterest) # N.B. model includes intercept
         # append to model data object
         coefDat <- bind_rows(coefDat, coefRow)
       } # end else
