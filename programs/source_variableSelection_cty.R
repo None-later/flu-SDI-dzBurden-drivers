@@ -68,8 +68,9 @@ prepare_allCov_iliSum_cty <- function(filepathList){
     full_join(housDens_cty_df, by = c("year", "fips")) %>%
     full_join(acsCommutInflows_cty_prep, by = c("year", "fips" = "fips_wrk")) %>%
     full_join(btsPass_cty_df, by = c("season", "fips" = "fips_dest")) %>%
-    full_join(cdcFluPos_df, by = c("season", "fips")) %>%
-    full_join(cdcH3_df, by = c("season", "fips")) %>%
+    mutate(fips_st = substring(fips, 1, 2)) %>% # region is linked by state fips code
+    full_join(cdcFluPos_df, by = c("season", "fips_st" = "fips")) %>%
+    full_join(cdcH3_df, by = c("season", "fips_st" = "fips")) %>%
     full_join(narrSpecHum_cty_df, by = c("season", "fips")) %>%
     full_join(narrSfcTemp_cty_df, by = c("season", "fips")) %>%
     group_by(season) %>%
@@ -95,7 +96,7 @@ prepare_allCov_iliSum_cty <- function(filepathList){
     mutate(X_humidity = centerStandardize(humidity)) %>%
     mutate(X_temperature = centerStandardize(temperature)) %>%
     ungroup %>%
-    select(-adjProviderCoverage, -visitsPerProvider, -insured, -poverty, -income, -mcaidElig, -mcareElig, -infantToddler, -child, -adult, -elderly, -hospitalAccess, -physicianAccess, -popDensity, -housDensity, -commutInflows_prep, -pass, -fluPos, -H3, -humidity, -temperature) %>%
+    select(-fips_st, -adjProviderCoverage, -visitsPerProvider, -insured, -poverty, -income, -mcaidElig, -mcareElig, -infantToddler, -child, -adult, -elderly, -hospitalAccess, -physicianAccess, -popDensity, -housDensity, -commutInflows_prep, -pass, -fluPos, -H3, -humidity, -temperature) %>%
     filter(season %in% 2:9)
   
   return(full_df)
