@@ -59,7 +59,7 @@ cleanO_imsCoverage_cty <- function(){
   
   dbListFields(con, "IMS_physicianCoverage_zip3")
   # sel.statement <- "Select * from IMS_physicianCoverage_zip3 limit 5"
-  sel.statement <- "SELECT year, zip3, adjProviderCoverage FROM IMS_physicianCoverage_zip3"
+  sel.statement <- "SELECT year, zip3, adjProviderCoverage, sampViz, sampProv FROM IMS_physicianCoverage_zip3"
   dummy <- dbGetQuery(con, sel.statement)
   
   dbDisconnect(con)
@@ -68,9 +68,11 @@ cleanO_imsCoverage_cty <- function(){
   covDat <- dummy %>%
     full_join(cw, by = "zip3") %>%
     group_by(fips, year) %>%
-    summarise(zOverlaps = length(zip3), adjProviderCoverage = weighted.mean(adjProviderCoverage, proportion, na.rm = TRUE)) %>% 
+    summarise(zOverlaps = length(zip3), adjProviderCoverage = weighted.mean(adjProviderCoverage, proportion, na.rm = TRUE), sampViz = weighted.mean(sampViz, proportion, na.rm = TRUE), sampProv = weighted.mean(sampProv, proportion, na.rm = TRUE)) %>% 
     ungroup %>%
-    filter(!is.na(fips))
+    filter(!is.na(fips)) %>% 
+    mutate(visitsPerProvider = sampViz/sampProv) %>%
+    select(fips, year, adjProviderCoverage, visitsPerProvider)
   return(covDat)
 }
 

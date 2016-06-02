@@ -99,8 +99,8 @@ cleanO_cpsasecInsured_st <- function(){
 }
 ################################
 
-cleanO_sahieACSInsured_cty <- function(){
-  # clean ACS-based SAHIE insured data exported from mysql
+cleanO_sahieInsured_cty <- function(){
+  # clean ACS & CPS-based SAHIE insured data exported from mysql
   print(match.call())
   
   con <- dbConnect(RMySQL::MySQL(), group = "rmysql-fludrivers")
@@ -111,11 +111,17 @@ cleanO_sahieACSInsured_cty <- function(){
   sel.statement <- "SELECT year, county_id AS fips, pctic/100 AS insured_prop FROM HI_SAHIE_aggregate_ACS WHERE type = 'county'"
   dummy <- dbGetQuery(con, sel.statement)
   
+  dbListFields(con, "HI_SAHIE_aggregate_CPS")
+  # sel.statement <- "Select * from HI_SAHIE_aggregate_CPS limit 5"
+  sel.statement <- "SELECT year, county_id AS fips, pctic/100 AS insured_prop FROM HI_SAHIE_aggregate_CPS WHERE type = 'county'"
+  dummy2 <- dbGetQuery(con, sel.statement)
+  
   dbDisconnect(con)
   
-  output <- tbl_df(dummy) %>%
+  output <- bind_rows(dummy2, dummy) %>%
     dplyr::rename(insured = insured_prop) %>%
-    select(fips, year, insured) 
+    select(fips, year, insured) %>%
+    filter(year >= 2002 & year <= 2009)
   
   return(output)
 }
@@ -691,7 +697,7 @@ cleanX_housDensity_st <- function(){
 ################################
 
 cleanX_housDensity_cty <- function(){
-  # clean housing unit density data exported from mysql
+  # clean pop per housing unit density data exported from mysql
   print(match.call())
   
   con <- dbConnect(RMySQL::MySQL(), group = "rmysql-fludrivers")
@@ -809,8 +815,8 @@ cleanX_acsCommutInflows_cty <- function(){
 ################################
 
 cleanX_btsPassInflows_st <- function(){
-  # clean out-of-state commuters per population entering the state on average during flu months
-  # will need to calculate incoming commuters per population in source_prepare_inlaData_st.R
+  # clean flight passengers per population entering the state on average during flu months
+  # will need to calculate incoming passengers per population in source_prepare_inlaData_st.R
   print(match.call())
   
   con <- dbConnect(RMySQL::MySQL(), group = "rmysql-fludrivers")
@@ -836,6 +842,30 @@ cleanX_btsPassInflows_st <- function(){
     summarise(pass_prep = mean(pass, na.rm = TRUE)) %>% 
     ungroup %>%
     select(season, fips_dest, pass_prep)
+  
+  return(output)
+}
+################################
+
+cleanX_btsPassInflows_cty <- function(){
+  # clean flight passengers per population entering the county on average during flu months
+  # airports were assigned to the nearest county and counties without airports had no passengers entering
+  # data were cleaned prior to upload to mysql (transport_BTS0014_T100D_Market_cty.R)
+  print(match.call())
+  
+  con <- dbConnect(RMySQL::MySQL(), group = "rmysql-fludrivers")
+  dbListTables(con)
+  
+  dbListFields(con, "transport_BTS0014_T100D_Market_county")
+  # sel.statement <- "SELECT * from transport_BTS0014_T100D_Market_county limit 5"
+  sel.statement <- "SELECT nearestCty, season, pass from transport_BTS0014_T100D_Market_county"
+  dummy <- dbGetQuery(con, sel.statement)
+  
+  dbDisconnect(con)
+ 
+  output <- tbl_df(dummy) %>%
+    rename(fips_dest = nearestCty) %>%
+    select(season, fips_dest, pass) # here, not signaling to normalize by population because the underlying population is not entirely clear
   
   return(output)
 }
@@ -1061,7 +1091,7 @@ cleanX_noaanarrSfcTemp_cty <- function(){
 #### testing area ################################
 
 # # all county tables
-# sahieIns_cty_df <- cleanO_sahieACSInsured_cty()
+# sahieIns_cty_df <- cleanO_sahieInsured_cty()
 # saipePov_cty_df <- cleanX_saipePoverty_cty()
 # saipeInc_cty_df <- cleanX_saipeIncome_cty()
 # ahrfMcaid_cty_df <- cleanX_ahrfMedicaidEligibles_cty()
@@ -1075,6 +1105,7 @@ cleanX_noaanarrSfcTemp_cty <- function(){
 # popDens_cty_df <- cleanX_popDensity_cty()
 # housDens_cty_df <- cleanX_housDensity_cty()
 # acsCommutInflows_cty_prep <- cleanX_acsCommutInflows_cty()
+# btsPass_cty_df <- cleanX_btsPassInflows_cty()
 # narrSpecHum_cty_df <- cleanX_noaanarrSpecHum_cty()
 # narrSfcTemp_cty_df <- cleanX_noaanarrSfcTemp_cty()
  
