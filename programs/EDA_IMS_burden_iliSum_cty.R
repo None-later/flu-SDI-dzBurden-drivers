@@ -71,19 +71,19 @@ choroplotParams <- list(labVec = paste("Tier", 1:5), colVec = brewer.pal(5, 'RdY
 tsParams <- list(indexes = indexes, years = years, varnames = varnames, spatial = spatial, src = src)
 tsplotParams <- list(num = num, h = 12, w = 12, dp = 300, leg.lab = c("Seasonal Intensity"))
 
-
-#### draw plots ################################
-setwd(dirname(sys.frame(1)$ofile))
-dir.create(sprintf("../graph_outputs/%s", plotfolder), showWarnings = FALSE)
-setwd(sprintf("../graph_outputs/%s", plotfolder))
-
-# choropleths
-dir.create("./choro", showWarnings = FALSE)
-setwd("./choro")
-choroplots_cty_1yr(fullDat, choroParams, choroplotParams)
-choroplots_cty(fullDat, choroParams, choroplotParams)
-
-# time series
-dir.create("../ts", showWarnings = FALSE)
-setwd("../ts")
-tsplots_cty(fullDat2, tsParams, tsplotParams)
+# 
+# #### draw plots ################################
+# setwd(dirname(sys.frame(1)$ofile))
+# dir.create(sprintf("../graph_outputs/%s", plotfolder), showWarnings = FALSE)
+# setwd(sprintf("../graph_outputs/%s", plotfolder))
+# 
+# # choropleths
+# dir.create("./choro", showWarnings = FALSE)
+# setwd("./choro")
+# choroplots_cty_1yr(fullDat, choroParams, choroplotParams)
+# choroplots_cty(fullDat, choroParams, choroplotParams)
+# 
+# # time series
+# dir.create("../ts", showWarnings = FALSE)
+# setwd("../ts")
+# tsplots_cty(fullDat2, tsParams, tsplotParams)

@@ -122,7 +122,7 @@ choroplots_cty_1yr <- function(dummyDat, params, plotparams){
     
     choro.grad <- gg +
       geom_map(data = pltDat, aes(map_id = fips, fill = value), map = us$map, color = "black") +
-      scale_fill_continuous(name = lab, low = "green", high = "red") +
+      scale_fill_continuous(name = lab, low = "#f0fff0", high = "#006400") +
       expand_limits(x = gg$long, y = gg$lat) +
       theme_minimal() +
       theme(text = element_text(size = 18), axis.ticks = element_blank(), axis.text = element_blank(), axis.title = element_blank(), panel.grid = element_blank(), legend.position = "bottom")
