@@ -23,11 +23,11 @@ abbrDat <- read_csv("state_abbreviations_FIPS.csv", col_types = list(FIPS = col_
   rename(fips_st = FIPS)
 
 # import covariate data
-popdensDat <- cleanX_popDensity_cty()
+importDat <- cleanX_popDensity_cty()
 
 #### clean data ################################
 # for choro
-fullDat <- popdensDat %>%
+fullDat <- importDat %>%
   gather(covariate, value, popDensity) %>%
   arrange(fips, year) 
 
