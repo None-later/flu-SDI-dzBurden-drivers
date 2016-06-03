@@ -90,7 +90,7 @@ choroplots_cty <- function(dummyDat, params, plotparams){
 } 
 
 ################################################################
-choroplots_cty_1yr <- function(dummyDat, params){
+choroplots_cty_1yr <- function(dummyDat, params, plotparams){
   # function to draw tier and gradient choropleths (one year per figure)
   # data format: year = year or season, covariate = variable name, value = covariate value, fips = county fips id
   
