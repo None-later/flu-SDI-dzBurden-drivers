@@ -4,7 +4,7 @@
 ## Function: EDA suite of variable selection analyses for iliSum at county level
 ## Filenames: dbMetrics_periodicReg_ilinDt_Octfit_span0.4_degree2_analyzeDB.csv, source_clean_data_function.R
 ## Data Source: 
-## Notes: 
+## Notes: before running singleVarWrite and singleVarPlot singly, DELETE ALL FILES WITH PATTERN: sprintf("VS_coefDat_%s_cty_pt#", rCode)
 ## 
 ## useful commands:
 ## install.packages("pkg", dependencies=TRUE, lib="/usr/local/lib/R/site-library") # in sudo R
@@ -99,8 +99,8 @@ if("singleVarWrite" %in% analysesOn){
   indexes <- seq(1, length(varlist), by=num)
   
   for(i in indexes){
+    # 6/2/16: grab list of variables to export model data in pieces -- kept crashing before
     varsublist <- varlist[i:i+num-1]
-    
     # generate empty data frame to store coefficient data
     coefDat <- tbl_df(data.frame(respCode = c(), singleCov = c(), season = c(), exportDate = c(), coefMode = c(), coefQ025 = c(), coefQ975 = c(), DIC = c()))
     
@@ -121,7 +121,7 @@ if("singleVarWrite" %in% analysesOn){
       } # end for seasons
     } # end for varlist
     
-    # write to file
+    # write to file in parts
     write_csv(coefDat, sprintf("%s_pt%s.csv", path_coefDat, which(indexes == i))) 
   }
 
@@ -132,12 +132,13 @@ if("singleVarPlot" %in% analysesOn){
   setwd(dirname(sys.frame(1)$ofile))
   setwd("../R_export")
   
+  # pull together all relevant file names since data were exported in pieces
   allFiles <- list.files()
   pattern <- substring(sprintf("%s_pt", fname_coefDat), 2, nchar(sprintf("%s_pt", fname_coefDat)))
   fnamels <- grep(pattern, allFiles, value = TRUE)
   
+  # bind all of the data pieces together
   coefDat <- tbl_df(data.frame(respCode = c(), singleCov = c(), season = c(), exportDate = c(), coefMode = c(), coefQ025 = c(), coefQ975 = c(), DIC = c()))
-  
   for (fname in fnamels){
     newDat <- read_csv(fname)
     coefDat <- bind_rows(coefDat, newDat)
