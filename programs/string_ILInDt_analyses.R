@@ -29,7 +29,7 @@ source("explore_periodicReg_inSeasonFits_ilinDt.R")
 
 #### set these! ####################################
 spatial.scale <- "zip3"
-span.list <- seq(0.45, 0.62, by=0.05)
+span.list <- seq(0.4, 0.42, by=0.05)
 deg <- 2
 
 #### control flow for spatial scale ####################################

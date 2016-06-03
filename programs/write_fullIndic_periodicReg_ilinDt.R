@@ -47,10 +47,12 @@ write_fullIndic_periodicReg_ilinDt <- function(span.var, degree.var, spatial){
   #### set these! ####################################
   code <-"" # linear time trend term
   code2 <- "_Octfit"
-  ## uncomment when running script separately
-  # spatial <- list(scale = "state", stringcode = "State", stringabbr = "_st")
-  # span.var <- 0.4 # 0.4, 0.6
-  # degree.var <- 2
+  
+  # uncomment when running script separately
+  spatial <- list(scale = "zip3", stringcode = "Zip3", stringabbr = "")
+  span.var <- 0.4 # 0.4, 0.6
+  degree.var <- 2
+  
   code.str <- sprintf('_span%s_degree%s', span.var, degree.var)
   
   #### data processing (based on explore_fluSeasonDefinition_ILI.R) ####################################
@@ -75,7 +77,8 @@ write_fullIndic_periodicReg_ilinDt <- function(span.var, degree.var, spatial){
   ## See explore_fluSeasonDefinition_IR.R for derivation of flu season definition
   # 9/15/15: filter out zip3-season combinations with equivalent or more ILI activity in the previous non-flu season than flu season (season 1 will use subsequent non-flu season)
   dummy.flu <- data3 %>% filter(flu.week) %>% group_by(season, scale) %>% summarise(consec.flu.epiweeks = rle.func(epi.week))
-  dummy.nf <- data3 %>% filter(!flu.week) %>% group_by(season, scale) %>% summarise(consec.nf.epiweeks = rle.func(epi.week)) %>% ungroup %>% mutate(season=season+1)
+  # 6/3/16: include only May-Sept immediately preceding flu season
+  dummy.nf <- data3 %>% filter(!flu.week & month < 10) %>% group_by(season, scale) %>% summarise(consec.nf.epiweeks = rle.func(epi.week)) %>% ungroup %>% mutate(season=season+1)
   # 9/15/15 for season 1, use season 1 consec.nf.epiweeks, which occur after the season 1 flu period
   dummy.nf2 <- bind_rows((dummy.nf %>% filter(season==2) %>% ungroup %>% mutate(season=1)), dummy.nf)
   # summarize season-zip3 combinations that have epidemics (num.weeks+ consecutive epidemic weeks)
@@ -85,7 +88,7 @@ write_fullIndic_periodicReg_ilinDt <- function(span.var, degree.var, spatial){
   data4 <- right_join(data3, zip3s_with_epi %>% select(-contains("consec.")), by=c("season", "scale"))
   # 9/15/15: in.season indicator: must meet flu.week, has.epi, incl.analysis, and consecutive epi.week criteria (FLU PERIOD DATA ONLY)
   data5 <- data4 %>% filter(flu.week & has.epi & incl.analysis) %>% group_by(season, scale) %>% mutate(in.season = consider.flu.season(epi.week))
-  data6 <- left_join(data4, (data5 %>% ungroup %>% select(Thu.week, scale, in.season)), by = c("Thu.week", "scale")) %>% mutate(Thu.week=as.Date(Thu.week, origin="1970-01-01")) %>% filter(incl.analysis)
+  data6 <- left_join(data4, (data5 %>% ungroup %>% select(Thu.week, scale, in.season)), by = c("Thu.week", "scale")) %>% mutate(Thu.week=as.Date(Thu.week, origin="1970-01-01")) # rm filter(incl.analysis)
   
   # rename variable "scale" to zip3 or state
   data5_write <- scaleRename(spatial$scale, data5)

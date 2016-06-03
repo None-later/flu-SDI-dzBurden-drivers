@@ -28,10 +28,11 @@ write_relativeDiseaseBurden_ilinDt <- function(span.var, degree.var, spatial){
   code <-"" # linear time trend term
   code2 <- "_Octfit"
   
-  ## uncomment when running script separately
-  # spatial <- list(scale = "state", stringcode = "State", stringabbr = "_st")
-  # span.var <- 0.4 # 0.4, 0.6
-  # degree.var <- 2
+#   # uncomment when running script separately
+#   spatial <- list(scale = "zip3", stringcode = "Zip3", stringabbr = "")
+#   span.var <- 0.4 # 0.4, 0.6
+#   degree.var <- 2
+  
   code.str <- sprintf('_span%s_degree%s', span.var, degree.var)
   
   #### read saved data from write_fullIndic_periodicReg_ilinDt.R ##################
@@ -62,11 +63,12 @@ write_relativeDiseaseBurden_ilinDt <- function(span.var, degree.var, spatial){
   
   
   #### create dz burden metrics ##################
+  # 6/3/16 include incl.analysis = F in db outputs, magnitude = 0 if incl.analysis = F (instead of excluded from fullIndicAll exported, as before)
   # 5/6/16 include has.epi = F in db outputs, magnitude = 0 if no epi (instead of NA as before)
   # 7/27/15 update dz burden metrics (\cite{Viboud2014} for inspiration of 1b & 1c)
   # create disease burden metrics: 1a) sum ILI across epidemic weeks (overall magnitude), 1b) cumulative difference in ILI and baseline (second proxy of overall magnitude), 1c) cumulative difference in ILI and epidemic threshold (third proxy of overall magnitude), 2) rate of ILI at epidemic peak, 3) epidemic duration
-  dbMetrics.epi <- data5 %>% filter(has.epi) %>% group_by(season, scale) %>% filter(in.season) %>% summarize(has.epi = first(has.epi), ilinDt.sum = sum(ilin.dt, na.rm=T), ilinDt.excess.BL = sum(ilin.dt-.fitted, na.rm=T), ilinDt.excess.thresh = sum(ilin.dt-epi.thresh, na.rm=T), ilinDt.peak = max(ilin.dt, na.rm=T), epi.dur = sum(in.season))
-  dbMetrics.noepi <- data5 %>% filter(!has.epi) %>% mutate(ilinDt.modified = 0) %>% group_by(season, scale) %>% summarize(has.epi = first(has.epi), ilinDt.sum = sum(ilinDt.modified, na.rm=T), ilinDt.excess.BL = sum(ilinDt.modified, na.rm=T), ilinDt.excess.thresh = sum(ilinDt.modified, na.rm=T), ilinDt.peak = max(ilinDt.modified, na.rm=T), epi.dur = sum(ilinDt.modified, na.rm=T))
+  dbMetrics.epi <- data5 %>% filter(has.epi & incl.analysis) %>% group_by(season, scale) %>% filter(in.season) %>% summarize(has.epi = first(has.epi), incl.analysis = first(incl.analysis), ilinDt.sum = sum(ilin.dt, na.rm=T), ilinDt.excess.BL = sum(ilin.dt-.fitted, na.rm=T), ilinDt.excess.thresh = sum(ilin.dt-epi.thresh, na.rm=T), ilinDt.peak = max(ilin.dt, na.rm=T), epi.dur = sum(in.season))
+  dbMetrics.noepi <- data5 %>% filter(!has.epi | !incl.analysis) %>% mutate(ilinDt.modified = 0) %>% group_by(season, scale) %>% summarize(has.epi = first(has.epi), incl.analysis = first(incl.analysis), ilinDt.sum = sum(ilinDt.modified, na.rm=T), ilinDt.excess.BL = sum(ilinDt.modified, na.rm=T), ilinDt.excess.thresh = sum(ilinDt.modified, na.rm=T), ilinDt.peak = max(ilinDt.modified, na.rm=T), epi.dur = sum(ilinDt.modified, na.rm=T))
   
   # 5/6/16 merge dbMetrics
   dbMetrics <- bind_rows(dbMetrics.epi, dbMetrics.noepi)
