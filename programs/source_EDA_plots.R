@@ -21,6 +21,8 @@ require(ggcounty)
 tsplots_cty <- function(dummyDat2, tsparams, tsplotparams){
   # function to draw county time series plots, facets by state
   # data format: year = year or season, covariate = variable name, value = covariate value, fips = county fips id, fips_st = state fips id, State = full state name, Abbreviation = state abbreviation, for.plot = each state has a different number
+  
+  print(match.call())
 
   # ts data params
   indexes <- tsparams$indexes; years <- tsparams$years; varnames <- tsparams$varnames; spatial <- tsparams$spatial; src <- tsparams$src
@@ -47,6 +49,8 @@ tsplots_cty <- function(dummyDat2, tsparams, tsplotparams){
 choroplots_cty <- function(dummyDat, params, plotparams){
   # function to draw tier and gradient choropleths (all years on same figure)
   # data format: year = year or season, covariate = variable name, value = covariate value, fips = county fips id
+  
+  print(match.call())
   
   # import data parameters
   spatial <- params$spatial; code <- params$code; lab <- params$lab; src <- params$src; yr <- params$yr
@@ -93,6 +97,8 @@ choroplots_cty <- function(dummyDat, params, plotparams){
 choroplots_cty_1yr <- function(dummyDat, params, plotparams){
   # function to draw tier and gradient choropleths (one year per figure)
   # data format: year = year or season, covariate = variable name, value = covariate value, fips = county fips id
+  
+  print(match.call())
   
   # import data parameters
   spatial <- params$spatial; code <- params$code; lab <- params$lab; src <- params$src; yr <- params$yr
