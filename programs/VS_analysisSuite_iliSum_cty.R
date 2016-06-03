@@ -19,7 +19,7 @@ require(RColorBrewer); require(ggplot2)
 dbCodeStr <- "_ilinDt_Octfit_span0.4_degree2"
 rCode <- "iliSum"
 seasons <- 2:9
-analysesOn <- c('loadData', 'dataQuality', 'pairwise', 'singleVarWrite', 'singleVarPlot') 
+analysesOn <- c('singleVarPlot') 
 # loadData, dataQuality, pairwise, singleVarWrite, singleVarPlot 
 
 
@@ -36,7 +36,8 @@ path_latlon_cty <- paste0(getwd(), "/cty_pop_latlon.csv")
 
 setwd("../R_export")
 path_response_zip3 <- paste0(getwd(), sprintf("/dbMetrics_periodicReg%s_analyzeDB.csv", dbCodeStr))
-path_coefDat <- paste0(getwd(), sprintf("/VS_coefDat_%s_cty.csv", rCode))
+fname_coefDat <- sprintf("/VS_coefDat_%s_cty", rCode)
+path_coefDat <- paste0(getwd(), fname_coefDat)
 path_tempDatQuality <- paste0(getwd(), sprintf("/VS_tempDatQuality_%s_cty.csv", rCode))
 
 # put all paths in a list to pass them around in functions
@@ -68,7 +69,7 @@ if("dataQuality" %in% analysesOn){
   
   # output county counts by season for each variable: VS_tempDatQuality_%s_cty.csv
   # check counts in each column
-  dataQuality <- allDat2 %>% group_by(season) %>% summarise_each(funs(ct = sum(!is.na(.))))
+  dataQuality <- allDat %>% group_by(season) %>% summarise_each(funs(ct = sum(!is.na(.))))
   write_csv(dataQuality, path_tempDatQuality)
   
 } # end dataQuality
@@ -78,13 +79,13 @@ if("pairwise" %in% analysesOn){
   
   # full scatterplot matrix
   png(sprintf("scatterMx_%s_cty%s.png", rCode, dbCodeStr), width = w, height = h, units = "in", res = dp)
-  scatterMx <- pairs_scatterplotMatrix(allDat2)
+  scatterMx <- pairs_scatterplotMatrix(allDat)
   print(scatterMx)
   dev.off()
   
   # full correlation matrix
   png(sprintf("corrMx_spearman_%s_cty%s.png", rCode, dbCodeStr), width = w, height = h, units = "in", res = dp)
-  corrMx <- pairs_corrMatrix(allDat2)
+  corrMx <- pairs_corrMatrix(allDat)
   print(corrMx)
   dev.off()
   
@@ -93,30 +94,37 @@ if("pairwise" %in% analysesOn){
 #### Single variable models - Write to file ####################################
 if("singleVarWrite" %in% analysesOn){
   
-  varlist <- grep("[OX]{1}[_]{1}", names(allDat2), value = TRUE)  # grab all varnames
-  # generate empty data frame to store coefficient data
-  coefDat <- tbl_df(data.frame(respCode = c(), singleCov = c(), season = c(), exportDate = c(), coefMode = c(), coefQ025 = c(), coefQ975 = c(), DIC = c()))
+  num <- 6
+  varlist <- grep("[OX]{1}[_]{1}", names(allDat), value = TRUE)  # grab all varnames
+  indexes <- seq(1, length(varlist), by=num)
   
-  # loop through all variables and seasons
-  for (varInterest in varlist){
-    for (s in seasons){
-      modDat <- subset_singleVariable_data(allDat2, s, varInterest)
-      if (all(is.na(modDat$varInterest))){
-        print(sprintf("%s is all NA for season %s", varInterest, s))
-        next
-      }
-      # save row of model data
-      else{
-        coefRow <- model_singleVariable_inla(modDat, rCode, s, varInterest) # N.B. model includes intercept
-        # append to model data object
-        coefDat <- bind_rows(coefDat, coefRow)
-      } # end else
-    } # end for seasons
-  } # end for varlist
-  
-  # write to file
-  write_csv(coefDat, path_coefDat)
-  
+  for(i in indexes){
+    varsublist <- varlist[i:i+num-1]
+    
+    # generate empty data frame to store coefficient data
+    coefDat <- tbl_df(data.frame(respCode = c(), singleCov = c(), season = c(), exportDate = c(), coefMode = c(), coefQ025 = c(), coefQ975 = c(), DIC = c()))
+    
+    # loop through all variables and seasons
+    for (varInterest in varsublist){
+      for (s in seasons){
+        modDat <- subset_singleVariable_data(allDat, s, varInterest)
+        if (all(is.na(modDat$varInterest))){
+          print(sprintf("%s is all NA for season %s", varInterest, s))
+          next
+        }
+        # save row of model data
+        else{
+          coefRow <- model_singleVariable_inla(modDat, rCode, s, varInterest) # N.B. model includes intercept
+          # append to model data object
+          coefDat <- bind_rows(coefDat, coefRow)
+        } # end else
+      } # end for seasons
+    } # end for varlist
+    
+    # write to file
+    write_csv(coefDat, sprintf("%s_pt%s.csv", path_coefDat, which(indexes == i))) 
+  }
+
 } # end singleVarWrite
 
 #### Single variable models - plot coef ####################################
@@ -124,7 +132,17 @@ if("singleVarPlot" %in% analysesOn){
   setwd(dirname(sys.frame(1)$ofile))
   setwd("../R_export")
   
-  coefDat <- read_csv(path_coefDat)
+  allFiles <- list.files()
+  pattern <- substring(sprintf("%s_pt", fname_coefDat), 2, nchar(sprintf("%s_pt", fname_coefDat)))
+  fnamels <- grep(pattern, allFiles, value = TRUE)
+  
+  coefDat <- tbl_df(data.frame(respCode = c(), singleCov = c(), season = c(), exportDate = c(), coefMode = c(), coefQ025 = c(), coefQ975 = c(), DIC = c()))
+  
+  for (fname in fnamels){
+    newDat <- read_csv(fname)
+    coefDat <- bind_rows(coefDat, newDat)
+  }
+  
   varlist <- coefDat %>% select(singleCov) %>% unique %>% unlist
   
   setwd(path_pltExport)
