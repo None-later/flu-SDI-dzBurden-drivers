@@ -12,7 +12,7 @@
 ## useful commands:
 ## install.packages("pkg", dependencies=TRUE, lib="/usr/local/lib/R/site-library") # in sudo R
 ## update.packages(lib.loc = "/usr/local/lib/R/site-library")
-
+# 
 write_fullIndic_periodicReg_ilinDt <- function(span.var, degree.var, spatial){
   print(deparse(sys.call()))
   
@@ -48,10 +48,10 @@ write_fullIndic_periodicReg_ilinDt <- function(span.var, degree.var, spatial){
   code <-"" # linear time trend term
   code2 <- "_Octfit"
   
-  # uncomment when running script separately
-  spatial <- list(scale = "zip3", stringcode = "Zip3", stringabbr = "")
-  span.var <- 0.4 # 0.4, 0.6
-  degree.var <- 2
+#   # uncomment when running script separately
+#   spatial <- list(scale = "zip3", stringcode = "Zip3", stringabbr = "")
+#   span.var <- 0.4 # 0.4, 0.6
+#   degree.var <- 2
   
   code.str <- sprintf('_span%s_degree%s', span.var, degree.var)
   
@@ -72,7 +72,7 @@ write_fullIndic_periodicReg_ilinDt <- function(span.var, degree.var, spatial){
   data2 <- data %>% mutate(wknum = as.numeric(substr.Right(ISOweek(Thu.week), 2))) %>% mutate(season = ifelse(wknum<40, as.integer(substr(Thu.week, 3, 4)), as.integer(substr(Thu.week, 3, 4))+1)) 
   
   # 1) include only zip3s where lm was performed; 2) set .fitted + 1.96*.se.fit as the epidemic threshold; 3) identify which weeks are epi weeks
-  data3 <- data2 %>% filter(incl.lm)  %>% mutate(epi.thresh = .fitted+(1.96*.se.fit)) %>% mutate(epi.week = ilin.dt>epi.thresh)
+  data3 <- data2 %>% filter(incl.lm) %>% mutate(epi.thresh = .fitted+(1.96*.se.fit)) %>% mutate(epi.week = ilin.dt>epi.thresh)
   
   ## See explore_fluSeasonDefinition_IR.R for derivation of flu season definition
   # 9/15/15: filter out zip3-season combinations with equivalent or more ILI activity in the previous non-flu season than flu season (season 1 will use subsequent non-flu season)

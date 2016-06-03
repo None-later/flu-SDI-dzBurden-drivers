@@ -39,7 +39,7 @@ write_relativeDiseaseBurden_ilinDt <- function(span.var, degree.var, spatial){
   
   if (spatial$scale == 'zip3'){
     setwd('../R_export')
-    data5 <- read_csv(sprintf('fullIndicAll_periodicReg_%silinDt%s%s_analyzeDB%s.csv', code, code2, code.str, spatial$stringabbr), col_names = T, col_types = list(zip3 = col_character(), ili = col_integer(), pop = col_integer(), .fitted = col_double(), .se.fit = col_double(), .fittedLoess = col_double(), .se.fitLoess = col_double(), ilin.dt = col_double(), ILIn = col_double())) %>%
+    data5 <- read_csv(sprintf('fullIndicAll_periodicReg_%silinDt%s%s_analyzeDB%s.csv', code, code2, code.str, spatial$stringabbr), col_names = T, col_types = list(zip3 = col_character(), ili = col_integer(), pop = col_integer(), .fitted = col_double(), .se.fit = col_double(), .fittedLoess = col_double(), .se.fitLoess = col_double(), ilin.dt = col_double(), ILIn = col_double(), in.season = col_logical(), has.epi = col_logical(), incl.analysis = col_logical())) %>%
       rename(scale = zip3)
     
     # import zip3 lat/long coordinate data
@@ -52,7 +52,7 @@ write_relativeDiseaseBurden_ilinDt <- function(span.var, degree.var, spatial){
     
   } else if (spatial$scale == 'state'){
     setwd('../R_export')
-    data5 <- read_csv(sprintf('fullIndicAll_periodicReg_%silinDt%s%s_analyzeDB%s.csv', code, code2, code.str, spatial$stringabbr), col_names = T, col_types = list(state = col_character(), ili = col_integer(), pop = col_integer(), .fitted = col_double(), .se.fit = col_double(), .fittedLoess = col_double(), .se.fitLoess = col_double(), ilin.dt = col_double(), ILIn = col_double())) %>%
+    data5 <- read_csv(sprintf('fullIndicAll_periodicReg_%silinDt%s%s_analyzeDB%s.csv', code, code2, code.str, spatial$stringabbr), col_names = T, col_types = list(state = col_character(), ili = col_integer(), pop = col_integer(), .fitted = col_double(), .se.fit = col_double(), .fittedLoess = col_double(), .se.fitLoess = col_double(), ilin.dt = col_double(), ILIn = col_double(), in.season = col_logical(), has.epi = col_logical(), incl.analysis = col_logical())) %>%
       rename(scale = state)
     
     # import state lat/long coordinate data
@@ -94,7 +94,7 @@ write_relativeDiseaseBurden_ilinDt <- function(span.var, degree.var, spatial){
   dbMetrics2 <- full_join(dbMetrics, dbMetrics.timing, by=c("season", "scale")) %>% 
     select(-minweek, -firstepiweek, -peakweek)
   
-  dbMetrics.g <- gather(dbMetrics2, metric, burden, 4:10)
+  dbMetrics.g <- gather(dbMetrics2, metric, burden, 5:11)
   # mean and sd for each metric by season for viewing
   dbMetrics_summary <- dbMetrics.g %>% group_by(season, metric) %>% 
     summarize(metric.mn = mean(burden), metric.sd = sd(burden))

@@ -36,9 +36,9 @@ explore_dbMetricsDistribution_ilinDt <- function(span.var, degree.var, spatial){
   
   #### import data ####################################
   setwd('../R_export')
-  dbMetrics.g <- read_csv(sprintf('dbMetrics_periodicReg_%silinDt%s%s_analyzeDB%s.csv', code, code2, code.str, spatial$stringabbr), col_types="iclcd") %>% filter(season!=1)
+  dbMetrics.g <- read_csv(sprintf('dbMetrics_periodicReg_%silinDt%s%s_analyzeDB%s.csv', code, code2, code.str, spatial$stringabbr), col_types="icllcd") %>% filter(season!=1)
   # standardized data
-  dbMetrics.gz <- dbMetrics.g %>% group_by(season, metric) %>% mutate(burden.z = (burden - mean(burden))/sd(burden))
+  dbMetrics.gz <- dbMetrics.g %>% group_by(season, metric) %>% mutate(burden.z = (burden - mean(burden, na.rm=TRUE))/sd(burden, na.rm=TRUE))
   
   #### plot formatting ####################################
   w = 9
@@ -103,7 +103,7 @@ explore_dbMetricsDistribution_ilinDt <- function(span.var, degree.var, spatial){
   # FINDING: magnitude metrics could be truncated and shifted normals, but timing metrics don't appear to be normally distributed
   ####################################
   # compare the mean and variance for each metric by season
-  metric.summ <- dbMetrics.g %>% group_by(season, metric) %>% summarise(MN = mean(burden), VAR = var(burden))
+  metric.summ <- dbMetrics.g %>% group_by(season, metric) %>% summarise(MN = mean(burden, na.rm=TRUE), VAR = var(burden, na.rm=TRUE))
   print(sprintf('span %s degree %s', span.var, degree.var))
   print(metric.summ)
   
