@@ -46,9 +46,10 @@ subset_singleVariable_data <- function(full_df, s, covariate){
   
   # subset data according to season and covariate in function arguments
   mod_df <- full_df %>%
-    filter(season == s) %>%
+    filter(season == s & !is.na(lat) & !is.na(lon)) %>%
+#     mutate(logy = centerStandardize(logy)) %>%
     rename_(varInterest = covariate) %>%
-    select(fips, season, logy, logE, varInterest) %>%
+    select(fips, season, y, logy, logE, varInterest) %>%
     mutate(ID = seq_along(fips))
   
   return(mod_df)
@@ -59,9 +60,10 @@ model_singleVariable_inla <- function(mod_df, respCode, s, covariate){
   # inla model for single response and covariate, output fixed effect coeff
   print(match.call())
   
-  formula <- logy ~ varInterest + f(ID, model = "iid")
+  formula <- y ~ varInterest + f(ID, model = "iid")
   
   mod <- inla(formula, family = "gaussian", data = mod_df, 
+              control.family = list(link = 'log'),
               control.predictor = list(compute = TRUE), # compute summary statistics on fitted values
               control.compute = list(dic = TRUE),
               # verbose = TRUE,

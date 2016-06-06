@@ -19,8 +19,8 @@ require(RColorBrewer); require(ggplot2)
 dbCodeStr <- "_ilinDt_Octfit_span0.4_degree2"
 rCode <- "iliSum"
 seasons <- 2:9
-analysesOn <- c('singleVarPlot') 
-# loadData, dataQuality, pairwise, singleVarWrite, singleVarPlot 
+analysesOn <- c('singleVarWrite', 'singleVarPlot') 
+# 'loadData', 'dataQuality', 'pairwise', 'singleVarWrite', 'singleVarPlot'
 
 
 #### SOURCE: clean and import model data #################################
@@ -77,11 +77,11 @@ if("dataQuality" %in% analysesOn){
 #### Pairwise variable comparisons ####################################
 if("pairwise" %in% analysesOn){
   
-  # full scatterplot matrix
-  png(sprintf("scatterMx_%s_cty%s.png", rCode, dbCodeStr), width = w, height = h, units = "in", res = dp)
-  scatterMx <- pairs_scatterplotMatrix(allDat)
-  print(scatterMx)
-  dev.off()
+#   # full scatterplot matrix
+#   png(sprintf("scatterMx_%s_cty%s.png", rCode, dbCodeStr), width = w, height = h, units = "in", res = dp)
+#   scatterMx <- pairs_scatterplotMatrix(allDat)
+#   print(scatterMx)
+#   dev.off()
   
   # full correlation matrix
   png(sprintf("corrMx_spearman_%s_cty%s.png", rCode, dbCodeStr), width = w, height = h, units = "in", res = dp)
@@ -97,10 +97,14 @@ if("singleVarWrite" %in% analysesOn){
   num <- 6
   varlist <- grep("[OX]{1}[_]{1}", names(allDat), value = TRUE)  # grab all varnames
   indexes <- seq(1, length(varlist), by=num)
-  
+
   for(i in indexes){
     # 6/2/16: grab list of variables to export model data in pieces -- kept crashing before
-    varsublist <- varlist[i:i+num-1]
+    if((i+num-1) > length(varlist)){
+      varsublist <- varlist[i:length(varlist)]
+    } else{
+      varsublist <- varlist[i:(i+num-1)]
+    }
     # generate empty data frame to store coefficient data
     coefDat <- tbl_df(data.frame(respCode = c(), singleCov = c(), season = c(), exportDate = c(), coefMode = c(), coefQ025 = c(), coefQ975 = c(), DIC = c()))
     
