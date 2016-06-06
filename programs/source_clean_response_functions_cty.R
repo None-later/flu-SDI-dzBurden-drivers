@@ -36,7 +36,7 @@ cleanR_iliSum_cty <- function(filepathList){
   
   # merge final data
   return_data <- full_join(iliSum_data, pop_data, by = c("season", "fips")) %>%
-    select(fips, county, st, lat, lon, season, year, pop, y, has.epi, zOverlaps) %>%
+    select(fips, county, st, stateID, lat, lon, season, year, pop, y, has.epi, zOverlaps) %>%
     group_by(season) %>%
     mutate(E = weighted.mean(y, pop, na.rm = TRUE)) %>%
     ungroup %>%
@@ -103,7 +103,8 @@ clean_pop_cty <- function(filepathList){
   # read coord data by county: reference_data/cty_pop_latlon.csv
   coord_data <- read_csv(filepathList$path_latlon_cty , col_types = "cc__dd", col_names = c("st", "fips", "lat", "lon"), skip = 1) 
   # read state name data: reference_data/state_abbreviations_FIPS.csv
-  abbr_data <- read_csv(filepathList$path_abbr_st, col_types = "cc_", col_names = c("state", "st"), skip = 1)
+  abbr_data <- read_csv(filepathList$path_abbr_st, col_types = "cc_", col_names = c("state", "st"), skip = 1) %>%
+    mutate(stateID = seq_along(st))
   
   # import population data from mysql
   con <- dbConnect(RMySQL::MySQL(), group = "rmysql-fludrivers")
@@ -121,7 +122,7 @@ clean_pop_cty <- function(filepathList){
     mutate(season = as.numeric(substring(year, 3, 4))) %>%
     left_join(coord_data, by = "fips") %>%
     left_join(abbr_data, by = "st") %>% 
-    select(fips, county, st, state, season, year, pop, lat, lon)
+    select(fips, county, st, state, stateID, season, year, pop, lat, lon)
   return(output)
 }
 
