@@ -13,6 +13,39 @@
 require(dplyr); require(tidyr); require(maptools); require(spdep)
 
 #### functions for model data aggregation  ################################
+testing_module <- function(filepathList){
+  # iliSum response, all sampling effort, and driver variables
+  # y = response, E = expected response
+  print(match.call())
+  print(filepathList)
+  
+  #### import data ####
+  mod_cty_df <- cleanR_iliSum_cty(filepathList)
+  imsCov_cty_df <- cleanO_imsCoverage_cty()
+  saipePov_cty_df <- cleanX_saipePoverty_cty()
+  cdcH3_df <- cleanX_cdcFluview_H3_region()
+ 
+  #### join data ####
+  dummy_df <- full_join(mod_cty_df, imsCov_cty_df, by = c("year", "fips"))
+  dummy_df2 <- full_join(dummy_df, saipePov_cty_df, by = c("year", "fips")) %>%
+    mutate(fips_st = substring(fips, 1, 2)) %>% # region is linked by state fips code
+    full_join(cdcH3_df, by = c("season", "fips_st" = "fips")) %>%
+    rename(regionID = region)
+  
+  full_df <- dummy_df2 %>%
+    group_by(season) %>%
+    mutate(O_imscoverage = centerStandardize(adjProviderCoverage)) %>%
+    mutate(O_careseek = centerStandardize(visitsPerProvider)) %>%
+    mutate(X_poverty = centerStandardize(poverty)) %>%
+    mutate(X_H3 = centerStandardize(H3)) %>%
+    ungroup %>%
+    select(-fips_st, -adjProviderCoverage, -visitsPerProvider, -poverty) %>%
+    filter(season %in% 2:9)
+  
+  return(full_df)
+}
+################################
+
 
 model5a_iliSum_v1 <- function(filepathList){
   # iliSum response, all sampling effort, and driver variables

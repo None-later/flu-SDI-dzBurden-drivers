@@ -21,8 +21,8 @@ require(RColorBrewer); require(ggplot2) # export_inlaData_st dependencies
 
 #### set these! ################################
 dbCodeStr <- "_ilinDt_Octfit_span0.4_degree2"
-modCodeStr <- "5a_iliSum_v1-1"
-seasons <- 2:2
+modCodeStr <- "5a_iliSum_testing"
+seasons <- 2:4
 rdmFx_RV <- "nu"
 inverseLink <- function(x){exp(x)}
 dig <- 4 # number of digits in the number of elements at this spatial scale (~3000 counties -> 4 digits)
@@ -57,12 +57,15 @@ path_list <- list(path_abbr_st = path_abbr_st,
 
 #### MAIN #################################
 #### Import and process data ####
-modData <- model5a_iliSum_v1(path_list) # with driver & sampling effort variables
+# modData <- model5a_iliSum_v1(path_list) # with driver & sampling effort variables
+modData <- testing_module(path_list) # with driver & sampling effort variables
 
 #### INLA modeling ################################
 # Model 5a v1: County-level, after variable selection, one model per season
 # formula <- y ~ 1 + f(ID, model = "iid") + f(stateID, model = "iid") + f(regionID, model = "iid") + O_imscoverage + O_careseek + O_insured + X_poverty + X_child + X_adult + X_hospaccess + X_popdensity + X_commute + X_flight + X_H3 + X_humidity
-formula <- y ~ 1 + f(ID, model = "iid") + f(stateID, model = "iid") + f(regionID, model = "iid") + O_imscoverage + O_careseek + X_poverty
+
+# testing module formula
+formula <- y ~ 1 + f(ID, model = "iid") + f(stateID, model = "iid") + f(regionID, model = "iid") + O_imscoverage + O_careseek + X_poverty + X_H3
 
 
 #### export formatting ####
@@ -84,7 +87,6 @@ setwd(sprintf("../R_export/inlaModelData_export/%s", modCodeStr))
 path_csvExport <- getwd()
 # DIC & CPO file formatting
 dicData <- tbl_df(data.frame(modCodeStr = c(), season = c(), exportDate = c(), DIC = c(), CPO = c(), cpoFail = c()))
-path_csvExport_dic <- paste0(getwd(), sprintf("/modFit_%s.csv", modCodeStr)) # renamed from dic_%s
 
 #### run models by season ################################
 for (s in seasons){
@@ -104,10 +106,11 @@ for (s in seasons){
   path_plotExport_yhat <- paste0(path_plotExport, sprintf("/choro_fitY_%s_S%s.png", modCodeStr, s))
   path_plotExport_obsY <- paste0(path_plotExport, sprintf("/choro_obsY_%s_S%s.png", modCodeStr, s))
   path_plotExport_predDBRatio <- paste0(path_plotExport, sprintf("/choro_dbRatio_%s_S%s.png", modCodeStr, s))
-  path_plotExport_resid <- paste0(path_plotExport, sprintf("/choro_logyResid_%s_S%s.png", modCodeStr, s))
+  path_plotExport_resid <- paste0(path_plotExport, sprintf("/choro_yResid_%s_S%s.png", modCodeStr, s))
   
   path_csvExport_summaryStats <- paste0(path_csvExport, sprintf("/summaryStats_%s_S%s.csv", modCodeStr, s))
   path_csvExport_summaryStatsFitted <- paste0(path_csvExport, sprintf("/summaryStatsFitted_%s_S%s.csv", modCodeStr, s))
+  path_csvExport_dic <- paste0(path_csvExport, sprintf("/modFit_%s_S%s.csv", modCodeStr, s)) # renamed from dic_%s
   
   #### data processing ################################
   #### save DIC and CPO values ####
@@ -116,6 +119,7 @@ for (s in seasons){
   #### transform fixed and random effects back to natural scale ####
   # fixed and random effect marginals
   marg.fx.transf <- lapply(mod$marginals.fixed, function(x) inla.tmarginal(inverseLink, x))
+  names(marg.fx.transf) <- ifelse(names(marg.fx.transf) == '(Intercept)', 'Intercept', names(marg.fx.transf))
   marg.rdm.ID.transf <- lapply(mod$marginals.random$ID, function(x) inla.tmarginal(inverseLink, x))
   marg.rdm.stID.transf <- lapply(mod$marginals.random$stateID, function(x) inla.tmarginal(inverseLink, x))
   marg.rdm.regID.transf <- lapply(mod$marginals.random$regionID, function(x) inla.tmarginal(inverseLink, x))
@@ -128,21 +132,23 @@ for (s in seasons){
   
   # combine to single list object
   summ.stats <- list(summ.fx.transf = summ.fx.transf, summ.rdm.ID.transf = summ.rdm.ID.transf, summ.rdm.stID.transf = summ.rdm.stID.transf, summ.rdm.regID.transf = summ.rdm.regID.transf)
-  fxnames <- names(marg.fx.transf) # fixed effect variable names
+  fxnames <- names(marg.fx.transf)
   
   #### calculate residuals ####
   residDf <- data.frame(y = modData_full$y, residVec = (modData_full$y - mod$summary.fitted.values$mean)/mod$summary.fitted.values$sd)
   
   #### write summary statistics ################################
   #### fixed and random effects ####
-  export_summaryStats_transformed(path_csvExport_summaryStats, summ.stats, fxnames, modCodeStr, dbCodeStr, s) # assuming fixed, spatial, state ID, and region ID exist
-  
+  export_summaryStats_transformed(path_csvExport_summaryStats, summ.stats, fxnames, rdmFx_RV, modCodeStr, dbCodeStr, s) # assuming fixed, spatial, state ID, and region ID exist
+
   #### fitted values and residuals ####
   fittedDat <- export_summaryStats_fitted(path_csvExport_summaryStatsFitted, mod, residDf, modCodeStr, dbCodeStr, s, dig)  %>%
-    select(-modCodeStr, -dbCodeStr, - season, -exportDate, -logy)
+    select(-modCodeStr, -dbCodeStr, - season, -exportDate, -y)
+  
+  #### dic ####
+  export_DIC(path_csvExport_dic, dicData) # dic & cpo exported by season
   
   #### create full dataset for plotting ####
-  
   plotDat <- left_join(modData_full, mod$summary.random$ID, by = "ID") %>%
     rename(Prednu_mn = mean, Prednu_sd = sd, Prednu_mode = mode) %>%
     select(-contains("quant"), -kld) %>%
@@ -156,7 +162,7 @@ for (s in seasons){
   plot_rdmFx_marginalsSample(path_plotExport_rdmFxSample, marg.rdm.ID.transf, rdmFx_RV)
   
   # fixed effects marginal posteriors
-  plot_fixedFx_marginals(path_plotExport_fixedFxMarginals, marginalsFixed, modCodeStr, s)
+  plot_fixedFx_marginals(path_plotExport_fixedFxMarginals, marg.fx.transf, modCodeStr, s)
   
   #### diagnostics ####
   # 1) residuals v. fitted 2) PIT (should be uniform for good fit)
@@ -178,10 +184,9 @@ for (s in seasons){
 }
 
 #### Across seasons ####
-# INLA csv file export
-export_DIC(path_csvExport_dic, dicData) # dic & cpo
 
-# coef distributions by season
+
+# coef distributions by season, run only if all seasons are completed
 plot_coefDistr_season(path_csvExport, path_plotExport_coefDistr)
 
 # #### export model data ###

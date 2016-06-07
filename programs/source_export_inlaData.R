@@ -36,14 +36,14 @@ plot_fixedFx_marginals <- function(exportPath, marginalsFixed, modCodeStr, s){
   
   w <- 4; h <- 4; dp <- 300
   
-  names_fixedFx <- names(marginalsFixed)  # standard naming system "O_samplingeffort" or "X_driver"
+  names_fixedFx <- names(marg.fx.transf)  # standard naming system "O_samplingeffort" or "X_driver"
   
   for (i in 1:length(names_fixedFx)){
     exportPath_full <- paste0(exportPath, sprintf("/inla_%s_%s_marg_S%s.png", modCodeStr, names_fixedFx[i], s))
     png(exportPath_full, width = w, height = h, units = "in", res = dp)
     par(mfrow = c(1, 1))
     plot(marginalsFixed[[i]], xlab = paste0(names_fixedFx[i], sprintf(", S%s", s)), 
-         xlim = c(-1, 1), ylab = "density")
+         xlim = c(-3, 3), ylab = "density")
     dev.off()
   }
   
@@ -94,7 +94,8 @@ plot_coefDistr_season <- function(path_csvExport, path_plotExport_coefDistr){
   ggsave(paste0(path_plotExport_coefDistr, "fixed.png"), fixedFig, height = h, width = w, dpi = dp)
   
   # plot random effects
-  rdmFig <- ggplot(coefDf %>% filter(effectType == 'spatial'), aes(x = season, y = mode, group = RV)) +
+  rdmSample <- paste0('spatial', 1:6)
+  rdmFig <- ggplot(coefDf %>% filter(effectType == 'spatial' & RV %in% rdmSample), aes(x = season, y = mode, group = RV)) +
     geom_pointrange(aes(ymin = q_025, ymax = q_975)) +
     geom_hline(yintercept = 0) +
     facet_wrap(~RV, scales = "free_y") +
@@ -132,11 +133,11 @@ export_summaryStats_transformed <- function(exportPath, summListOutput, fxNames,
   # table formatting: assuming fixed, spatial, state ID, and region ID exist
   summ.fx.transf <- as.data.frame(matrix(unlist(summListOutput), byrow = T, ncol = 7))
   names(summ.fx.transf) <- c("mean", "sd", "q_025", "q_5", "q_975", "mode", "kld")
-  RV <- c(fxNames, paste0(rdmFxTxt, 1:nrow(summListOutput[[2]])), paste0('stID', 1:nrow(summListOutput[[3]])), paste0('regID', 1:nrow(summListOutput[[3]]))) # number of random effects (spatial, state, region)
+  RV <- c(fxNames, paste0(rdmFxTxt, 1:nrow(summListOutput[[2]])), paste0('stID', 1:nrow(summListOutput[[3]])), paste0('regID', 1:nrow(summListOutput[[4]]))) # number of random effects (spatial, state, region)
   effectType <- c(rep("fixed", length(fxNames)), rep("spatial", nrow(summListOutput[[2]])), rep("stID", nrow(summListOutput[[3]])), rep("regID", nrow(summListOutput[[4]])))
-  
+
   # bind data together
-  summaryStats <- tbl_df(summ.fx.transf) %>%
+  summaryStats <- summ.fx.transf %>%
     mutate(RV = RV, effectType = effectType, modCodeStr = modCodeString, dbCodeStr = dbCodeString, season = season, exportDate = as.character(Sys.Date())) %>%
     select(modCodeStr, dbCodeStr, season, exportDate, RV, effectType, mean, sd, q_025, q_5, q_975, mode, kld)
   
@@ -217,7 +218,7 @@ export_summaryStats_fitted <- function(exportPath, modelOutput, residualsDf, mod
 ################################
 
 export_DIC <- function(exportPath, dicDataframe){
-  # export DIC & CPO values across all seasons for a given model set
+  # 6/7/16: export DIC & CPO values for one season (instead of all seasons)
   # if cpoFail > 0, CPO calculation is invalid
   print(match.call())
   
@@ -229,13 +230,7 @@ export_DIC <- function(exportPath, dicDataframe){
     mutate(modCode = parsed[1], dbMetric = parsed[2], version = parsed[3]) %>%
     select(modCodeStr, modCode, dbMetric, version, season, exportDate, DIC, CPO, cpoFail)
   
-  if(dim(dicOutput)[1] == 8){
-    # export data to file
-    write_csv(dicOutput, exportPath)
-  } else{
-    # print message
-    print("DICs not written to file. Fewer than 8 seasons present in DIC output dataframe.")
-  }
+  write_csv(dicOutput, exportPath)
   
 }
 
