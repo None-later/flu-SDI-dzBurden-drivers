@@ -24,6 +24,10 @@ testing_module <- function(filepathList){
   imsCov_cty_df <- cleanO_imsCoverage_cty()
   saipePov_cty_df <- cleanX_saipePoverty_cty()
   cdcH3_df <- cleanX_cdcFluview_H3_region()
+  
+  # list of continental states
+  statesOnly <- read_csv(filepathList$path_abbr_st, col_types = "__c", col_names = c("stateID"), skip = 1) 
+  continentalOnly <- statesOnly %>% filter(!(stateID %in% c("02", "15"))) %>% unlist
  
   #### join data ####
   dummy_df <- full_join(mod_cty_df, imsCov_cty_df, by = c("year", "fips"))
@@ -39,6 +43,7 @@ testing_module <- function(filepathList){
     mutate(X_poverty = centerStandardize(poverty)) %>%
     mutate(X_H3 = centerStandardize(H3)) %>%
     ungroup %>%
+    filter(fips_st %in% continentalOnly) %>% # include data for continental states only
     select(-fips_st, -adjProviderCoverage, -visitsPerProvider, -poverty) %>%
     filter(season %in% 2:9)
   
@@ -132,11 +137,11 @@ read_shapefile_cty <- function(filepathList){
   # restrict shapefile to only US states
   cty.poly.states <- cty.poly.full[cty.poly.full@data$STATE %in% continentalOnly,]
   # converts polygon data to adjacency matrix
-  cty.adjM.export <- poly2nb(cty.poly.full) 
+  cty.adjM.export <- poly2nb(cty.poly.states) 
   # exports county adjacency matrix to file
   nb2INLA(filepathList$path_adjMxExport_cty, cty.adjM.export) 
   
-  return(cty.poly.full)
+  return(cty.poly.states)
 }
 ################################
 
