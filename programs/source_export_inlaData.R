@@ -112,11 +112,11 @@ plot_coefDistr_season <- function(plotDat, path_plotExport_coefDistr, plotFilena
   # plot fixed effects
   plotOutput <- ggplot(plotDat, aes(x = season, y = mode, group = RV)) +
     geom_pointrange(aes(ymin = q_025, ymax = q_975)) +
-    geom_hline(yintercept = 0) +
+    geom_hline(yintercept = 1) +
     facet_wrap(~RV, scales = "free_y") +
     ylab("coefMode (95%CI)") +
     xlim(c(1, 10)) +
-    ylim(c(-2, 2))
+    ylim(c(0, 2))
   ggsave(paste0(path_plotExport_coefDistr, plotFilename), plotOutput, height = h, width = w, dpi = dp)
   
 }
