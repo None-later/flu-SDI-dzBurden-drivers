@@ -19,7 +19,7 @@ require(RColorBrewer); require(ggplot2)
 dbCodeStr <- "_ilinDt_Octfit_span0.4_degree2"
 rCode <- "iliSum"
 seasons <- 2:9
-analysesOn <- c('singleVarWrite', 'singleVarPlot') 
+analysesOn <- c('loadData', 'dataQuality', 'pairwise') 
 # 'loadData', 'dataQuality', 'pairwise', 'singleVarWrite', 'singleVarPlot'
 
 
@@ -33,6 +33,7 @@ source("source_variableSelection.R") # functions for variable selection, general
 #### FILEPATHS #################################
 setwd('../reference_data')
 path_latlon_cty <- paste0(getwd(), "/cty_pop_latlon.csv")
+path_abbr_st <- paste0(getwd(), "/state_abbreviations_FIPS.csv")
 
 setwd("../R_export")
 path_response_zip3 <- paste0(getwd(), sprintf("/dbMetrics_periodicReg%s_analyzeDB.csv", dbCodeStr))
@@ -41,7 +42,8 @@ path_coefDat <- paste0(getwd(), fname_coefDat)
 path_tempDatQuality <- paste0(getwd(), sprintf("/VS_tempDatQuality_%s_cty.csv", rCode))
 
 # put all paths in a list to pass them around in functions
-path_list <- list(path_latlon_cty = path_latlon_cty,
+path_list <- list(path_abbr_st = path_abbr_st,
+                  path_latlon_cty = path_latlon_cty,
                   path_response_zip3 = path_response_zip3)
 
 setwd(dirname(sys.frame(1)$ofile))
@@ -77,11 +79,11 @@ if("dataQuality" %in% analysesOn){
 #### Pairwise variable comparisons ####################################
 if("pairwise" %in% analysesOn){
   
-#   # full scatterplot matrix
-#   png(sprintf("scatterMx_%s_cty%s.png", rCode, dbCodeStr), width = w, height = h, units = "in", res = dp)
-#   scatterMx <- pairs_scatterplotMatrix(allDat)
-#   print(scatterMx)
-#   dev.off()
+  # full scatterplot matrix
+  png(sprintf("scatterMx_%s_cty%s.png", rCode, dbCodeStr), width = w, height = h, units = "in", res = dp)
+  scatterMx <- pairs_scatterplotMatrix(allDat)
+  print(scatterMx)
+  dev.off()
   
   # full correlation matrix
   png(sprintf("corrMx_spearman_%s_cty%s.png", rCode, dbCodeStr), width = w, height = h, units = "in", res = dp)
