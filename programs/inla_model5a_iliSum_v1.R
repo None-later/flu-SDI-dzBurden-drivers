@@ -21,8 +21,8 @@ require(RColorBrewer); require(ggplot2) # export_inlaData_st dependencies
 
 #### set these! ################################
 dbCodeStr <- "_ilinDt_Octfit_span0.4_degree2"
-modCodeStr <- "5a_iliSum_testing2"; testDataOn <- FALSE
-seasons <- 2:3
+modCodeStr <- "5a_iliSum_v1-1"; testDataOn <- FALSE
+seasons <- 2:9
 rdmFx_RV <- "nu"
 inverseLink <- function(x){exp(x)}
 dig <- 4 # number of digits in the number of elements at this spatial scale (~3000 counties -> 4 digits)
@@ -86,8 +86,6 @@ setwd(dirname(sys.frame(1)$ofile))
 dir.create(sprintf("../R_export/inlaModelData_export/%s", modCodeStr), showWarnings = FALSE)
 setwd(sprintf("../R_export/inlaModelData_export/%s", modCodeStr))
 path_csvExport <- getwd()
-# DIC & CPO file formatting
-dicData <- tbl_df(data.frame(modCodeStr = c(), season = c(), exportDate = c(), DIC = c(), CPO = c(), cpoFail = c()))
 
 #### run models by season ################################
 for (s in seasons){
@@ -114,7 +112,9 @@ for (s in seasons){
   path_csvExport_dic <- paste0(path_csvExport, sprintf("/modFit_%s_S%s.csv", modCodeStr, s)) # renamed from dic_%s
   
   #### data processing ################################
-  #### save DIC and CPO values ####
+  #### save DIC and CPO values in separate tables by season ####
+  # DIC & CPO file formatting
+  dicData <- tbl_df(data.frame(modCodeStr = c(), season = c(), exportDate = c(), DIC = c(), CPO = c(), cpoFail = c()))
   dicData <- bind_rows(dicData, list(modCodeStr = modCodeStr, season = s, exportDate = as.character(Sys.Date()), DIC = mod$dic$dic, CPO = sum(log(mod$cpo$cpo), na.rm=TRUE), cpoFail = sum(mod$cpo$failure, na.rm=TRUE)))
   
   #### transform fixed and random effects back to natural scale ####
