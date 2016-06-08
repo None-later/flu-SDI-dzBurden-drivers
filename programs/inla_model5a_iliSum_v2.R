@@ -121,18 +121,19 @@ for (s in seasons){
   # fixed and random effect marginals
   marg.fx.transf <- lapply(mod$marginals.fixed, function(x) inla.tmarginal(inverseLink, x))
   names(marg.fx.transf) <- ifelse(names(marg.fx.transf) == '(Intercept)', 'Intercept', names(marg.fx.transf))
-  marg.rdm.ID.transf <- lapply(mod$marginals.random$ID, function(x) inla.tmarginal(inverseLink, x))
+  # marg.rdm.ID.transf <- lapply(mod$marginals.random$ID, function(x) inla.tmarginal(inverseLink, x))
   marg.rdm.stID.transf <- lapply(mod$marginals.random$stateID, function(x) inla.tmarginal(inverseLink, x))
   marg.rdm.regID.transf <- lapply(mod$marginals.random$regionID, function(x) inla.tmarginal(inverseLink, x))
   
   # fixed and random effect summary statistics
   summ.fx.transf <- matrix(unlist(lapply(marg.fx.transf, function(x) inla.zmarginal(x, silent = TRUE))), ncol = 7, byrow = T)
-  summ.rdm.ID.transf <- matrix(unlist(lapply(marg.rdm.ID.transf, function(x) inla.zmarginal(x, silent = TRUE))), ncol = 7, byrow = T)
+  # summ.rdm.ID.transf <- matrix(unlist(lapply(marg.rdm.ID.transf, function(x) inla.zmarginal(x, silent = TRUE))), ncol = 7, byrow = T)
   summ.rdm.stID.transf <- matrix(unlist(lapply(marg.rdm.stID.transf, function(x) inla.zmarginal(x, silent = TRUE))), ncol = 7, byrow = T)
   summ.rdm.regID.transf <- matrix(unlist(lapply(marg.rdm.regID.transf, function(x) inla.zmarginal(x, silent = TRUE))), ncol = 7, byrow = T)
   
   # combine to single list object
-  summ.stats <- list(summ.fx.transf = summ.fx.transf, summ.rdm.ID.transf = summ.rdm.ID.transf, summ.rdm.stID.transf = summ.rdm.stID.transf, summ.rdm.regID.transf = summ.rdm.regID.transf)
+  # summ.stats <- list(summ.fx.transf = summ.fx.transf, summ.rdm.ID.transf = summ.rdm.ID.transf, summ.rdm.stID.transf = summ.rdm.stID.transf, summ.rdm.regID.transf = summ.rdm.regID.transf)
+  summ.stats <- list(summ.fx.transf = summ.fx.transf, summ.rdm.ID.transf = 0, summ.rdm.stID.transf = summ.rdm.stID.transf, summ.rdm.regID.transf = summ.rdm.regID.transf)
   fxnames <- names(marg.fx.transf)
   
   #### calculate residuals ####
@@ -140,7 +141,7 @@ for (s in seasons){
   
   #### write summary statistics ################################
   #### fixed and random effects ####
-  export_summaryStats_transformed(path_csvExport_summaryStats, summ.stats, fxnames, rdmFx_RV, modCodeStr, dbCodeStr, s) # assuming fixed, spatial, state ID, and region ID exist
+#   export_summaryStats_transformed(path_csvExport_summaryStats, summ.stats, fxnames, rdmFx_RV, modCodeStr, dbCodeStr, s) # assuming fixed, spatial, state ID, and region ID exist
 
   #### fitted values and residuals ####
   fittedDat <- export_summaryStats_fitted(path_csvExport_summaryStatsFitted, mod, residDf, modCodeStr, dbCodeStr, s, dig)  %>%
@@ -150,17 +151,14 @@ for (s in seasons){
   export_DIC(path_csvExport_dic, dicData) # dic & cpo exported by season
   
   #### create full dataset for plotting ####
-  plotDat <- left_join(modData_full, mod$summary.random$ID, by = "ID") %>%
-    rename(Prednu_mn = mean, Prednu_sd = sd, Prednu_mode = mode) %>%
-    select(-contains("quant"), -kld) %>%
-    left_join(fittedDat, by = "ID") %>%
+  plotDat <- left_join(modData_full, fittedDat, by = "ID") %>%
     mutate(dbRatio = yhat_mode/E) 
 
   #### INLA diagnostic plots ################################
   
   #### plot a sample of posterior outputs ####
-  # first 6 random effects (nu or phi) marginal posteriors (transformed)
-  plot_rdmFx_marginalsSample(path_plotExport_rdmFxSample, marg.rdm.ID.transf, rdmFx_RV)
+#   # first 6 random effects (nu or phi) marginal posteriors (transformed)
+#   plot_rdmFx_marginalsSample(path_plotExport_rdmFxSample, marg.rdm.ID.transf, rdmFx_RV)
   
   # fixed effects marginal posteriors
   plot_fixedFx_marginals(path_plotExport_fixedFxMarginals, marg.fx.transf, modCodeStr, s)
@@ -183,10 +181,10 @@ for (s in seasons){
   plot_countyChoro(path_plotExport_resid, plotDat, "yhat_resid", "tier")
   
 }
-
-#### Across seasons ####
-# coef distributions by season, run only if all seasons are completed
-importPlot_coefDistr_season(path_csvExport, path_plotExport_coefDistr)
+# 
+# #### Across seasons ####
+# # coef distributions by season, run only if all seasons are completed
+# importPlot_coefDistr_season(path_csvExport, path_plotExport_coefDistr)
 
 # #### export model data ###
 # setwd(dirname(sys.frame(1)$ofile))
