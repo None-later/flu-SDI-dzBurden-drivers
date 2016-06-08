@@ -61,7 +61,6 @@ clean_pop_st <- function(filepathList){
 ##### SAMPLING EFFORT DATA ##########################################
 cleanO_imsCoverage_st <- function(filepathList){
   # clean IMS Health adjusted physician coverage (database coverage) and physician per visit ratio (care-seeking behavior)
-  # logit transform the adjusted percentage of provider coverage in IMS database; log transform the ratio of visits per provider in the IMS database
   # center and standardize the transformed variables
   print(match.call())
   
@@ -118,10 +117,16 @@ cleanO_sahieInsured_cty <- function(){
   
   dbDisconnect(con)
   
-  output <- bind_rows(dummy2, dummy) %>%
+  origDat <- bind_rows(dummy2, dummy) %>%
     dplyr::rename(insured = insured_prop) %>%
     select(fips, year, insured) %>%
     filter(year >= 2002 & year <= 2009)
+  
+  # duplicate data from 2005 for missing data in 2002-04, visual inspection of state-level time series
+  dupDat <- origDat %>%
+    filter(year == 2005)
+  
+  output <- bind_rows(dupDat %>% mutate(year = 2002), dupDat %>% mutate(year = 2003), dupDat %>% mutate(year = 2004), origDat)
   
   return(output)
 }
@@ -929,10 +934,17 @@ cleanX_nisInfantAnyVaxCov_st <- function(){
   
   dbDisconnect(con)
   
-  output <- tbl_df(dummy) %>%
-    arrange(season, location) %>%
+  origDat <- tbl_df(dummy) %>%
     select(season, location, coverage) %>%
     rename(infantAnyVax = coverage)
+  
+  # duplicate season 3 data to fill in for missing season 2 data
+  dupDat <- origDat %>% 
+    filter(season == 3) %>%
+    mutate(season = 2)
+  
+  output <- bind_rows(dupDat, origDat) %>%
+    arrange(season, location)
     
   return(output)
 }
@@ -952,10 +964,17 @@ cleanX_nisInfantFullVaxCov_st <- function(){
   
   dbDisconnect(con)
   
-  output <- tbl_df(dummy) %>%
-    arrange(season, location) %>%
+  origDat <- tbl_df(dummy) %>%
     select(season, location, coverage) %>%
     rename(infantFullVax = coverage)
+  
+  # duplicate season 3 data to fill in for missing season 2 data
+  dupDat <- origDat %>% 
+    filter(season == 3) %>%
+    mutate(season = 2)
+  
+  output <- bind_rows(dupDat, origDat) %>%
+    arrange(season, location)
   
   return(output)
 }
@@ -975,10 +994,16 @@ cleanX_brfssElderlyAnyVaxCov_st <- function(){
   
   dbDisconnect(con)
   
-  output <- tbl_df(dummy) %>%
-    arrange(season, location) %>%
+  origDat <- tbl_df(dummy) %>%
     select(season, location, coverage) %>%
     rename(elderlyAnyVax = coverage)
+  
+  # duplicate season 7 data to fill in missing data for seasons 8 and 9
+  dupDat <- origDat %>%
+    filter(season == 7)
+  
+  output <- bind_rows(origDat, dupDat %>% mutate(season = 8), dupDat %>% mutate(season = 9)) %>%
+    arrange(season, location)
   
   return(output)
 }
