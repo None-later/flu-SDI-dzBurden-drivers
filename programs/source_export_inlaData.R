@@ -66,12 +66,9 @@ plot_fit_diagnostics <- function(path_plotExport_diagnostics, fitOutput, modelOu
 }
 ################################
 
-plot_coefDistr_season <- function(path_csvExport, path_plotExport_coefDistr){
-  # plot all coef modes, Q.025 - Q0.975 over time
+importPlot_coefDistr_season <- function(path_csvExport, path_plotExport_coefDistr){
+  # import coefficient distributions across seasons
   print(match.call())
-  
-  # plot formatting
-  w <- 8; h <- 8; dp <- 250
   
   # grab list of files names
   setwd(path_csvExport)
@@ -84,45 +81,45 @@ plot_coefDistr_season <- function(path_csvExport, path_plotExport_coefDistr){
   }
   
   # plot fixed effects
-  fixedFig <- ggplot(coefDf %>% filter(effectType == 'fixed'), aes(x = season, y = mode, group = RV)) +
+  fxDat <- coefDf %>% filter(effectType == 'fixed') 
+  plot_coefDistr_season(fxDat, path_plotExport_coefDistr, 'fixed.png')
+  
+  # plot random effects
+  sampleLs <- coefDf %>% filter(effectType == 'spatial') %>% select(RV) %>% sample_n(9) %>% unlist
+  rdmDat <- coefDf %>% filter(effectType == 'spatial' & RV %in% sampleLs) 
+  plot_coefDistr_season(rdmDat, path_plotExport_coefDistr, 'random.png')
+  
+  # plot effects of state ID
+  stIds <- coefDf %>% filter(effectType == 'stID') %>% distinct(RV) %>% unlist 
+  stIdDat <- coefDf %>% filter(effectType == 'stID') %>% mutate(RV = factor(RV, levels = stIds))
+  plot_coefDistr_season(stIdDat, path_plotExport_coefDistr, 'stateID.png')
+  
+  # plot effects of state ID
+  regIds <- coefDf %>% filter(effectType == 'regID') %>% distinct(RV) %>% unlist 
+  regIdDat <- coefDf %>% filter(effectType == 'regID') %>% mutate(RV = factor(RV, levels = regIds))
+  plot_coefDistr_season(regIdDat, path_plotExport_coefDistr, 'regionID.png')
+}
+
+################################
+
+plot_coefDistr_season <- function(plotDat, path_plotExport_coefDistr, plotFilename){
+  # plot all coef modes, Q.025 - Q0.975 over time
+  print(match.call())
+  
+  # plot formatting
+  w <- 8; h <- 8; dp <- 250
+  
+  # plot fixed effects
+  plotOutput <- ggplot(plotDat, aes(x = season, y = mode, group = RV)) +
     geom_pointrange(aes(ymin = q_025, ymax = q_975)) +
     geom_hline(yintercept = 0) +
     facet_wrap(~RV, scales = "free_y") +
     ylab("coefMode (95%CI)") +
     xlim(c(1, 10)) +
     ylim(c(-2, 2))
-  ggsave(paste0(path_plotExport_coefDistr, "fixed.png"), fixedFig, height = h, width = w, dpi = dp)
+  ggsave(paste0(path_plotExport_coefDistr, plotFilename), plotOutput, height = h, width = w, dpi = dp)
   
-  # plot random effects
-  rdmSample <- paste0('spatial', 1:6)
-  rdmFig <- ggplot(coefDf %>% filter(effectType == 'spatial' & RV %in% rdmSample), aes(x = season, y = mode, group = RV)) +
-    geom_pointrange(aes(ymin = q_025, ymax = q_975)) +
-    geom_hline(yintercept = 0) +
-    facet_wrap(~RV, scales = "free_y") +
-    ylab("coefMode (95%CI)") +
-    xlim(c(1, 10))
-  ggsave(paste0(path_plotExport_coefDistr, "random.png"), rdmFig, height = h, width = w, dpi = dp)
-  
-  # plot effects of state ID
-  stFig <- ggplot(coefDf %>% filter(effectType == 'stID'), aes(x = season, y = mode, group = RV)) +
-    geom_pointrange(aes(ymin = q_025, ymax = q_975)) +
-    geom_hline(yintercept = 0) +
-    facet_wrap(~RV, scales = "free_y") +
-    ylab("coefMode (95%CI)") +
-    xlim(c(1, 10))
-  ggsave(paste0(path_plotExport_coefDistr, "stateID.png"), stFig, height = h, width = w, dpi = dp)
-  
-  # plot effects of state ID
-  regFig <- ggplot(coefDf %>% filter(effectType == 'regID'), aes(x = season, y = mode, group = RV)) +
-    geom_pointrange(aes(ymin = q_025, ymax = q_975)) +
-    geom_hline(yintercept = 0) +
-    facet_wrap(~RV, scales = "free_y") +
-    ylab("coefMode (95%CI)") +
-    xlim(c(1, 10))
-  ggsave(paste0(path_plotExport_coefDistr, "regID.png"), regFig, height = h, width = w, dpi = dp)
- 
 }
-
 
 #### functions for data export  ################################
 

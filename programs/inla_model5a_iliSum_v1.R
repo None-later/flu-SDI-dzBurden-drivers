@@ -185,9 +185,8 @@ for (s in seasons){
 
 #### Across seasons ####
 
-
 # coef distributions by season, run only if all seasons are completed
-plot_coefDistr_season(path_csvExport, path_plotExport_coefDistr)
+importPlot_coefDistr_season(path_csvExport, path_plotExport_coefDistr)
 
 # #### export model data ###
 # setwd(dirname(sys.frame(1)$ofile))
