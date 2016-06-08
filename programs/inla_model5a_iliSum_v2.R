@@ -133,7 +133,6 @@ for (s in seasons){
   
   # combine to single list object
   # summ.stats <- list(summ.fx.transf = summ.fx.transf, summ.rdm.ID.transf = summ.rdm.ID.transf, summ.rdm.stID.transf = summ.rdm.stID.transf, summ.rdm.regID.transf = summ.rdm.regID.transf)
-  summ.stats <- list(summ.fx.transf = summ.fx.transf, summ.rdm.ID.transf = 0, summ.rdm.stID.transf = summ.rdm.stID.transf, summ.rdm.regID.transf = summ.rdm.regID.transf)
   fxnames <- names(marg.fx.transf)
   
   #### calculate residuals ####

@@ -110,7 +110,7 @@ plot_coefDistr_season <- function(plotDat, path_plotExport_coefDistr, plotFilena
   w <- 8; h <- 8; dp <- 250
   
   # plot fixed effects
-  plotOutput <- ggplot(plotDat, aes(x = season, y = mode, group = RV)) +
+  plotOutput <- ggplot(plotDat, aes(x = season, y = q_5, group = RV)) +
     geom_pointrange(aes(ymin = q_025, ymax = q_975)) +
     geom_hline(yintercept = 1) +
     facet_wrap(~RV, scales = "free_y") +
@@ -129,14 +129,14 @@ export_summaryStats_transformed <- function(exportPath, summListOutput, fxNames,
   
   # table formatting: assuming fixed, spatial, state ID, and region ID exist
   summ.fx.transf <- as.data.frame(matrix(unlist(summListOutput), byrow = T, ncol = 7))
-  names(summ.fx.transf) <- c("mean", "sd", "q_025", "q_5", "q_975", "mode", "kld")
+  names(summ.fx.transf) <- c("mean", "sd", "q_025", "q_25", "q_5", "q_75", "q_975")
   RV <- c(fxNames, paste0(rdmFxTxt, 1:nrow(summListOutput[[2]])), paste0('stID', 1:nrow(summListOutput[[3]])), paste0('regID', 1:nrow(summListOutput[[4]]))) # number of random effects (spatial, state, region)
   effectType <- c(rep("fixed", length(fxNames)), rep("spatial", nrow(summListOutput[[2]])), rep("stID", nrow(summListOutput[[3]])), rep("regID", nrow(summListOutput[[4]])))
 
   # bind data together
   summaryStats <- summ.fx.transf %>%
     mutate(RV = RV, effectType = effectType, modCodeStr = modCodeString, dbCodeStr = dbCodeString, season = season, exportDate = as.character(Sys.Date())) %>%
-    select(modCodeStr, dbCodeStr, season, exportDate, RV, effectType, mean, sd, q_025, q_5, q_975, mode, kld)
+    select(modCodeStr, dbCodeStr, season, exportDate, RV, effectType, mean, sd, q_025, q_25, q_5, q_75, q_975)
   
   # export data to file
   write_csv(summaryStats, exportPath)
