@@ -122,7 +122,7 @@ cleanO_sahieInsured_cty <- function(){
     select(fips, year, insured) %>%
     filter(year >= 2002 & year <= 2009)
   
-  # duplicate data from 2005 for missing data in 2002-04, visual inspection of state-level time series
+  # 6/7/16: duplicate data from 2005 for missing data in 2002-04, visual inspection of state-level time series
   dupDat <- origDat %>%
     filter(year == 2005)
   
@@ -938,7 +938,7 @@ cleanX_nisInfantAnyVaxCov_st <- function(){
     select(season, location, coverage) %>%
     rename(infantAnyVax = coverage)
   
-  # duplicate season 3 data to fill in for missing season 2 data
+  # 6/7/16: duplicate season 3 data to fill in for missing season 2 data
   dupDat <- origDat %>% 
     filter(season == 3) %>%
     mutate(season = 2)
@@ -968,7 +968,7 @@ cleanX_nisInfantFullVaxCov_st <- function(){
     select(season, location, coverage) %>%
     rename(infantFullVax = coverage)
   
-  # duplicate season 3 data to fill in for missing season 2 data
+  # 6/7/16: duplicate season 3 data to fill in for missing season 2 data
   dupDat <- origDat %>% 
     filter(season == 3) %>%
     mutate(season = 2)
@@ -998,7 +998,7 @@ cleanX_brfssElderlyAnyVaxCov_st <- function(){
     select(season, location, coverage) %>%
     rename(elderlyAnyVax = coverage)
   
-  # duplicate season 7 data to fill in missing data for seasons 8 and 9
+  # 6/7/16: duplicate season 7 data to fill in missing data for seasons 8 and 9
   dupDat <- origDat %>%
     filter(season == 7)
   
@@ -1007,6 +1007,31 @@ cleanX_brfssElderlyAnyVaxCov_st <- function(){
   
   return(output)
 }
+
+################################
+
+cleanX_brfssAdultAnyVaxCov_st <- function(){
+  # clean adult vaccination coverage by state (any level of flu vaccination)
+  print(match.call())
+  
+  con <- dbConnect(RMySQL::MySQL(), group = "rmysql-fludrivers")
+  dbListTables(con)
+  
+  dbListFields(con, "immunity_nisBRFSSVaxCoverage_state")
+  # sel.statement <- "SELECT * from immunity_nisBRFSSVaxCoverage_state limit 5"
+  sel.statement <- "SELECT season, location, scale, vaxlevel, agegroup, coverage, interval95 from immunity_nisBRFSSVaxCoverage_state where scale = 'State' and season >= 2 and season <= 9 and agegroup = 'adult' and vaxlevel = 'anyvax'"
+  dummy <- dbGetQuery(con, sel.statement)
+  
+  dbDisconnect(con)
+  
+  output <- tbl_df(dummy) %>%
+    select(season, location, coverage) %>%
+    rename(adultAnyVax = coverage) %>%
+    arrange(season, location)
+  
+  return(output)
+}
+
 
 
 ##### environmental factors ##########

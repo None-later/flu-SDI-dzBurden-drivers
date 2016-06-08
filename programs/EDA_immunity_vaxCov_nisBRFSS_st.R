@@ -26,31 +26,35 @@ par(mar = mar, oma = mar)
 num <- 6
 eSeas <- 2:7
 iSeas <- 3:9
+aSeas <- 6:7
 
 # set choropleth parameters
 eldParams <- list(code = 'elderlyAny', lab = 'Flu Vax Coverage (65+, any)', src = 'BRFSS', seas = eSeas, h = h, w = w, dp = dp)
 infAParams <- list(code = 'infantAny', lab = 'Flu Vax Coverage (<2, any)', src = 'NIS', seas = iSeas, h = h, w = w, dp = dp)
 infFParams <- list(code = 'infantFull', lab = 'Flu Vax Coverage (<2, full)', src = 'NIS', seas = iSeas, h = h, w = w, dp = dp)
+adParams <- list(code = 'adultAny', lab = 'Flu Vax Coverage (65+, any)', src = 'BRFSS', seas = aSeas, h = h, w = w, dp = dp) # added 6/8/16
 
 #### import data ################################
 setwd('../reference_data')
 abbrDat <- read_csv("state_abbreviations_FIPS.csv", col_types = list(FIPS = col_character()))
 
-# infant any, infant full, elderly any import
+# infant any, infant full, elderly any, adult any import
 infAnyDat <- cleanX_nisInfantAnyVaxCov_st() %>% rename(infantAny95 = interval95)
 infFullDat <- cleanX_nisInfantFullVaxCov_st() %>% rename(infantFull95 = interval95)
 eldAnyDat <- cleanX_brfssElderlyAnyVaxCov_st() %>% rename(elderlyAny95 = interval95)
+adAnyDat <- cleanX_brfssAdultAnyVaxCov_st() %>% rename(adultAny95 = interval95)
 
 #### clean and merge data ################################
 fullDat <- full_join(infAnyDat, infFullDat, by = c("season", "location")) %>%
   full_join(eldAnyDat, by = c("season", "location")) %>%
-  rename(infantAny = infantAnyVax, infantFull = infantFullVax, elderlyAny = elderlyAnyVax, state = location) %>%
-  gather(ageVax, vaxcov, infantAny, infantFull, elderlyAny) %>%
+  full_join(adAnyDat, by = c("season", "location")) %>%
+  rename(infantAny = infantAnyVax, infantFull = infantFullVax, elderlyAny = elderlyAnyVax, adultAny = adultAnyVax, state = location) %>%
+  gather(ageVax, vaxcov, infantAny, infantFull, elderlyAny, adultAny) %>%
   arrange(season, state, ageVax) %>%
   mutate(state = tolower(state)) %>%
-  mutate(interval95 = ifelse(ageVax == 'elderlyAny', elderlyAny95, ifelse(ageVax == 'infantAny', infantAny95, ifelse(ageVax == 'infantFull', infantFull95, NA)))) %>%
+  mutate(interval95 = ifelse(ageVax == 'elderlyAny', elderlyAny95, ifelse(ageVax == 'infantAny', infantAny95, ifelse(ageVax == 'infantFull', infantFull95, ifelse(ageVax == 'adultAny', adultAny95, NA))))) %>%
   mutate(lower = vaxcov - interval95, upper = vaxcov + interval95) %>%
-  select(-elderlyAny95, -infantAny95, -infantFull95)
+  select(-elderlyAny95, -infantAny95, -infantFull95, -adultAny95)
 
 #### plot setup ################################
 setwd(dirname(sys.frame(1)$ofile))
@@ -106,6 +110,7 @@ choroplots <- function(dummyDat, params){
 choroplots(fullDat, eldParams)
 choroplots(fullDat, infAParams)
 choroplots(fullDat, infFParams)
+choroplots(fullDat, adParams)
 # saved 5/24/16
 
 #### time series ################################
