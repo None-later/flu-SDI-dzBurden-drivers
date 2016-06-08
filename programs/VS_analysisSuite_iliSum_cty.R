@@ -19,7 +19,7 @@ require(RColorBrewer); require(ggplot2)
 dbCodeStr <- "_ilinDt_Octfit_span0.4_degree2"
 rCode <- "iliSum"
 seasons <- 2:9
-analysesOn <- c('loadData', 'dataQuality', 'pairwise') 
+analysesOn <- c('loadData', 'pairwise') 
 # 'loadData', 'dataQuality', 'pairwise', 'singleVarWrite', 'singleVarPlot'
 
 

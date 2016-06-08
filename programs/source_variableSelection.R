@@ -19,7 +19,7 @@ pairs_scatterplotMatrix <- function(full_df){
   print(match.call())
   
   datOnly <- full_df %>%
-    select(logy, logE, contains("_"))
+    select(logy, logE, contains("_")) 
   
   pairPlt <- ggpairs(datOnly) +
     theme(axis.text.x = element_blank(), axis.text.y = element_blank(), axis.ticks = element_blank())

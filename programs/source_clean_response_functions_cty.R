@@ -41,7 +41,7 @@ cleanR_iliSum_cty <- function(filepathList){
     mutate(E = weighted.mean(y, pop, na.rm = TRUE)) %>%
     ungroup %>%
     filter(season != 1) %>%
-    mutate(logy = ifelse(has.epi, log(y), log(1E-2)), logE = log(E)) # 6/1/16 log(1E-2) so no -Inf burden (need to do sensitivity on this)
+    mutate(logy = ifelse(y == 0, log(1E-2), log(y)), logE = log(E)) # 6/1/16 log(1E-2) so no -Inf burden (need to do sensitivity on this) # 6/8/16: y == 0 condition replaces has.epi condition
   return(return_data)
 }
 
