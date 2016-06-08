@@ -150,10 +150,7 @@ for (s in seasons){
   export_DIC(path_csvExport_dic, dicData) # dic & cpo exported by season
   
   #### create full dataset for plotting ####
-  plotDat <- left_join(modData_full, mod$summary.random$ID, by = "ID") %>%
-    rename(Prednu_mn = mean, Prednu_sd = sd, Prednu_mode = mode) %>%
-    select(-contains("quant"), -kld) %>%
-    left_join(fittedDat, by = "ID") %>%
+  plotDat <- left_join(modData_full, fittedDat, by = "ID") %>%
     mutate(dbRatio = yhat_mode/E) 
 
   #### INLA diagnostic plots ################################
