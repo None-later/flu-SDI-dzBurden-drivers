@@ -21,8 +21,8 @@ require(RColorBrewer); require(ggplot2) # export_inlaData_st dependencies
 
 #### set these! ################################
 dbCodeStr <- "_ilinDt_Octfit_span0.4_degree2"
-modCodeStr <- "5a_iliSum_testing"
-seasons <- 2:4
+modCodeStr <- "5a_iliSum_testing2"; testDataOn <- FALSE
+seasons <- 2:3
 rdmFx_RV <- "nu"
 inverseLink <- function(x){exp(x)}
 dig <- 4 # number of digits in the number of elements at this spatial scale (~3000 counties -> 4 digits)
@@ -56,16 +56,17 @@ path_list <- list(path_abbr_st = path_abbr_st,
 
 
 #### MAIN #################################
+#### test data module ####
+if (testDataOn){
+  modData <- testing_module(path_list) # with driver & sampling effort variables
+  # testing module formula
+  formula <- y ~ 1 + f(ID, model = "iid") + f(stateID, model = "iid") + f(regionID, model = "iid") + O_imscoverage + O_careseek + X_poverty + X_H3
+} else{
 #### Import and process data ####
-# modData <- model5a_iliSum_v1(path_list) # with driver & sampling effort variables
-modData <- testing_module(path_list) # with driver & sampling effort variables
-
-#### INLA modeling ################################
-# Model 5a v1: County-level, after variable selection, one model per season
-# formula <- y ~ 1 + f(ID, model = "iid") + f(stateID, model = "iid") + f(regionID, model = "iid") + O_imscoverage + O_careseek + O_insured + X_poverty + X_child + X_adult + X_hospaccess + X_popdensity + X_commute + X_flight + X_H3 + X_humidity
-
-# testing module formula
-formula <- y ~ 1 + f(ID, model = "iid") + f(stateID, model = "iid") + f(regionID, model = "iid") + O_imscoverage + O_careseek + X_poverty + X_H3
+  modData <- model5a_iliSum_v1(path_list) # with driver & sampling effort variables
+  #### Model 5a v1: County-level, after variable selection, one model per season ####
+  formula <- y ~ 1 + f(ID, model = "iid") + f(stateID, model = "iid") + f(regionID, model = "iid") + O_imscoverage + O_careseek + O_insured + X_poverty + X_child + X_adult + X_hospaccess + X_popdensity + X_commute + X_flight + X_H3 + X_humidity
+}
 
 
 #### export formatting ####
@@ -184,7 +185,6 @@ for (s in seasons){
 }
 
 #### Across seasons ####
-
 # coef distributions by season, run only if all seasons are completed
 importPlot_coefDistr_season(path_csvExport, path_plotExport_coefDistr)
 
