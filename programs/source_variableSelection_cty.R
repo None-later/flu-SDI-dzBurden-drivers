@@ -68,6 +68,7 @@ prepare_allCov_iliSum_cty <- function(filepathList){
     full_join(housDens_cty_df, by = c("year", "fips")) %>%
     full_join(acsCommutInflows_cty_prep, by = c("year", "fips" = "fips_wrk")) %>%
     full_join(btsPass_cty_df, by = c("season", "fips" = "fips_dest")) %>%
+    mutate(pass = ifelse(is.na(pass), 0, pass)) %>% # counties with NA from merge had 0 passengers entering
     mutate(fips_st = substring(fips, 1, 2)) %>% # region is linked by state fips code
     full_join(cdcFluPos_df, by = c("season", "fips_st" = "fips")) %>%
     full_join(cdcH3_df, by = c("season", "fips_st" = "fips")) %>%

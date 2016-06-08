@@ -84,6 +84,7 @@ model5a_iliSum_v1 <- function(filepathList){
     full_join(popDens_cty_df, by = c("year", "fips")) %>%
     full_join(acsCommutInflows_cty_df, by = c("year", "fips" = "fips_wrk")) %>%
     full_join(btsPass_cty_df, by = c("season", "fips" = "fips_dest")) %>%
+    mutate(pass = ifelse(is.na(pass), 0, pass)) %>% # counties with NA from merge had 0 passengers entering
     full_join(infantAnyVax_st_df, by = c("season", "st")) %>%
     full_join(elderlyAnyVax_st_df, by = c("season", "st")) %>%
     mutate(fips_st = substring(fips, 1, 2)) %>% # region is linked by state fips code
