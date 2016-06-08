@@ -73,6 +73,10 @@ model5a_iliSum_v1 <- function(filepathList){
   # all region tables
   cdcH3_df <- cleanX_cdcFluview_H3_region()
   
+  # list of continental states
+  statesOnly <- read_csv(filepathList$path_abbr_st, col_types = "__c", col_names = c("stateID"), skip = 1) 
+  continentalOnly <- statesOnly %>% filter(!(stateID %in% c("02", "15"))) %>% unlist
+  
   #### join data ####
   dummy_df <- full_join(mod_cty_df, imsCov_cty_df, by = c("year", "fips"))
   dummy_df2 <- full_join(dummy_df, sahieIns_cty_df, by = c("year", "fips"))
@@ -107,6 +111,7 @@ model5a_iliSum_v1 <- function(filepathList){
     mutate(X_H3 = centerStandardize(H3)) %>%
     mutate(X_humidity = centerStandardize(humidity)) %>%
     ungroup %>%
+    filter(fips_st %in% continentalOnly) %>% # include data for continental states only
     select(-fips_st, -adjProviderCoverage, -visitsPerProvider, -insured, -poverty, -child, -adult, -hospitalAccess, -popDensity, -commutInflows_prep, -pass, -infantAnyVax, -elderlyAnyVax, -H3, -humidity) %>%
     filter(season %in% 2:9)
   
@@ -119,11 +124,16 @@ read_shapefile_cty <- function(filepathList){
   print(match.call())
   print(filepathList)
   
+  # read fips codes for continental US states only
+  statesOnly <- read_csv(filepathList$path_abbr_st, col_types = "__c", col_names = c("stateID"), skip = 1) 
+  continentalOnly <- statesOnly %>% filter(!(stateID %in% c("02", "15"))) %>% unlist
   # read shapefile into R
   cty.poly.full <- readShapePoly(filepathList$path_shape_cty) 
+  # restrict shapefile to only US states
+  cty.poly.states <- cty.poly.full[cty.poly.full@data$STATE %in% continentalOnly,]
   # converts polygon data to adjacency matrix
   cty.adjM.export <- poly2nb(cty.poly.full) 
-  # exports state adjacency matrix to file
+  # exports county adjacency matrix to file
   nb2INLA(filepathList$path_adjMxExport_cty, cty.adjM.export) 
   
   return(cty.poly.full)
@@ -146,7 +156,7 @@ combine_shapefile_modelData_cty <- function(filepathList, modelData, seasNum){
     select(fips, GEO_ID) %>%
     left_join(modelData2, by = "fips") %>%
     mutate(ID = seq_along(fips)) 
- 
+  
   return(modelData3)
 }
 
