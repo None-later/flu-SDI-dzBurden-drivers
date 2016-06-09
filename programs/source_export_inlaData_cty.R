@@ -10,7 +10,7 @@
 ## install.packages("pkg", dependencies=TRUE, lib="/usr/local/lib/R/site-library") # in sudo R
 ## update.packages(lib.loc = "/usr/local/lib/R/site-library")
 
-require(RColorBrewer); require(ggplot2); require(ggcounty)
+require(RColorBrewer); require(ggplot2); require(ggcounty); require(scales)
 
 #### functions for diagnostic plots  ################################
 
@@ -27,7 +27,7 @@ plot_countyChoro <- function(exportPath, pltDat, pltVarTxt, code){
   if (code == 'tier'){
     # process data for tiers
     pltDat <- pltDat %>% rename_(pltVar = pltVarTxt) %>%
-      mutate(pltVarBin = cut(pltVar, breaks = quantile(pltVar, probs = seq(0, 1, by = 1/5), na.rm=T), ordered_result = TRUE, include.lowest = TRUE)) %>%
+      mutate(pltVarBin = cut(pltVar, breaks = pretty_breaks(n = 5, min.n = 3)(pltVar), ordered_result = TRUE, include.lowest = TRUE)) %>%
       mutate(pltVarBin = factor(pltVarBin, levels = rev(levels(pltVarBin))))
     
     choro <- gg +

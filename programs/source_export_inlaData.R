@@ -128,7 +128,7 @@ export_summaryStats_transformed <- function(exportPath, summListOutput, fxNames,
   print(match.call())
   
   # table formatting: assuming fixed, spatial, state ID, and region ID exist
-  summ.fx.transf <- as.data.frame(matrix(unlist(summListOutput), byrow = T, ncol = 7))
+  summ.fx.transf <- as.data.frame(do.call(rbind, summListOutput))
   names(summ.fx.transf) <- c("mean", "sd", "q_025", "q_25", "q_5", "q_75", "q_975")
   RV <- c(fxNames, paste0(rdmFxTxt, 1:nrow(summListOutput[[2]])), paste0('stID', 1:nrow(summListOutput[[3]])), paste0('regID', 1:nrow(summListOutput[[4]]))) # number of random effects (spatial, state, region)
   effectType <- c(rep("fixed", length(fxNames)), rep("spatial", nrow(summListOutput[[2]])), rep("stID", nrow(summListOutput[[3]])), rep("regID", nrow(summListOutput[[4]])))
