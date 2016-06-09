@@ -21,8 +21,8 @@ require(RColorBrewer); require(ggplot2) # export_inlaData_st dependencies
 
 #### set these! ################################
 dbCodeStr <- "_ilinDt_Octfit_span0.4_degree2"
-modCodeStr <- "5a_iliSum_v1-1"; testDataOn <- FALSE
-seasons <- 2:9
+modCodeStr <- "5a_iliSum_v1-2"; testDataOn <- FALSE
+seasons <- 2:4
 rdmFx_RV <- "nu"
 inverseLink <- function(x){exp(x)}
 dig <- 4 # number of digits in the number of elements at this spatial scale (~3000 counties -> 4 digits)
@@ -92,7 +92,7 @@ for (s in seasons){
   modData_full <- combine_shapefile_modelData_cty(path_list, modData, s)
   mod <- inla(formula, family = "gaussian", data = modData_full, 
               control.family = list(link = "log"),
-              control.fixed = list(mean = 0, prec = 1/100, mean.intercept = 0, prec.intercept = 1/100), # set prior parameters for regression coefficients and intercepts
+              control.fixed = list(mean = 1, prec = 1/100, mean.intercept = 0, prec.intercept = 1/100), # set prior parameters for regression coefficients and intercepts
               control.predictor = list(compute = TRUE), # compute summary statistics on fitted values
               control.compute = list(dic = TRUE, cpo = TRUE),
               verbose = TRUE,
@@ -126,10 +126,10 @@ for (s in seasons){
   marg.rdm.regID.transf <- lapply(mod$marginals.random$regionID, function(x) inla.tmarginal(inverseLink, x))
   
   # fixed and random effect summary statistics
-  summ.fx.transf <- matrix(unlist(lapply(marg.fx.transf, function(x) inla.zmarginal(x, silent = TRUE))), ncol = 7, byrow = T)
-  summ.rdm.ID.transf <- matrix(unlist(lapply(marg.rdm.ID.transf, function(x) inla.zmarginal(x, silent = TRUE))), ncol = 7, byrow = T)
-  summ.rdm.stID.transf <- matrix(unlist(lapply(marg.rdm.stID.transf, function(x) inla.zmarginal(x, silent = TRUE))), ncol = 7, byrow = T)
-  summ.rdm.regID.transf <- matrix(unlist(lapply(marg.rdm.regID.transf, function(x) inla.zmarginal(x, silent = TRUE))), ncol = 7, byrow = T)
+  summ.fx.transf <- matrix(unlist(lapply(marg.fx.transf, function(x) inla.zmarginal(x, silent = TRUE))), ncol = 7, byrow = TRUE)
+  summ.rdm.ID.transf <- matrix(unlist(lapply(marg.rdm.ID.transf, function(x) inla.zmarginal(x, silent = TRUE))), ncol = 7, byrow = TRUE)
+  summ.rdm.stID.transf <- matrix(unlist(lapply(marg.rdm.stID.transf, function(x) inla.zmarginal(x, silent = TRUE))), ncol = 7, byrow = TRUE)
+  summ.rdm.regID.transf <- matrix(unlist(lapply(marg.rdm.regID.transf, function(x) inla.zmarginal(x, silent = TRUE))), ncol = 7, byrow = TRUE)
   
   # combine to single list object
   summ.stats <- list(summ.fx.transf = summ.fx.transf, summ.rdm.ID.transf = summ.rdm.ID.transf, summ.rdm.stID.transf = summ.rdm.stID.transf, summ.rdm.regID.transf = summ.rdm.regID.transf)
