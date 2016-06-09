@@ -73,10 +73,10 @@ importPlot_coefDistr_season <- function(path_csvExport, path_plotExport_coefDist
   # grab list of files names
   setwd(path_csvExport)
   readfile_list <- grep("summaryStats_", list.files(), value = TRUE)
-  coefDf <- tbl_df(data.frame(modCodeStr = c(), dbCodeStr = c(), season = c(), RV = c(), mean = c(), sd = c(), q_025 = c(), q_5 = c(), q_975 = c(), mode = c()))
+  coefDf <- tbl_df(data.frame(modCodeStr = c(), dbCodeStr = c(), season = c(), RV = c(), mean = c(), sd = c(), q_025 = c(), q_25 = c(), q_5 = c(), q_75 = c(), q_975 = c()))
 
   for (infile in readfile_list){
-    seasFile <- read_csv(infile, col_types = "cci_ccdddddd_")
+    seasFile <- read_csv(infile, col_types = "cci_ccddddddd")
     coefDf <- bind_rows(coefDf, seasFile)
   }
   
@@ -115,8 +115,7 @@ plot_coefDistr_season <- function(plotDat, path_plotExport_coefDistr, plotFilena
     geom_hline(yintercept = 1) +
     facet_wrap(~RV, scales = "free_y") +
     ylab("coefMode (95%CI)") +
-    xlim(c(1, 10)) +
-    ylim(c(0, 2))
+    xlim(c(1, 10)) 
   ggsave(paste0(path_plotExport_coefDistr, plotFilename), plotOutput, height = h, width = w, dpi = dp)
   
 }

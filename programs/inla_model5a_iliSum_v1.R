@@ -22,7 +22,7 @@ require(RColorBrewer); require(ggplot2) # export_inlaData_st dependencies
 #### set these! ################################
 dbCodeStr <- "_ilinDt_Octfit_span0.4_degree2"
 modCodeStr <- "5a_iliSum_v1-2"; testDataOn <- FALSE
-seasons <- 2:4
+seasons <- 5:9
 rdmFx_RV <- "nu"
 inverseLink <- function(x){exp(x)}
 dig <- 4 # number of digits in the number of elements at this spatial scale (~3000 counties -> 4 digits)
