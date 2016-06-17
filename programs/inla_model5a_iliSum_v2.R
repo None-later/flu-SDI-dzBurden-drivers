@@ -75,7 +75,6 @@ setwd(dirname(sys.frame(1)$ofile))
 dir.create(sprintf("../graph_outputs/inlaModelDiagnostics/%s", modCodeStr), showWarnings = FALSE)
 setwd(sprintf("../graph_outputs/inlaModelDiagnostics/%s", modCodeStr))
 path_plotExport <- getwd()
-path_plotExport_coefDistr <- paste0(path_plotExport, sprintf("/coefDistr_%s_", modCodeStr))
 
 # diagnostic plot formatting
 labVec <- paste("Tier", 1:5)
@@ -183,10 +182,6 @@ for (s in seasons){
   plot_countyChoro(path_plotExport_resid, plotDat, "yhat_resid", "tier")
   
 }
-# 
-# #### Across seasons ####
-# # coef distributions by season, run only if all seasons are completed
-# importPlot_coefDistr_season(path_csvExport, path_plotExport_coefDistr)
 
 # #### export model data ###
 # setwd(dirname(sys.frame(1)$ofile))
