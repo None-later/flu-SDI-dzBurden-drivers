@@ -122,6 +122,19 @@ plot_coefDistr_season <- function(plotDat, path_plotExport_coefDistr, plotFilena
 
 #### functions for data export  ################################
 
+export_ids <- function(exportPath, modDataFullOutput){
+  # export random and state/region group effect ids with true identities, as a key
+  print(match.call())
+  
+  ids <- modDataFullOutput %>% 
+    select(season, fips, GEO_ID, county, ID, st, stateID, regionID)
+  
+  # export data to file
+  write_csv(ids, exportPath)
+  
+}
+################################
+
 export_summaryStats_transformed <- function(exportPath, summListOutput, fxNames, rdmFxTxt, modCodeString, dbCodeString, season){
   # export summary statistics of INLA model output -- fixed and random effects in the same file
   print(match.call())

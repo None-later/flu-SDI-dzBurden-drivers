@@ -31,7 +31,7 @@ plot_countyChoro <- function(exportPath, pltDat, pltVarTxt, code){
       mutate(pltVarBin = factor(pltVarBin, levels = rev(levels(pltVarBin))))
     
     choro <- gg +
-      geom_map(data = pltDat, aes(map_id = fips, fill = pltVarBin), map = us$map, color = "black") +
+      geom_map(data = pltDat, aes(map_id = fips, fill = pltVarBin), map = us$map, color = "grey50") +
       scale_fill_brewer(palette = "RdYlGn") +
       expand_limits(x = gg$long, y = gg$lat) +
       theme_minimal() +
@@ -44,7 +44,7 @@ plot_countyChoro <- function(exportPath, pltDat, pltVarTxt, code){
     pltDat <- pltDat %>% rename_(pltVar = pltVarTxt)
     
     choro <- gg +
-      geom_map(data = pltDat, aes(map_id = fips, fill = pltVar), map = us$map, color = "black") +
+      geom_map(data = pltDat, aes(map_id = fips, fill = pltVar), map = us$map, color = "grey50") +
       scale_fill_continuous(low = "#f0fff0", high = "#006400") +
       expand_limits(x = gg$long, y = gg$lat) +
       theme_minimal() +

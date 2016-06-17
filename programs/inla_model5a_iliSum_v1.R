@@ -21,8 +21,8 @@ require(RColorBrewer); require(ggplot2) # export_inlaData_st dependencies
 
 #### set these! ################################
 dbCodeStr <- "_ilinDt_Octfit_span0.4_degree2"
-modCodeStr <- "5a_iliSum_v1-2"; testDataOn <- FALSE
-seasons <- 5:9
+modCodeStr <- "5a_iliSum_v1testing3"; testDataOn <- TRUE
+seasons <- 2:2
 rdmFx_RV <- "nu"
 inverseLink <- function(x){exp(x)}
 dig <- 4 # number of digits in the number of elements at this spatial scale (~3000 counties -> 4 digits)
@@ -65,7 +65,7 @@ if (testDataOn){
 #### Import and process data ####
   modData <- model5a_iliSum_v1(path_list) # with driver & sampling effort variables
   #### Model 5a v1: County-level, after variable selection, one model per season ####
-  formula <- y ~ 1 + f(ID, model = "iid") + f(stateID, model = "iid") + f(regionID, model = "iid") + O_imscoverage + O_careseek + O_insured + X_poverty + X_child + X_adult + X_hospaccess + X_popdensity + X_commute + X_flight + X_H3 + X_humidity
+  formula <- y ~ 1 + f(ID, model = "iid") + f(stateID, model = "iid") + f(regionID, model = "iid") + O_imscoverage + O_careseek + O_insured + X_poverty + X_child + X_adult + X_hospaccess + X_popdensity + X_commute + X_flight + X_vaxcovI + X_vaxcovE + X_H3 + X_humidity
 }
 
 
@@ -107,6 +107,7 @@ for (s in seasons){
   path_plotExport_predDBRatio <- paste0(path_plotExport, sprintf("/choro_dbRatio_%s_S%s.png", modCodeStr, s))
   path_plotExport_resid <- paste0(path_plotExport, sprintf("/choro_yResid_%s_S%s.png", modCodeStr, s))
   
+  path_csvExport_ids <- paste0(path_csvExport, sprintf("/ids_%s_S%s.csv", modCodeStr, s))
   path_csvExport_summaryStats <- paste0(path_csvExport, sprintf("/summaryStats_%s_S%s.csv", modCodeStr, s))
   path_csvExport_summaryStatsFitted <- paste0(path_csvExport, sprintf("/summaryStatsFitted_%s_S%s.csv", modCodeStr, s))
   path_csvExport_dic <- paste0(path_csvExport, sprintf("/modFit_%s_S%s.csv", modCodeStr, s)) # renamed from dic_%s
@@ -139,6 +140,9 @@ for (s in seasons){
   residDf <- data.frame(y = modData_full$y, residVec = (modData_full$y - mod$summary.fitted.values$mean)/mod$summary.fitted.values$sd)
   
   #### write summary statistics ################################
+  #### random and group effect identities ####
+  export_ids(path_csvExport_ids, modData_full)
+  
   #### fixed and random effects ####
   export_summaryStats_transformed(path_csvExport_summaryStats, summ.stats, fxnames, rdmFx_RV, modCodeStr, dbCodeStr, s) # assuming fixed, spatial, state ID, and region ID exist
 
@@ -148,12 +152,11 @@ for (s in seasons){
   
   #### dic ####
   export_DIC(path_csvExport_dic, dicData) # dic & cpo exported by season
-  
+
+  #### INLA diagnostic plots ################################
   #### create full dataset for plotting ####
   plotDat <- left_join(modData_full, fittedDat, by = "ID") %>%
     mutate(dbRatio = yhat_mode/E) 
-
-  #### INLA diagnostic plots ################################
   
   #### plot a sample of posterior outputs ####
   # first 6 random effects (nu or phi) marginal posteriors (transformed)

@@ -107,6 +107,7 @@ for (s in seasons){
   path_plotExport_predDBRatio <- paste0(path_plotExport, sprintf("/choro_dbRatio_%s_S%s.png", modCodeStr, s))
   path_plotExport_resid <- paste0(path_plotExport, sprintf("/choro_yResid_%s_S%s.png", modCodeStr, s))
   
+  path_csvExport_ids <- paste0(path_csvExport, sprintf("/ids_%s_S%s.csv", modCodeStr, s))
   path_csvExport_summaryStats <- paste0(path_csvExport, sprintf("/summaryStats_%s_S%s.csv", modCodeStr, s))
   path_csvExport_summaryStatsFitted <- paste0(path_csvExport, sprintf("/summaryStatsFitted_%s_S%s.csv", modCodeStr, s))
   path_csvExport_dic <- paste0(path_csvExport, sprintf("/modFit_%s_S%s.csv", modCodeStr, s)) # renamed from dic_%s
@@ -139,6 +140,9 @@ for (s in seasons){
   residDf <- data.frame(y = modData_full$y, residVec = (modData_full$y - mod$summary.fitted.values$mean)/mod$summary.fitted.values$sd)
   
   #### write summary statistics ################################
+  #### random and group effect identities ####
+  export_ids(path_csvExport_ids, modData_full)
+  
   #### fixed and random effects ####
 #   export_summaryStats_transformed(path_csvExport_summaryStats, summ.stats, fxnames, rdmFx_RV, modCodeStr, dbCodeStr, s) # assuming fixed, spatial, state ID, and region ID exist
 
@@ -148,12 +152,11 @@ for (s in seasons){
   
   #### dic ####
   export_DIC(path_csvExport_dic, dicData) # dic & cpo exported by season
-  
+
+  #### INLA diagnostic plots ################################
   #### create full dataset for plotting ####
   plotDat <- left_join(modData_full, fittedDat, by = "ID") %>%
     mutate(dbRatio = yhat_mode/E) 
-
-  #### INLA diagnostic plots ################################
   
   #### plot a sample of posterior outputs ####
 #   # first 6 random effects (nu or phi) marginal posteriors (transformed)
