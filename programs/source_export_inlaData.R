@@ -12,7 +12,7 @@
 
 require(RColorBrewer); require(ggplot2)
 
-#### functions for diagnostic plots  ################################
+#### functions for results plots by model  ################################
 
 ################################
 plot_rdmFx_marginalsSample<- function(path_plotExport_rdmFxSample, marginalsRandomID, rdmFx_RV){
@@ -58,12 +58,16 @@ plot_fit_diagnostics <- function(path_plotExport_diagnostics, fitOutput, modelOu
   
   png(path_plotExport_diagnostics, width = w, height = h, units = "in", res = dp)
   par(mfrow = c(1, 2))
-  plot(fitOutput$mn, fitOutput$yhat_resid, xlim = c(floor(min(fitOutput$mn[which(!is.na(fitOutput$yhat_resid))])), ceiling(max(fitOutput$mn[which(!is.na(fitOutput$yhat_resid))]))), xlab = "Fitted value mean (yhat)", ylab = "Residuals")
+  plot(fitOutput$yhat_mn, fitOutput$yhat_resid, xlim = c(floor(min(fitOutput$yhat_mn[which(!is.na(fitOutput$yhat_resid))])), ceiling(max(fitOutput$yhat_mn[which(!is.na(fitOutput$yhat_resid))]))), xlab = "Fitted value mean (yhat)", ylab = "Residuals")
   abline(h = 0)
   hist(modelOutput$cpo$pit, breaks = 10, main = "", xlab = "Probability integral transform (PIT)")
   dev.off()
   
 }
+
+
+#### functions for results plots by modcode  ################################
+
 ################################
 
 importPlot_coefDistr_season <- function(path_csvExport, path_plotExport_coefDistr){
@@ -79,7 +83,7 @@ importPlot_coefDistr_season <- function(path_csvExport, path_plotExport_coefDist
     seasFile <- read_csv(infile, col_types = "cci_ccddddddd")
     coefDf <- bind_rows(coefDf, seasFile)
   }
-  
+
   # plot fixed effects
   fxDat <- coefDf %>% filter(effectType == 'fixed') 
   plot_coefDistr_season(fxDat, path_plotExport_coefDistr, 'fixed.png')
@@ -99,7 +103,6 @@ importPlot_coefDistr_season <- function(path_csvExport, path_plotExport_coefDist
   regIdDat <- coefDf %>% filter(effectType == 'regID') %>% mutate(RV = factor(RV, levels = regIds))
   plot_coefDistr_season(regIdDat, path_plotExport_coefDistr, 'regionID.png')
 }
-
 ################################
 
 plot_coefDistr_season <- function(plotDat, path_plotExport_coefDistr, plotFilename){
@@ -114,13 +117,16 @@ plot_coefDistr_season <- function(plotDat, path_plotExport_coefDistr, plotFilena
     geom_pointrange(aes(ymin = q_025, ymax = q_975)) +
     geom_hline(yintercept = 1) +
     facet_wrap(~RV, scales = "free_y") +
-    ylab("coefMode (95%CI)") +
+    ylab("coefMedian (95%CI)") +
     xlim(c(1, 10)) 
   ggsave(paste0(path_plotExport_coefDistr, plotFilename), plotOutput, height = h, width = w, dpi = dp)
   
 }
 
+
 #### functions for data export  ################################
+
+################################
 
 export_ids <- function(exportPath, modDataFullOutput){
   # export random and state/region group effect ids with true identities, as a key
@@ -206,16 +212,15 @@ export_summaryStats_fitted <- function(exportPath, modelOutput, residualsDf, mod
   print(match.call())
   
   # variable name output from INLA
-  names(modelOutput$summary.fitted.values) <- c("mn", "sd", "q_025", "q_5", "q_975", "mode")
+  names(modelOutput$summary.fitted.values) <- c("yhat_mn", "yhat_sd", "q_025", "q_5", "q_975", "yhat_mode")
   # county scale: substr.Right by 4; state scale: substr.Right by 2
   idvar <- paste0("yhat", as.character(as.numeric(substr.Right(rownames(modelOutput$summary.fitted.values), digits))))
   
   # clean summary statistics output for fitted values (yhat)
   summaryFitted_save <- tbl_df(modelOutput$summary.fitted.values) %>%
     mutate(modCodeStr = modCodeString, dbCodeStr = dbCodeString, season = season, exportDate = as.character(Sys.Date()), ID = idvar) %>%
-    select(modCodeStr, dbCodeStr, season, exportDate, ID, mn, sd, q_025, q_5, q_975, mode) %>%
-    mutate(y = residualsDf$y, yhat_resid = residualsDf$residVec) %>%
-    mutate(yhat_mn = mn, yhat_sd = sd, yhat_mode = mode) 
+    select(modCodeStr, dbCodeStr, season, exportDate, ID, yhat_mn, yhat_sd, q_025, q_5, q_975, yhat_mode) %>%
+    mutate(y = residualsDf$y, yhat_resid = residualsDf$residVec) 
   
   summaryFitted_obj <- summaryFitted_save %>%
     mutate(ID = as.numeric(substring(ID, 5, nchar(ID))))
