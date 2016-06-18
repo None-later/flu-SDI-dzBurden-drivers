@@ -57,8 +57,8 @@ plot_diag_predVsObs <- function(path_csvExport, path_plotExport_predVsObs){
 }
 ################################ 
 
-plot_diag_predVsRaw <- function(path_csvExport, path_plotExport_predVsRaw, filepathList){
-  # plot yhat vs raw ili counts & calculate corr coef for each season
+importPlot_diag_predVsRaw <- function(path_csvExport, path_plotExport_predVsRaw, filepathList){
+  # import data and plot yhat vs raw ili counts & calculate corr coef for each season
   print(match.call())
   
   # grab list of files names for yhat & yhatID-fips crosswalk
@@ -85,30 +85,44 @@ plot_diag_predVsRaw <- function(path_csvExport, path_plotExport_predVsRaw, filep
     mutate(ID = as.numeric(substring(ID, 5, nchar(ID)))) %>%
     left_join(idDat, by = c("season", "ID"))
   
-  # import county ili case data
+  # import county ili case data & create ili rate
   plotDat <- clean_rawILI_cty(filepathList) %>%
-    full_join(yhatDat2, by = c("fips", "season"))
+    full_join(yhatDat2, by = c("fips", "season")) %>%
+    mutate(iliPer10K = ili/pop*10000)
+  
+  plot_diag_predVsRaw(plotDat, path_plotExport_predVsRaw, "ili")
+  plot_diag_predVsRaw(plotDat, path_plotExport_predVsRaw, "iliPer10K")
+  
+}
+################################ 
+
+plot_diag_predVsRaw <- function(plotDat, path_plotExport_predVsRaw, var){
+  # plot yhat vs raw ili counts or ili per pop & calculate corr coef for each season
+  print(match.call())
   
   # calculate spearman's rho correlations
   corrDat <- plotDat %>% 
+    rename_(varInterest = eval(var)) %>%
     group_by(season) %>%
-    summarise(rho = cor(ili, q_5, method = "spearman", use = 'complete.obs')) %>%
+    summarise(rho = cor(varInterest, q_5, method = "spearman", use = 'complete.obs')) %>%
     mutate(facetlabel = paste(sprintf("S%s rho", season), round(rho, 3))) %>%
     select(season, facetlabel)
   
   # create new dataset with corr coef in label
-  plotDat2 <- left_join(plotDat, corrDat, by = 'season') 
+  plotDat2 <- left_join(plotDat, corrDat, by = 'season') %>%
+    rename_(varInterest = eval(var))
+  View(head(plotDat2))
   
   # plot formatting
   w <- 8; h <- 8; dp <- 250
   
   # scatterplot: predicted vs ILI counts (covnerted to county)
-  plotOutput <- ggplot(plotDat2, aes(x = ili, y = q_5, group = facetlabel)) +
+  plotOutput <- ggplot(plotDat2, aes(x = varInterest, y = q_5, group = facetlabel)) +
     geom_pointrange(aes(ymin = q_025, ymax = q_975)) +
     facet_wrap(~facetlabel, scales = "free") +
     ylab("yhatMedian (95%CI)") +
-    xlab("ILI counts") 
-  ggsave(path_plotExport_predVsRaw, plotOutput, height = h, width = w, dpi = dp)
+    xlab(var) 
+  ggsave(paste0(path_plotExport_predVsRaw, var, ".png"), plotOutput, height = h, width = w, dpi = dp)
   
 }
 
@@ -131,7 +145,7 @@ clean_rawILI_zip3 <- function(){
   dbDisconnect(con)
   
   output <- tbl_df(dummy) %>%
-    mutate(season = ifelse(month(week) <= 4, as.integer(substring(week, 3, 4)), as.integer(substring(week, 3, 4)) + 1)) %>%
+    mutate(season = ifelse(as.numeric(substring(week, 6, 7)) <= 4, as.integer(substring(week, 3, 4)), as.integer(substring(week, 3, 4)) + 1)) %>%
     group_by(season, zip3) %>%
     summarise(ili = sum(ili, na.rm=TRUE))
   
