@@ -74,10 +74,10 @@ plot(cty.statesonly)
 # examine the 3 regions with no links
 nolinks <- which(card(test3)==0) # 1193 1843 2943
 remaining_nolinks <- cty.shp[nolinks,]
-remaining_nolinks@data # York County ME, Niagara County NY, Poquoson city VA
+remaining_nolinks@data # Nantucket County MA (25019), Richmond County NY (36085), San Juan County (53055)
 plot(remaining_nolinks)
 
-# It seems that these regions should have neighbors. Check neighbors of some known counties
+# It seems that some of these regions should have neighbors. Check neighbors of some known counties
 dc <- which(cty.statesonly@data$STATE == '11')
 nb.dc <- test3[[dc]] # dc neighbor map ids
 cty.statesonly[nb.dc,]@data
