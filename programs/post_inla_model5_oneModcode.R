@@ -46,13 +46,13 @@ path_csvExport <- getwd()
 
 #### results across seasons #################################
 # coef distributions by season
-# importPlot_coefDistr_season(path_csvExport, path_plotExport_coefDistr)
+importPlot_coefDistr_season(path_csvExport, path_plotExport_coefDistr)
 
 #### diagnostics across seasons #################################
 
 ### model validity ###
 # predicted vs. observed data
-# plot_diag_predVsObs(path_csvExport, path_plotExport_predVsObs)
+plot_diag_predVsObs(path_csvExport, path_plotExport_predVsObs)
 # predicted vs. raw ili count data
 importPlot_diag_predVsRaw(path_csvExport, path_plotExport_predVsRaw, path_list)
 
