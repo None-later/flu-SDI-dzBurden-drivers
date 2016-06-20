@@ -21,8 +21,8 @@ require(RColorBrewer); require(ggplot2) # export_inlaData_st dependencies
 
 #### set these! ################################
 dbCodeStr <- "_ilinDt_Octfit_span0.4_degree2"
-modCodeStr <- "5a_iliSum_v2testing"; testDataOn <- TRUE
-seasons <- 2:4
+modCodeStr <- "5a_iliSum_v2testing4"; testDataOn <- TRUE
+seasons <- 7:7
 rdmFx_RV <- "phi"
 inverseLink <- function(x){exp(x)}
 dig <- 4 # number of digits in the number of elements at this spatial scale (~3000 counties -> 4 digits)
@@ -65,7 +65,7 @@ if (testDataOn){
 #### Import and process data ####
   modData <- model5a_iliSum_v1(path_list) # with driver & sampling effort variables
   #### Model 5a v1: County-level, after variable selection, one model per season ####
-  formula <- y ~ 1 + f(ID, model = "besag", graph = path_adjMxExport_cty) + f(stateID, model = "iid") + f(regionID, model = "iid") + O_imscoverage + O_careseek + O_insured + X_poverty + X_child + X_adult + X_hospaccess + X_popdensity + X_commute + X_flight + X_H3 + X_humidity
+  formula <- y ~ 1 + f(ID, model = "besag", graph = path_adjMxExport_cty) + f(stateID, model = "iid") + f(regionID, model = "iid") + O_imscoverage + O_careseek + O_insured + X_poverty + X_child + X_adult + X_hospaccess + X_popdensity + X_commute + X_flight + X_vaxcovI + X_vaxcovE + X_H3 + X_humidity
 }
 
 
@@ -121,18 +121,18 @@ for (s in seasons){
   # fixed and random effect marginals
   marg.fx.transf <- lapply(mod$marginals.fixed, function(x) inla.tmarginal(inverseLink, x))
   names(marg.fx.transf) <- ifelse(names(marg.fx.transf) == '(Intercept)', 'Intercept', names(marg.fx.transf))
-  # marg.rdm.ID.transf <- lapply(mod$marginals.random$ID, function(x) inla.tmarginal(inverseLink, x))
+  marg.rdm.ID.transf <- lapply(mod$marginals.random$ID, function(x) inla.tmarginal(inverseLink, x))
   marg.rdm.stID.transf <- lapply(mod$marginals.random$stateID, function(x) inla.tmarginal(inverseLink, x))
   marg.rdm.regID.transf <- lapply(mod$marginals.random$regionID, function(x) inla.tmarginal(inverseLink, x))
   
   # fixed and random effect summary statistics
   summ.fx.transf <- matrix(unlist(lapply(marg.fx.transf, function(x) inla.zmarginal(x, silent = TRUE))), ncol = 7, byrow = T)
-  # summ.rdm.ID.transf <- matrix(unlist(lapply(marg.rdm.ID.transf, function(x) inla.zmarginal(x, silent = TRUE))), ncol = 7, byrow = T)
+  summ.rdm.ID.transf <- matrix(unlist(lapply(marg.rdm.ID.transf, function(x) inla.zmarginal(x, silent = TRUE))), ncol = 7, byrow = T)
   summ.rdm.stID.transf <- matrix(unlist(lapply(marg.rdm.stID.transf, function(x) inla.zmarginal(x, silent = TRUE))), ncol = 7, byrow = T)
   summ.rdm.regID.transf <- matrix(unlist(lapply(marg.rdm.regID.transf, function(x) inla.zmarginal(x, silent = TRUE))), ncol = 7, byrow = T)
   
   # combine to single list object
-  # summ.stats <- list(summ.fx.transf = summ.fx.transf, summ.rdm.ID.transf = summ.rdm.ID.transf, summ.rdm.stID.transf = summ.rdm.stID.transf, summ.rdm.regID.transf = summ.rdm.regID.transf)
+  summ.stats <- list(summ.fx.transf = summ.fx.transf, summ.rdm.ID.transf = summ.rdm.ID.transf, summ.rdm.stID.transf = summ.rdm.stID.transf, summ.rdm.regID.transf = summ.rdm.regID.transf)
   fxnames <- names(marg.fx.transf)
   
   #### calculate residuals ####
@@ -143,7 +143,7 @@ for (s in seasons){
   export_ids(path_csvExport_ids, modData_full)
   
   #### fixed and random effects ####
-#   export_summaryStats_transformed(path_csvExport_summaryStats, summ.stats, fxnames, rdmFx_RV, modCodeStr, dbCodeStr, s) # assuming fixed, spatial, state ID, and region ID exist
+  export_summaryStats_transformed(path_csvExport_summaryStats, summ.stats, fxnames, rdmFx_RV, modCodeStr, dbCodeStr, s) # assuming fixed, spatial, state ID, and region ID exist
 
   #### fitted values and residuals ####
   fittedDat <- export_summaryStats_fitted(path_csvExport_summaryStatsFitted, mod, residDf, modCodeStr, dbCodeStr, s, dig)  %>%
@@ -159,7 +159,7 @@ for (s in seasons){
   
   #### plot a sample of posterior outputs ####
 #   # first 6 random effects (nu or phi) marginal posteriors (transformed)
-#   plot_rdmFx_marginalsSample(path_plotExport_rdmFxSample, marg.rdm.ID.transf, rdmFx_RV)
+  plot_rdmFx_marginalsSample(path_plotExport_rdmFxSample, marg.rdm.ID.transf, rdmFx_RV)
   
   # fixed effects marginal posteriors
   plot_fixedFx_marginals(path_plotExport_fixedFxMarginals, marg.fx.transf, modCodeStr, s)
