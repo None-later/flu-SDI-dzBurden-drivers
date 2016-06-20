@@ -44,7 +44,7 @@ testing_module <- function(filepathList){
     mutate(X_H3 = centerStandardize(H3)) %>%
     ungroup %>%
     filter(fips_st %in% continentalOnly) %>% # include data for continental states only
-    select(-fips_st, -adjProviderCoverage, -visitsPerProvider, -poverty) %>%
+    select(-fips_st, -adjProviderCoverage, -visitsPerProvider, -poverty, -H3) %>%
     filter(season %in% 2:9)
   
   return(full_df)
@@ -125,7 +125,7 @@ model5a_iliSum_v1 <- function(filepathList){
 
 #### functions for shapefile manipulation ################################
 read_shapefile_cty <- function(filepathList){
-  # read county shapefile, export county adjacency matrix to file
+  # read & clean county shapefile
   print(match.call())
   print(filepathList)
   
@@ -136,12 +136,11 @@ read_shapefile_cty <- function(filepathList){
   cty.poly.full <- readShapePoly(filepathList$path_shape_cty) 
   # restrict shapefile to only US states
   cty.poly.states <- cty.poly.full[cty.poly.full@data$STATE %in% continentalOnly,]
-  # converts polygon data to adjacency matrix
-  cty.adjM.export <- poly2nb(cty.poly.states) 
-  # exports county adjacency matrix to file
-  nb2INLA(filepathList$path_adjMxExport_cty, cty.adjM.export) 
+  # 6/20/16: remove GEO_IDs for Nantucket County MA (25019) & San Juan County (53055), which have no neighbors, from shapefile
+  rmIDs <- c("0500000US25019", "0500000US53055") 
+  cty.poly.states2 <- cty.poly.states[!(cty.poly.states@data$GEO_ID %in% rmIDs),]
   
-  return(cty.poly.states)
+  return(cty.poly.states2)
 }
 ################################
 
