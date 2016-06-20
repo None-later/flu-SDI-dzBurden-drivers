@@ -43,7 +43,7 @@ plot_fixedFx_marginals <- function(exportPath, marginalsFixed, modCodeStr, s){
     png(exportPath_full, width = w, height = h, units = "in", res = dp)
     par(mfrow = c(1, 1))
     plot(marginalsFixed[[i]], xlab = paste0(names_fixedFx[i], sprintf(", S%s", s)), 
-         xlim = c(-3, 3), ylab = "density")
+         xlim = c(0, 6), ylab = "density")
     dev.off()
   }
   
