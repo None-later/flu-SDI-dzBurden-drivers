@@ -21,8 +21,8 @@ require(RColorBrewer); require(ggplot2) # export_inlaData_st dependencies
 
 #### set these! ################################
 dbCodeStr <- "_ilinDt_Octfit_span0.4_degree2"
-modCodeStr <- "5a_iliSum_v2testing4"; testDataOn <- TRUE
-seasons <- 7:7
+modCodeStr <- "5a_iliSum_v2-1"; testDataOn <- FALSE
+seasons <- 2:9
 rdmFx_RV <- "phi"
 inverseLink <- function(x){exp(x)}
 dig <- 4 # number of digits in the number of elements at this spatial scale (~3000 counties -> 4 digits)
@@ -91,7 +91,7 @@ for (s in seasons){
   modData_full <- combine_shapefile_modelData_cty(path_list, modData, s)
   mod <- inla(formula, family = "gaussian", data = modData_full, 
               control.family = list(link = "log"),
-              control.fixed = list(mean = 0, prec = 1/100, mean.intercept = 1, prec.intercept = 1/100), # set prior parameters for regression coefficients and intercepts
+              control.fixed = list(mean = 1, prec = 1/100, mean.intercept = 0, prec.intercept = 1/100), # set prior parameters for regression coefficients and intercepts
               control.predictor = list(compute = TRUE), # compute summary statistics on fitted values
               control.compute = list(dic = TRUE, cpo = TRUE),
               verbose = TRUE,
