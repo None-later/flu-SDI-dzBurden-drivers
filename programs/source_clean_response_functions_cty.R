@@ -44,6 +44,39 @@ cleanR_iliSum_cty <- function(filepathList){
     mutate(logy = ifelse(y == 0, log(1E-2), log(y)), logE = log(E)) # 6/1/16 log(1E-2) so no -Inf burden (need to do sensitivity on this) # 6/8/16: y == 0 condition replaces has.epi condition
   return(return_data)
 }
+##########################################
+
+cleanR_iliPeak_cty <- function(filepathList){
+  # clean response variable: ilinDt.peak
+  print(match.call())
+  
+  # spatial crosswalk: fips, zip3, proportion (of overlap in zip3 & fips population)
+  cw <- cw_zip3_cty() 
+  # pop data: fips, county, st, season, year, pop, lat lon
+  pop_data <- clean_pop_cty(filepathList)
+  
+  # grab disease burden metric (e.g., ilinDt): match "ili" 1+ times
+  dbCode <- grep("ili+", strsplit(filepathList$path_response_zip3, "_")[[1]], value=T)
+  # clean burden data
+  iliPeak_data <- read_csv(filepathList$path_response_zip3, col_types = "icllcd") %>%
+    filter(metric == sprintf("%s.peak", dbCode)) %>%
+    select(-metric) %>%
+    rename(y = burden) %>%
+    full_join(cw, by = "zip3") %>% 
+    group_by(fips, season) %>%
+    summarise(has.epi = sum(has.epi), zOverlaps = length(zip3), y = weighted.mean(y, proportion, na.rm = TRUE)) %>%
+    mutate(has.epi = ifelse(has.epi > 0, TRUE, FALSE))
+  
+  # merge final data
+  return_data <- full_join(iliPeak_data, pop_data, by = c("season", "fips")) %>%
+    select(fips, county, st, stateID, lat, lon, season, year, pop, y, has.epi, zOverlaps) %>%
+    group_by(season) %>%
+    mutate(E = weighted.mean(y, pop, na.rm = TRUE)) %>%
+    ungroup %>%
+    filter(season != 1) %>%
+    mutate(logy = ifelse(y == 0, log(1E-2), log(y)), logE = log(E)) # 6/1/16 log(1E-2) so no -Inf burden (need to do sensitivity on this) # 6/8/16: y == 0 condition replaces has.epi condition
+  return(return_data)
+}
 
 ##### SAMPLING EFFORT DATA ##########################################
 cleanO_imsCoverage_cty <- function(){
