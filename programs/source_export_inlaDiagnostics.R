@@ -111,8 +111,7 @@ plot_diag_predVsRaw <- function(plotDat, path_plotExport_predVsRaw, var){
   # create new dataset with corr coef in label
   plotDat2 <- left_join(plotDat, corrDat, by = 'season') %>%
     rename_(varInterest = eval(var))
-  View(head(plotDat2))
-  
+
   # plot formatting
   w <- 8; h <- 8; dp <- 250
   
