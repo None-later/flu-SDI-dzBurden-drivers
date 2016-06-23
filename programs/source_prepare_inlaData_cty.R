@@ -72,8 +72,8 @@ model5a_iliSum_v1 <- function(filepathList){
   btsPass_cty_df <- cleanX_btsPassInflows_cty()
   narrSpecHum_cty_df <- cleanX_noaanarrSpecHum_cty()
   # all state tables 
-  infantAnyVax_st_df <- cleanX_nisInfantAnyVaxCov_st() %>% rename(st = location)
-  elderlyAnyVax_st_df <- cleanX_brfssElderlyAnyVaxCov_st() %>% rename(st = location)
+  infantAnyVax_st_df <- cleanX_nisInfantAnyVaxCov_st() 
+  elderlyAnyVax_st_df <- cleanX_brfssElderlyAnyVaxCov_st() 
   # all region tables
   cdcH3_df <- cleanX_cdcFluview_H3_region()
   
@@ -144,8 +144,8 @@ model5b_iliPeak_v1 <- function(filepathList){
   btsPass_cty_df <- cleanX_btsPassInflows_cty()
   narrSpecHum_cty_df <- cleanX_noaanarrSpecHum_cty()
   # all state tables 
-  infantAnyVax_st_df <- cleanX_nisInfantAnyVaxCov_st() %>% rename(st = location)
-  elderlyAnyVax_st_df <- cleanX_brfssElderlyAnyVaxCov_st() %>% rename(st = location)
+  infantAnyVax_st_df <- cleanX_nisInfantAnyVaxCov_st() 
+  elderlyAnyVax_st_df <- cleanX_brfssElderlyAnyVaxCov_st() 
   # all region tables
   cdcH3_df <- cleanX_cdcFluview_H3_region()
   

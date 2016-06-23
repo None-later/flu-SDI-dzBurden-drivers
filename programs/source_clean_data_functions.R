@@ -931,13 +931,13 @@ cleanX_nisInfantAnyVaxCov_st <- function(){
   
   dbListFields(con, "immunity_nisBRFSSVaxCoverage_state")
   # sel.statement <- "SELECT * from immunity_nisBRFSSVaxCoverage_state limit 5"
-  sel.statement <- "SELECT season, location, scale, vaxlevel, agegroup, coverage, interval95 from immunity_nisBRFSSVaxCoverage_state where scale = 'State' and season >= 2 and season <= 9 and agegroup = 'infant' and vaxlevel = 'anyvax'"
+  sel.statement <- "SELECT season, state AS st, scale, vaxlevel, agegroup, coverage, interval95 from immunity_nisBRFSSVaxCoverage_state where scale = 'State' and season >= 2 and season <= 9 and agegroup = 'infant' and vaxlevel = 'anyvax'"
   dummy <- dbGetQuery(con, sel.statement)
   
   dbDisconnect(con)
   
   origDat <- tbl_df(dummy) %>%
-    select(season, location, coverage) %>%
+    select(season, st, coverage) %>%
     rename(infantAnyVax = coverage)
   
   # 6/7/16: duplicate season 3 data to fill in for missing season 2 data
@@ -946,7 +946,7 @@ cleanX_nisInfantAnyVaxCov_st <- function(){
     mutate(season = 2)
   
   output <- bind_rows(dupDat, origDat) %>%
-    arrange(season, location)
+    arrange(season, st)
     
   return(output)
 }
@@ -961,13 +961,13 @@ cleanX_nisInfantFullVaxCov_st <- function(){
   
   dbListFields(con, "immunity_nisBRFSSVaxCoverage_state")
   # sel.statement <- "SELECT * from immunity_nisBRFSSVaxCoverage_state limit 5"
-  sel.statement <- "SELECT season, location, scale, vaxlevel, agegroup, coverage, interval95 from immunity_nisBRFSSVaxCoverage_state where scale = 'State' and season >= 2 and season <= 9 and agegroup = 'infant' and vaxlevel = 'fullvax'"
+  sel.statement <- "SELECT season, state AS st, scale, vaxlevel, agegroup, coverage, interval95 from immunity_nisBRFSSVaxCoverage_state where scale = 'State' and season >= 2 and season <= 9 and agegroup = 'infant' and vaxlevel = 'fullvax'"
   dummy <- dbGetQuery(con, sel.statement)
   
   dbDisconnect(con)
   
   origDat <- tbl_df(dummy) %>%
-    select(season, location, coverage) %>%
+    select(season, st, coverage) %>%
     rename(infantFullVax = coverage)
   
   # 6/7/16: duplicate season 3 data to fill in for missing season 2 data
@@ -976,7 +976,7 @@ cleanX_nisInfantFullVaxCov_st <- function(){
     mutate(season = 2)
   
   output <- bind_rows(dupDat, origDat) %>%
-    arrange(season, location)
+    arrange(season, st)
   
   return(output)
 }
@@ -991,13 +991,13 @@ cleanX_brfssElderlyAnyVaxCov_st <- function(){
   
   dbListFields(con, "immunity_nisBRFSSVaxCoverage_state")
   # sel.statement <- "SELECT * from immunity_nisBRFSSVaxCoverage_state limit 5"
-  sel.statement <- "SELECT season, location, scale, vaxlevel, agegroup, coverage, interval95 from immunity_nisBRFSSVaxCoverage_state where scale = 'State' and season >= 2 and season <= 9 and agegroup = 'elderly' and vaxlevel = 'anyvax'"
+  sel.statement <- "SELECT season, state AS st, scale, vaxlevel, agegroup, coverage, interval95 from immunity_nisBRFSSVaxCoverage_state where scale = 'State' and season >= 2 and season <= 9 and agegroup = 'elderly' and vaxlevel = 'anyvax'"
   dummy <- dbGetQuery(con, sel.statement)
   
   dbDisconnect(con)
   
   origDat <- tbl_df(dummy) %>%
-    select(season, location, coverage) %>%
+    select(season, st, coverage) %>%
     rename(elderlyAnyVax = coverage)
   
   # 6/7/16: duplicate season 7 data to fill in missing data for seasons 8 and 9
@@ -1005,7 +1005,7 @@ cleanX_brfssElderlyAnyVaxCov_st <- function(){
     filter(season == 7)
   
   output <- bind_rows(origDat, dupDat %>% mutate(season = 8), dupDat %>% mutate(season = 9)) %>%
-    arrange(season, location)
+    arrange(season, st)
   
   return(output)
 }
@@ -1021,15 +1021,15 @@ cleanX_brfssAdultAnyVaxCov_st <- function(){
   
   dbListFields(con, "immunity_nisBRFSSVaxCoverage_state")
   # sel.statement <- "SELECT * from immunity_nisBRFSSVaxCoverage_state limit 5"
-  sel.statement <- "SELECT season, location, scale, vaxlevel, agegroup, coverage, interval95 from immunity_nisBRFSSVaxCoverage_state where scale = 'State' and season >= 2 and season <= 9 and agegroup = 'adult' and vaxlevel = 'anyvax'"
+  sel.statement <- "SELECT season, state AS st, scale, vaxlevel, agegroup, coverage, interval95 from immunity_nisBRFSSVaxCoverage_state where scale = 'State' and season >= 2 and season <= 9 and agegroup = 'adult' and vaxlevel = 'anyvax'"
   dummy <- dbGetQuery(con, sel.statement)
   
   dbDisconnect(con)
   
   output <- tbl_df(dummy) %>%
-    select(season, location, coverage) %>%
+    select(season, st, coverage) %>%
     rename(adultAnyVax = coverage) %>%
-    arrange(season, location)
+    arrange(season, st)
   
   return(output)
 }
@@ -1193,7 +1193,5 @@ cleanX_noaanarrSfcTemp_cty <- function(){
 # To do:
 #   prior immunity from last year's seasonal burden
 #   skip spatialcw tables -- these are just crosswalks between different areal units
-
-
 
 
