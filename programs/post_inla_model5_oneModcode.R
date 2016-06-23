@@ -19,7 +19,7 @@ source("source_export_inlaDiagnostics.R") # functions to plot general model diag
 source("source_clean_response_functions_cty.R") # cty response functions
 
 #### set these! ################################
-modCodeStr <- "5b_iliPeak_v1-2"
+modCodeStr <- "5a_iliSum_v2-2"
 
 #### IMPORT FILEPATHS #################################
 setwd('../reference_data')

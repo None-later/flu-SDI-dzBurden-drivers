@@ -179,7 +179,7 @@ for (s in seasons){
   plot_countyChoro(path_plotExport_predDBRatio, plotDat, "dbRatio", "tier")
   
   # residuals of logyhat_i
-  plot_countyChoro(path_plotExport_resid, plotDat, "yhat_resid", "gradient")
+  plot_countyChoro(path_plotExport_resid, plotDat, "yhat_resid", "tier")
   
 }
 
