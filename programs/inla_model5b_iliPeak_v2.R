@@ -21,8 +21,8 @@ require(RColorBrewer); require(ggplot2) # export_inlaData_st dependencies
 
 #### set these! ################################
 dbCodeStr <- "_ilinDt_Octfit_span0.4_degree2"
-modCodeStr <- "5b_iliPeak_v2-1"; testDataOn <- FALSE
-seasons <- 2:9
+modCodeStr <- "5b_iliPeak_v2-2"; testDataOn <- FALSE
+seasons <- 5:9
 rdmFx_RV <- "phi"
 inverseLink <- function(x){exp(x)}
 dig <- 4 # number of digits in the number of elements at this spatial scale (~3000 counties -> 4 digits)
@@ -170,7 +170,7 @@ for (s in seasons){
   
   #### choropleths ####
   # fitted values (yhat_i)
-  plot_countyChoro(path_plotExport_yhat, plotDat, "yhat_mode", "tier")
+  plot_countyChoro(path_plotExport_yhat, plotDat, "yhat_mode", "gradient")
   
   # observations (y_i)  
   plot_countyChoro(path_plotExport_obsY, plotDat, "y", "tier")
@@ -179,7 +179,7 @@ for (s in seasons){
   plot_countyChoro(path_plotExport_predDBRatio, plotDat, "dbRatio", "tier")
   
   # residuals of logyhat_i
-  plot_countyChoro(path_plotExport_resid, plotDat, "yhat_resid", "tier")
+  plot_countyChoro(path_plotExport_resid, plotDat, "yhat_resid", "gradient")
   
 }
 
