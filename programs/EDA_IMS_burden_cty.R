@@ -2,7 +2,7 @@
 ## Date: 6/2/16
 ## Function: EDA iliSum county level burden, plot functions found in source_EDA_plots.R
 ## Filename: 
-## Notes: need to ssh into Snow
+## Notes: need to ssh into Snow, renamed from EDA_IMS_burden_iliSum_cty.R (6/24/16)
 ## useful commands:
 ## install.packages("pkg", dependencies=TRUE, lib="/usr/local/lib/R/site-library") # in sudo R
 ## update.packages(lib.loc = "/usr/local/lib/R/site-library")

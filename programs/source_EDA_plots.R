@@ -116,7 +116,7 @@ choroplots_cty_1yr <- function(dummyDat, params, plotparams){
   
     choro.tier <- gg +
       geom_map(data = pltDat, aes(map_id = fips, fill = vbin), map = us$map, color = "grey25", size = 0.2) +
-      scale_fill_brewer(name = lab, palette = "RdYlGn") +
+      scale_fill_brewer(name = lab, palette = "RdYlGn", na.value = "white") +
       expand_limits(x = gg$long, y = gg$lat) +
       theme_minimal() +
       theme(text = element_text(size = 18), axis.ticks = element_blank(), axis.text = element_blank(), axis.title = element_blank(), panel.grid = element_blank(), legend.position = "bottom") 
@@ -124,12 +124,52 @@ choroplots_cty_1yr <- function(dummyDat, params, plotparams){
     
     choro.grad <- gg +
       geom_map(data = pltDat, aes(map_id = fips, fill = value), map = us$map, color = "grey25", size = 0.2) +
-      scale_fill_continuous(name = lab, low = "#f0fff0", high = "#006400") +
+      scale_fill_continuous(name = lab, low = "#f0fff0", high = "#006400", na.value = "white") +
       expand_limits(x = gg$long, y = gg$lat) +
       theme_minimal() +
       theme(text = element_text(size = 18), axis.ticks = element_blank(), axis.text = element_blank(), axis.title = element_blank(), panel.grid = element_blank(), legend.position = "bottom")
     ggsave(sprintf("%s_grad_%s_%s_%s.png", code, src, spatial, y), choro.grad, height = h, width = w, dpi = dp)
   }
 } 
+################################################################
 
-
+choroplots_zip3_1yr <- function(fullDat, zipShapefile, params, plotparams){
+  # zip3 disease burden choropleths, 1 year per figure
+  print(match.call())
+  
+  # import data parameters
+  spatial <- params$spatial; code <- params$code; lab <- params$lab; src <- params$src; seas <- params$seas
+  # import plot parameters
+  h <- plotparams$h; w <- plotparams$w; dp <- plotparams$dp
+  
+  # grab lat/lon bounds for continental US
+  gg <- ggcounty.us()$g
+  
+  # process bin categories for each season separately
+  for (s in seas){
+    seasDat <- fullDat %>%
+      filter(season == s)
+    mergeDat <- merge(zipShapefile, seasDat, by = "id", all.x = TRUE) %>%
+      mutate(vbin = cut(burden, breaks = pretty_breaks(n = 6, min.n = 3)(burden), ordered_result = TRUE, include.lowest = TRUE)) %>%
+      mutate(vbin = factor(vbin, levels = rev(levels(vbin))))
+    mergeDat2 <- mergeDat[order(mergeDat$order),]
+    
+    choro.tier <- ggplot() +
+      geom_polygon(data = mergeDat2, aes(x = long, y = lat, group = group, fill = vbin), color = "grey25", size = 0.2) +
+      scale_fill_brewer(name = lab, palette = "RdYlGn", na.value = "white") +
+      scale_x_continuous(limits = c(-124.849, -66.885)) +
+      scale_y_continuous(limits = c(24.396, 49.384)) +
+      theme_minimal() +
+      theme(text = element_text(size = 18), axis.ticks = element_blank(), axis.text = element_blank(), axis.title = element_blank(), panel.grid = element_blank(), legend.position = "bottom") 
+    ggsave(sprintf("%s_tiers_%s_%s_S%s.png", code, src, spatial, s), choro.tier, height = h, width = w, dpi = dp)
+    
+    choro.grad <- ggplot() +
+      geom_polygon(data = mergeDat2, aes(x = long, y = lat, group = group, fill = burden), color = "grey25", size = 0.2) +
+      scale_fill_continuous(name = lab, low = "#f0fff0", high = "#006400", na.value = "white") +
+      scale_x_continuous(limits = c(-124.849, -66.885)) +
+      scale_y_continuous(limits = c(24.396, 49.384)) +
+      theme_minimal() +
+      theme(text = element_text(size = 18), axis.ticks = element_blank(), axis.text = element_blank(), axis.title = element_blank(), panel.grid = element_blank(), legend.position = "bottom") 
+    ggsave(sprintf("%s_grad_%s_%s_S%s.png", code, src, spatial, s), choro.grad, height = h, width = w, dpi = dp)
+  }
+}
