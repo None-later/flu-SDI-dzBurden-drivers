@@ -55,7 +55,7 @@ choroplots_cty <- function(dummyDat, params, plotparams){
   # import data parameters
   spatial <- params$spatial; code <- params$code; lab <- params$lab; src <- params$src; yr <- params$yr
   # import plot parameters
-  labVec <- plotparams$labVec; colVec <- plotparams$colVec; h <- plotparams$h; w <- plotparams$w; dp <- plotparams$dp
+  h <- plotparams$h; w <- plotparams$w; dp <- plotparams$dp
   
   # county map
   us <- ggcounty.us()
@@ -67,15 +67,13 @@ choroplots_cty <- function(dummyDat, params, plotparams){
   for (y in yr){
     dummyDat2 <- dummyDat %>%
       filter(covariate == code, year == y) %>%
-      mutate(vbin = cut(value, breaks = quantile(value, probs = seq(0, 1, by = 1/5), na.rm=T), ordered_result = TRUE, include.lowest = TRUE)) %>%
-      mutate(vbin = factor(vbin, levels = rev(levels(vbin)), labels = labVec)) %>% 
-      mutate(cov_color = factor(vbin, levels = levels(vbin), labels = colVec)) %>%
-      mutate(cov_col_string = as.character(cov_color))
+      mutate(vbin = cut(value, breaks = pretty_breaks(n= 6, min.n = 3)(value), ordered_result = TRUE, include.lowest = TRUE)) %>%
+      mutate(vbin = factor(vbin, levels = rev(levels(vbin)))) 
     pltDat <- bind_rows(pltDat, dummyDat2)
   }
   
   choro.tier <- gg +
-    geom_map(data = pltDat, aes(map_id = fips, fill = vbin, group = year), map = us$map, color = "black") +
+    geom_map(data = pltDat, aes(map_id = fips, fill = vbin, group = year), map = us$map, color = "grey25", size = 0.2) +
     scale_fill_brewer(name = lab, palette = "RdYlGn") +
     expand_limits(x = gg$long, y = gg$lat) +
     theme_minimal() +
@@ -85,7 +83,7 @@ choroplots_cty <- function(dummyDat, params, plotparams){
   
   choro.grad <- gg +
     geom_map(data = pltDat, aes(map_id = fips, fill = value, group = year), map = us$map, color = "black") +
-    scale_fill_continuous(name = lab, low = "green", high = "red") +
+    scale_fill_continuous(name = lab, low = "#f0fff0", high = "#006400") +
     expand_limits(x = gg$long, y = gg$lat) +
     theme_minimal() +
     theme(text = element_text(size = 18), axis.ticks = element_blank(), axis.text = element_blank(), axis.title = element_blank(), panel.grid = element_blank(), legend.position = "bottom") +
@@ -103,7 +101,7 @@ choroplots_cty_1yr <- function(dummyDat, params, plotparams){
   # import data parameters
   spatial <- params$spatial; code <- params$code; lab <- params$lab; src <- params$src; yr <- params$yr
   # import plot parameters
-  labVec <- plotparams$labVec; colVec <- plotparams$colVec; h <- plotparams$h; w <- plotparams$w; dp <- plotparams$dp
+  h <- plotparams$h; w <- plotparams$w; dp <- plotparams$dp
   
   # county map
   us <- ggcounty.us()
@@ -113,13 +111,11 @@ choroplots_cty_1yr <- function(dummyDat, params, plotparams){
   for (y in yr){
     pltDat <- dummyDat %>%
       filter(covariate == code, year == y) %>%
-      mutate(vbin = cut(value, breaks = quantile(value, probs = seq(0, 1, by = 1/5), na.rm=T), ordered_result = TRUE, include.lowest = TRUE)) %>%
-      mutate(vbin = factor(vbin, levels = rev(levels(vbin)), labels = labVec)) %>% 
-      mutate(cov_color = factor(vbin, levels = levels(vbin), labels = colVec)) %>%
-      mutate(cov_col_string = as.character(cov_color))
+      mutate(vbin = cut(value, breaks = pretty_breaks(n= 6, min.n = 3)(value), ordered_result = TRUE, include.lowest = TRUE)) %>%
+      mutate(vbin = factor(vbin, levels = rev(levels(vbin)))) 
   
     choro.tier <- gg +
-      geom_map(data = pltDat, aes(map_id = fips, fill = vbin), map = us$map, color = "black") +
+      geom_map(data = pltDat, aes(map_id = fips, fill = vbin), map = us$map, color = "grey25", size = 0.2) +
       scale_fill_brewer(name = lab, palette = "RdYlGn") +
       expand_limits(x = gg$long, y = gg$lat) +
       theme_minimal() +
@@ -127,7 +123,7 @@ choroplots_cty_1yr <- function(dummyDat, params, plotparams){
     ggsave(sprintf("%s_tiers_%s_%s_%s.png", code, src, spatial, y), choro.tier, height = h, width = w, dpi = dp)
     
     choro.grad <- gg +
-      geom_map(data = pltDat, aes(map_id = fips, fill = value), map = us$map, color = "black") +
+      geom_map(data = pltDat, aes(map_id = fips, fill = value), map = us$map, color = "grey25", size = 0.2) +
       scale_fill_continuous(name = lab, low = "#f0fff0", high = "#006400") +
       expand_limits(x = gg$long, y = gg$lat) +
       theme_minimal() +

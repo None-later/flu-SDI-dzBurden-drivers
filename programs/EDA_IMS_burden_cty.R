@@ -12,6 +12,7 @@ require(ggplot2)
 require(dplyr)
 require(readr)
 require(RColorBrewer)
+require(scales)
 
 setwd(dirname(sys.frame(1)$ofile))
 source("source_clean_response_functions_cty.R")
@@ -20,28 +21,37 @@ source("source_EDA_plots.R")
 #### SET THESE! PART 1 ################################
 dbCodeStr <- "_ilinDt_Octfit_span0.4_degree2"
 num <- 6
+dbMetric <- "iliPeak" # "iliSum", "iliPeak"
+dbLabel <- "Peak Intensity" # "Seasonal Intensity", "Peak Intensity"
 
 #### import data ################################
 setwd('../reference_data')
 abbrDat <- read_csv("state_abbreviations_FIPS.csv", col_types = list(FIPS = col_character())) %>%
   rename(fips_st = FIPS)
+path_abbr_st <- paste0(getwd(), "/state_abbreviations_FIPS.csv")
 path_latlon_cty <- paste0(getwd(), "/cty_pop_latlon.csv")
 
 setwd("../R_export")
 path_response_zip3 <- paste0(getwd(), sprintf("/dbMetrics_periodicReg%s_analyzeDB.csv", dbCodeStr))
 
-path_list <- list(path_latlon_cty = path_latlon_cty,
+path_list <- list(path_abbr_st = path_abbr_st,
+                  path_latlon_cty = path_latlon_cty,
                   path_response_zip3 = path_response_zip3)
-# import data
-importDat <- cleanR_iliSum_cty(path_list) 
 
+# import data
+if (dbMetric == "iliSum"){
+  importDat <- cleanR_iliSum_cty(path_list)
+} else if (dbMetric == "iliPeak"){
+  importDat <- cleanR_iliPeak_cty(path_list)
+}
+ 
 #### clean data ################################
 # for choro
 # required data format: year = year or season, covariate = variable name, value = covariate value, fips = county fips id
 fullDat <- importDat %>%
   select(fips, year, y) %>%
-  rename(iliSum = y) %>%
-  gather(covariate, value, iliSum) %>%
+  rename(dbMetric = y) %>%
+  gather(covariate, value, dbMetric) %>%
   arrange(fips, year) 
 
 # for ts
@@ -57,22 +67,18 @@ years <- fullDat2 %>% select(year) %>% distinct(year) %>% arrange(year) %>% unli
 varnames <- fullDat2 %>% select(covariate) %>% unique %>% unlist
 
 
-#### SET THESE! PART 2 ################################
-## general parameters ##
-plotfolder <- "EDA_IMS_burden_iliSum_cty"
+## general choropleth settings ################################
+plotfolder <- sprintf("EDA_IMS_burden_%s_cty", dbMetric)
 src <- 'IMS'
 spatial <- 'cty'
 
 ## choropleth parameters ##
-choroParams <- list(spatial = spatial, code = 'iliSum', lab = 'Seasonal Intensity', src = src, yr = years)
-choroplotParams <- list(labVec = paste("Tier", 1:5), colVec = brewer.pal(5, 'RdYlGn'), h = 5, w = 8, dp = 300)
-# # params for S9: change number of breaks in choro.tier plot from 5 to 3
-# choroParams <- list(spatial = spatial, code = 'iliSum', lab = 'Seasonal Intensity', src = src, yr = c(9))
-# choroplotParams <- list(labVec = paste("Tier", 1:3), colVec = brewer.pal(3, 'RdYlGn'), h = 5, w = 8, dp = 300)
+choroParams <- list(spatial = spatial, code = "dbMetric", lab = dbLabel, src = src, yr = years)
+choroplotParams <- list(h = 5, w = 8, dp = 300)
 
 ## time series parameters ##
 tsParams <- list(indexes = indexes, years = years, varnames = varnames, spatial = spatial, src = src)
-tsplotParams <- list(num = num, h = 12, w = 12, dp = 300, leg.lab = c("Seasonal Intensity"))
+tsplotParams <- list(num = num, h = 12, w = 12, dp = 300, leg.lab = c(dbLabel))
 
 
 #### draw plots ################################
