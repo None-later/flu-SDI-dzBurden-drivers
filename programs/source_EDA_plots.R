@@ -116,7 +116,7 @@ choroplots_cty_1yr <- function(dummyDat, params, plotparams){
   
     choro.tier <- gg +
       geom_map(data = pltDat, aes(map_id = fips, fill = vbin), map = us$map, color = "grey25", size = 0.2) +
-      scale_fill_brewer(name = lab, palette = "RdYlGn", na.value = "white") +
+      scale_fill_brewer(name = lab, palette = "RdYlGn", na.value = "grey50") +
       expand_limits(x = gg$long, y = gg$lat) +
       theme_minimal() +
       theme(text = element_text(size = 18), axis.ticks = element_blank(), axis.text = element_blank(), axis.title = element_blank(), panel.grid = element_blank(), legend.position = "bottom") 
@@ -124,7 +124,7 @@ choroplots_cty_1yr <- function(dummyDat, params, plotparams){
     
     choro.grad <- gg +
       geom_map(data = pltDat, aes(map_id = fips, fill = value), map = us$map, color = "grey25", size = 0.2) +
-      scale_fill_continuous(name = lab, low = "#f0fff0", high = "#006400", na.value = "white") +
+      scale_fill_continuous(name = lab, low = "#f0fff0", high = "#006400", na.value = "grey50") +
       expand_limits(x = gg$long, y = gg$lat) +
       theme_minimal() +
       theme(text = element_text(size = 18), axis.ticks = element_blank(), axis.text = element_blank(), axis.title = element_blank(), panel.grid = element_blank(), legend.position = "bottom")
@@ -156,7 +156,7 @@ choroplots_zip3_1yr <- function(fullDat, zipShapefile, params, plotparams){
     
     choro.tier <- ggplot() +
       geom_polygon(data = mergeDat2, aes(x = long, y = lat, group = group, fill = vbin), color = "grey25", size = 0.2) +
-      scale_fill_brewer(name = lab, palette = "RdYlGn", na.value = "white") +
+      scale_fill_brewer(name = lab, palette = "RdYlGn", na.value = "grey50") +
       scale_x_continuous(limits = c(-124.849, -66.885)) +
       scale_y_continuous(limits = c(24.396, 49.384)) +
       theme_minimal() +
@@ -165,7 +165,7 @@ choroplots_zip3_1yr <- function(fullDat, zipShapefile, params, plotparams){
     
     choro.grad <- ggplot() +
       geom_polygon(data = mergeDat2, aes(x = long, y = lat, group = group, fill = burden), color = "grey25", size = 0.2) +
-      scale_fill_continuous(name = lab, low = "#f0fff0", high = "#006400", na.value = "white") +
+      scale_fill_continuous(name = lab, low = "#f0fff0", high = "#006400", na.value = "grey50") +
       scale_x_continuous(limits = c(-124.849, -66.885)) +
       scale_y_continuous(limits = c(24.396, 49.384)) +
       theme_minimal() +
