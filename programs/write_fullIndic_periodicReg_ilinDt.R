@@ -28,20 +28,20 @@ write_fullIndic_periodicReg_ilinDt <- function(span.var, degree.var, spatial){
   # return logical column; T if data should be considered as "flu season" (ie. data falls within period with maximum consecutive weeks)
   consider.flu.season <- function(x){
     rle.results = rle(x)
-    max.consec = max(0, rle.results$lengths[which(rle.results$values)])
+    max.consec = max(0, rle.results$lengths[which(rle.results$values)]) # which(rle.results$values) works because values are boolean
     dummy <- rep(F, length(x))
-    pre.index <- (which(rle.results$values & rle.results$lengths==max.consec))[1]
-    post.index <- tail((which(rle.results$values & rle.results$lengths==max.consec)), n=1)
-    converted.pre.index <- ifelse(pre.index==1, 0, sum(rle.results$lengths[1:(pre.index-1)]))
+    pre.index <- (which(rle.results$values & rle.results$lengths==max.consec))[1] # rle index of first value in longest consecutive run of TRUE
+    post.index <- tail((which(rle.results$values & rle.results$lengths==max.consec)), n=1) # rle index of last value in longest consec run of TRUE
+    converted.pre.index <- ifelse(pre.index==1, 0, sum(rle.results$lengths[1:(pre.index-1)])) # vector index - 1 of first value in longest consec run of TRUE
     #   converted.post.index <- converted.pre.index + max.consec
     #   print(rle.results)
     #   print(pre.index)
     #   print(which(rle.results$values & rle.results$lengths==max.consec))
-    converted.post.index <- ifelse(post.index, sum(rle.results$lengths[1:post.index]), NA)
+    converted.post.index <- ifelse(post.index, sum(rle.results$lengths[1:post.index]), NA) # vector index of last value in longest consec run of TRUE
     if(!is.na(converted.pre.index)){
       dummy[(converted.pre.index+1):converted.post.index] <- T
     }
-    return(dummy)
+    return(dummy) # full vector of T/F
   }
   
   #### set these! ####################################
