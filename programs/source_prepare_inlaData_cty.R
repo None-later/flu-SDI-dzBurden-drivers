@@ -209,6 +209,7 @@ read_shapefile_cty <- function(filepathList){
   # restrict shapefile to only US states
   cty.poly.states <- cty.poly.full[cty.poly.full@data$STATE %in% continentalOnly,]
   # 6/20/16: remove GEO_IDs for Nantucket County MA (25019) & San Juan County (53055), which have no neighbors, from shapefile
+  # 7/16/16: removals from shapefile need to by synced with .graph output (reference_censusCtyShapefile_oneComponent.R)
   rmIDs <- c("0500000US25019", "0500000US53055") 
   cty.poly.states2 <- cty.poly.states[!(cty.poly.states@data$GEO_ID %in% rmIDs),]
   
@@ -231,7 +232,7 @@ combine_shapefile_modelData_cty <- function(filepathList, modelData, seasNum){
     mutate(fips = paste0(as.character(STATE), as.character(COUNTY))) %>%
     select(fips, GEO_ID) %>%
     left_join(modelData2, by = "fips") %>%
-    mutate(ID = seq_along(fips)) 
+    mutate(ID = seq_along(fips)) # 7/6/16: for the spatial models, the ID variable uniquely identifies the neighbors in the .graph file
   
   return(modelData3)
 }

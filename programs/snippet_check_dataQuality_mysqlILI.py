@@ -28,6 +28,7 @@ iliin = '/home/elee/Dropbox/Elizabeth_Bansal_Lab/SDI_Data/dz_burden/SQL_export/I
 
 all_df = pd.read_table(iliin, skiprows=1, sep=',', parse_dates=['week'], names=['week', 'zip3_o', 'ili', 'viz'], dtype={'zip3_o':'object'})
 print all_df.dtypes
+print all_df.isnull().sum() # there are no NaN
 
 all_df['zip3'] = all_df.apply(zip3string, axis='columns')
 all_df2 = all_df.set_index(['week', 'zip3'])
