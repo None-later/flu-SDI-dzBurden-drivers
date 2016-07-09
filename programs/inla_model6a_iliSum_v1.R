@@ -10,6 +10,7 @@
 ## v1testing2 hurdle with separatePredictors, no intercept
 ## v1testing3 hurdle w/separatePredictors, intercept
 ## v1-1 sharedPredictors
+## v1-2 separatePredictors
 ## 
 ## useful commands:
 ## install.packages("pkg", dependencies=TRUE, lib="/usr/local/lib/R/site-library") # in sudo R
@@ -25,7 +26,7 @@ require(RColorBrewer); require(ggplot2) # export_inlaData_st dependencies
 
 #### set these! ################################
 dbCodeStr <- "_ilinDt_Octfit_span0.4_degree2"
-modCodeStr <- "6a_iliSum_v1-1"; testDataOn <- FALSE
+modCodeStr <- "6a_iliSum_v1-2"; testDataOn <- FALSE
 seasons <- 2:9
 rdmFx_RV <- "nu"
 inverseLink_nonzero <- function(x){exp(x)}
@@ -70,7 +71,8 @@ if (testDataOn){
 #### Import and process data ####
   modData <- model5a_iliSum_v1(path_list) # with driver & sampling effort variables
   #### Model 6a v1: County-level, after variable selection, one model per season ####
-  formula <- y ~ -1 + f(fips, model = "iid") + f(fip_st, model = "iid") + f(regionID, model = "iid") + intercept + O_imscoverage + O_careseek + O_insured + X_poverty + X_child + X_adult + X_hospaccess + X_popdensity + X_commute + X_flight + X_vaxcovI + X_vaxcovE + X_H3 + X_humidity
+  # formula <- Y ~ -1 + f(fips, model = "iid") + f(fips_st, model = "iid") + f(regionID, model = "iid") + intercept + O_imscoverage + O_careseek + O_insured + X_poverty + X_child + X_adult + X_hospaccess + X_popdensity + X_commute + X_flight + X_vaxcovI + X_vaxcovE + X_H3 + X_humidity
+  formula <- Y ~ -1 + f(fips, model = "iid") + f(fips_st, model = "iid") + f(regionID, model = "iid") + intercept_zero + O_imscoverage_zero + O_careseek_zero + O_insured_zero + X_poverty_zero + X_child_zero + X_adult_zero + X_hospaccess_zero + X_popdensity_zero + X_commute_zero + X_flight_zero + X_vaxcovI_zero + X_vaxcovE_zero + X_H3_zero + X_humidity_zero + intercept_nonzero + O_imscoverage_nonzero + O_careseek_nonzero + O_insured_nonzero + X_poverty_nonzero + X_child_nonzero + X_adult_nonzero + X_hospaccess_nonzero + X_popdensity_nonzero + X_commute_nonzero + X_flight_nonzero + X_vaxcovI_nonzero + X_vaxcovE_nonzero + X_H3_nonzero + X_humidity_nonzero
 }
 
 
@@ -95,15 +97,15 @@ path_csvExport <- getwd()
 for (s in seasons){
   # modData_full <- combine_shapefile_modelData_cty(path_list, modData, s) ## REMOVE?
   modData_full <- modData %>% filter(season == s) %>% mutate(ID = seq_along(fips))
-  modData_hurdle <- convert_2stageModelData_sharedPredictors(modData_full)
+  modData_hurdle <- convert_2stageModelData_separatePredictors(modData_full)
   
   mod <- inla(formula, 
               family = list("binomial", "gamma"), 
               data = modData_hurdle, 
-              control.family = list(inla.set.control.link.default()), # use logit & log links, respectively
+              # control.family = list(list=(), list = (hyper = list(theta = list(fixed=TRUE)))), # use logit & log links defaults, respectively. fix hyperparameter in gamma 
               Ntrials = 1, # binomial likelihood params
               control.fixed = list(mean = 0, prec = 1/100), # set prior parameters for regression coefficients
-              control.predictor = list(compute = TRUE), # compute summary statistics on fitted values
+              control.predictor = list(compute = TRUE, link = 1), # compute summary statistics on fitted values, link designates that NA responses are calculated according to the first likelihood
               control.compute = list(dic = TRUE, cpo = TRUE),
               verbose = TRUE,
               offset = logE) # offset (log link with gamma)
