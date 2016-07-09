@@ -36,14 +36,14 @@ plot_fixedFx_marginals <- function(exportPath, marginalsFixed, modCodeStr, s){
   
   w <- 4; h <- 4; dp <- 300
   
-  names_fixedFx <- names(marg.fx.transf)  # standard naming system "O_samplingeffort" or "X_driver"
+  names_fixedFx <- names(marginalsFixed)  # standard naming system "O_samplingeffort" or "X_driver"
   
   for (i in 1:length(names_fixedFx)){
     exportPath_full <- paste0(exportPath, sprintf("/inla_%s_%s_marg_S%s.png", modCodeStr, names_fixedFx[i], s))
     png(exportPath_full, width = w, height = h, units = "in", res = dp)
     par(mfrow = c(1, 1))
     plot(marginalsFixed[[i]], xlab = paste0(names_fixedFx[i], sprintf(", S%s", s)), 
-         xlim = c(0, 6), ylab = "density")
+         xlim = c(-4, 4), ylab = "density")
     dev.off()
   }
   
@@ -133,7 +133,7 @@ export_ids <- function(exportPath, modDataFullOutput){
   print(match.call())
   
   ids <- modDataFullOutput %>% 
-    select(season, fips, GEO_ID, county, ID, st, stateID, regionID)
+    select(season, fips, county, ID, st, regionID)
   
   # export data to file
   write_csv(ids, exportPath)
@@ -168,21 +168,33 @@ export_summaryStats <- function(exportPath, modelOutput, rdmFxTxt, modCodeString
 
   # variable name output from INLA
   names(modelOutput$summary.fixed) <- c("mean", "sd", "q_025", "q_5", "q_975", "mode", "kld")
-  names(modelOutput$summary.random$ID) <- c("ID", names(modelOutput$summary.fixed))
-  
-  # clean fixed and random effects summary statistics output from INLA
+  names(modelOutput$summary.random$fips) <- c("ID", names(modelOutput$summary.fixed))
+  names(modelOutput$summary.random$fips_st) <- names(modelOutput$summary.random$fips)
+  names(modelOutput$summary.random$regionID) <- names(modelOutput$summary.random$fips)
+
+  # clean fixed effects summary statistics output from INLA
   summaryFixed <- tbl_df(modelOutput$summary.fixed) %>%
-    mutate(RV = rownames(mod$summary.fixed)) %>%
-    select(RV, mean, sd, q_025, q_5, q_975, mode, kld)
-  summaryRandomID <- tbl_df(modelOutput$summary.random$ID) %>%
-    mutate(RV = paste0(rdmFxTxt, ID)) %>%
-    select(RV, mean, sd, q_025, q_5, q_975, mode, kld)
+    mutate(RV = rownames(modelOutput$summary.fixed)) %>%
+    mutate(effectType = "fixed") %>%
+    select(RV, effectType, mean, sd, q_025, q_5, q_975, mode, kld)
+
+  # clean random effects summary statistics output from INLA
+  summaryRandomFips <- tbl_df(modelOutput$summary.random$fips) %>%
+    mutate(effectType = "spatial") 
+  summaryRandomSt <- tbl_df(modelOutput$summary.random$fips_st) %>%
+    mutate(effectType = "stID") 
+  summaryRandomReg <- tbl_df(modelOutput$summary.random$regionID) %>%
+    mutate(ID = as.character(ID)) %>%
+    mutate(effectType = "regID") 
+  summaryRandom <- bind_rows(summaryRandomFips, summaryRandomSt, summaryRandomReg) %>%
+   rename(RV = ID) %>%
+   select(RV, effectType, mean, sd, q_025, q_5, q_975, mode, kld)
   
   # bind data together
   summaryStats <- bind_rows(summaryFixed, summaryRandom) %>%
     mutate(modCodeStr = modCodeString, dbCodeStr = dbCodeString, season = season, exportDate = as.character(Sys.Date())) %>%
-    select(modCodeStr, dbCodeStr, season, exportDate, RV, mean, sd, q_025, q_5, q_975, mode, kld)
-  
+    select(modCodeStr, dbCodeStr, season, exportDate, RV, effectType, mean, sd, q_025, q_5, q_975, mode, kld)
+
   # export data to file
   write_csv(summaryStats, exportPath)
     
