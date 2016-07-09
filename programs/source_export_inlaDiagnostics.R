@@ -4,7 +4,7 @@
 ## Function: general functions to generate INLA diagnostic plots
 ## Filenames: 
 ## Data Source: 
-## Notes: 
+## Notes: need to SSH into snow server
 ## 
 ## useful commands:
 ## install.packages("pkg", dependencies=TRUE, lib="/usr/local/lib/R/site-library") # in sudo R
@@ -17,8 +17,49 @@ require(DBI); require(RMySQL) # read tables from mysql database
 #### functions for diagnostic plots by modcode  ################################
 
 ################################
+
 plot_diag_predVsObs <- function(path_csvExport, path_plotExport_predVsObs){
   # plot yhat vs y & calculate corr coef for each season
+  print(match.call())
+  
+  # grab list of files names
+  setwd(path_csvExport)
+  readfile_list <- grep("summaryStatsFitted_", list.files(), value = TRUE)
+  plotDat <- tbl_df(data.frame(modCodeStr = c(), dbCodeStr = c(), season = c(), ID = c(), q_025 = c(), q_5 = c(), q_975 = c(), y = c()))
+  
+  # import yhat and y data
+  for (infile in readfile_list){
+    seasFile <- read_csv(infile, col_types = "cci_c__ddd_d_")
+    plotDat <- bind_rows(plotDat, seasFile)
+  }
+  
+  # calculate spearman's rho correlations
+  corrDat <- plotDat %>% 
+    group_by(season) %>%
+    summarise(rho = cor(y, q_5, method = "spearman", use = 'complete.obs')) %>%
+    mutate(facetlabel = paste(sprintf("S%s rho", season), round(rho, 3))) %>%
+    select(season, facetlabel)
+  
+  # create new dataset with corr coef in label
+  plotDat2 <- left_join(plotDat, corrDat, by = 'season') %>%
+    rename(yobs = y)
+  
+  # plot formatting
+  w <- 8; h <- 8; dp <- 250
+  
+  # scatterplot: predicted vs observed
+  plotOutput <- ggplot(plotDat2, aes(x = yobs, y = q_5, group = facetlabel)) +
+    geom_pointrange(aes(ymin = q_025, ymax = q_975)) +
+    facet_wrap(~facetlabel, scales = "free") +
+    ylab("yhatMedian (95%CI)") +
+    xlab("yObs") 
+  ggsave(path_plotExport_predVsObs, plotOutput, height = h, width = w, dpi = dp)
+  
+}
+################################
+
+plot_diag_predVsObs_transformed <- function(path_csvExport, path_plotExport_predVsObs){
+  # plot yhat vs y & calculate corr coef for each season, transformed data back to original scale
   print(match.call())
   
   # grab list of files names
@@ -58,7 +99,46 @@ plot_diag_predVsObs <- function(path_csvExport, path_plotExport_predVsObs){
 ################################ 
 
 importPlot_diag_predVsRaw <- function(path_csvExport, path_plotExport_predVsRaw, filepathList){
-  # import data and plot yhat vs raw ili counts & calculate corr coef for each season
+  # import data and plot yhat vs raw ili counts & calculate corr coef for each season, when no transformations have been performed after modeling
+  print(match.call())
+  
+  # grab list of files names for yhat & yhatID-fips crosswalk
+  setwd(path_csvExport)
+  readfile_list <- grep("summaryStatsFitted_", list.files(), value = TRUE)
+  readfile_list2 <- grep("ids_", list.files(), value = TRUE)
+  yhatDat <- tbl_df(data.frame(modCodeStr = c(), dbCodeStr = c(), season = c(), ID = c(), q_025 = c(), q_5 = c(), q_975 = c()))
+  idDat <- tbl_df(data.frame(season = c(), fips = c(), ID = c()))
+  
+  # import yhat data
+  for (infile in readfile_list){
+    seasFile <- read_csv(infile, col_types = "cci_c__ddd___")
+    yhatDat <- bind_rows(yhatDat, seasFile)
+  }
+  
+  # import crosswalk between yhat IDs and fips
+  for (infile in readfile_list2){
+    seasFile <- read_csv(infile, col_types = "ic_i__")
+    idDat <- bind_rows(idDat, seasFile)
+  }
+  
+  # clean yhat data & merge IDs
+  yhatDat2 <- yhatDat %>%
+    mutate(ID = as.numeric(substring(ID, 5, nchar(ID)))) %>%
+    left_join(idDat, by = c("season", "ID"))
+  
+  # import county ili case data & create ili rate
+  plotDat <- clean_rawILI_cty(filepathList) %>%
+    full_join(yhatDat2, by = c("fips", "season")) %>%
+    mutate(iliPer10K = ili/pop*10000)
+  
+  plot_diag_predVsRaw(plotDat, path_plotExport_predVsRaw, "ili")
+  plot_diag_predVsRaw(plotDat, path_plotExport_predVsRaw, "iliPer10K")
+  
+}
+################################ 
+
+importPlot_diag_predVsRaw_transformed <- function(path_csvExport, path_plotExport_predVsRaw, filepathList){
+  # import data and plot yhat vs raw ili counts & calculate corr coef for each season, when data has been transformed back to original scale
   print(match.call())
   
   # grab list of files names for yhat & yhatID-fips crosswalk

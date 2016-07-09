@@ -77,7 +77,42 @@ importPlot_coefDistr_season <- function(path_csvExport, path_plotExport_coefDist
   # grab list of files names
   setwd(path_csvExport)
   readfile_list <- grep("summaryStats_", list.files(), value = TRUE)
-  coefDf <- tbl_df(data.frame(modCodeStr = c(), dbCodeStr = c(), season = c(), RV = c(), mean = c(), sd = c(), q_025 = c(), q_25 = c(), q_5 = c(), q_75 = c(), q_975 = c()))
+  coefDf <- tbl_df(data.frame(modCodeStr = c(), dbCodeStr = c(), season = c(), RV = c(), effectType = c(), mean = c(), sd = c(), q_025 = c(), q_5 = c(), q_975 = c()))
+  
+  for (infile in readfile_list){
+    seasFile <- read_csv(infile, col_types = "cci_ccddddd__")
+    coefDf <- bind_rows(coefDf, seasFile)
+  }
+  
+  # plot fixed effects
+  fxDat <- coefDf %>% filter(effectType == 'fixed') 
+  plot_coefDistr_season(fxDat, path_plotExport_coefDistr, 'fixed.png')
+  
+  # plot random effects
+  sampleLs <- coefDf %>% filter(effectType == 'spatial') %>% select(RV) %>% sample_n(9) %>% unlist
+  rdmDat <- coefDf %>% filter(effectType == 'spatial' & RV %in% sampleLs) 
+  plot_coefDistr_season(rdmDat, path_plotExport_coefDistr, 'random.png')
+  
+  # plot effects of state ID
+  stIds <- coefDf %>% filter(effectType == 'stID') %>% distinct(RV) %>% unlist 
+  stIdDat <- coefDf %>% filter(effectType == 'stID') %>% mutate(RV = factor(RV, levels = stIds))
+  plot_coefDistr_season(stIdDat, path_plotExport_coefDistr, 'stateID.png')
+  
+  # plot effects of state ID
+  regIds <- coefDf %>% filter(effectType == 'regID') %>% distinct(RV) %>% unlist 
+  regIdDat <- coefDf %>% filter(effectType == 'regID') %>% mutate(RV = factor(RV, levels = regIds))
+  plot_coefDistr_season(regIdDat, path_plotExport_coefDistr, 'regionID.png')
+}
+################################
+
+importPlot_coefDistr_season_transformed <- function(path_csvExport, path_plotExport_coefDistr){
+  # import coefficient distributions across seasons, transformed back to original scale
+  print(match.call())
+  
+  # grab list of files names
+  setwd(path_csvExport)
+  readfile_list <- grep("summaryStats_", list.files(), value = TRUE)
+  coefDf <- tbl_df(data.frame(modCodeStr = c(), dbCodeStr = c(), season = c(), RV = c(), effectType = c(), mean = c(), sd = c(), q_025 = c(), q_25 = c(), q_5 = c(), q_75 = c(), q_975 = c()))
 
   for (infile in readfile_list){
     seasFile <- read_csv(infile, col_types = "cci_ccddddddd")
@@ -115,7 +150,7 @@ plot_coefDistr_season <- function(plotDat, path_plotExport_coefDistr, plotFilena
   # plot fixed effects
   plotOutput <- ggplot(plotDat, aes(x = season, y = q_5, group = RV)) +
     geom_pointrange(aes(ymin = q_025, ymax = q_975)) +
-    geom_hline(yintercept = 1) +
+    geom_hline(yintercept = 0) +
     facet_wrap(~RV, scales = "free_y") +
     ylab("coefMedian (95%CI)") +
     xlim(c(1, 10)) 
