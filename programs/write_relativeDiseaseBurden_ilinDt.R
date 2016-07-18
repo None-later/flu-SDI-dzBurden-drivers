@@ -63,15 +63,17 @@ write_relativeDiseaseBurden_ilinDt <- function(span.var, degree.var, spatial){
   
   
   #### create dz burden metrics ##################
+  # 7/18/16 change !incl.analysis db outputs from magnitude = 0 to magnitude = NA (data were too noisy to calculate disease burden)
   # 6/3/16 include incl.analysis = F in db outputs, magnitude = 0 if incl.analysis = F (instead of excluded from fullIndicAll exported, as before)
   # 5/6/16 include has.epi = F in db outputs, magnitude = 0 if no epi (instead of NA as before)
   # 7/27/15 update dz burden metrics (\cite{Viboud2014} for inspiration of 1b & 1c)
   # create disease burden metrics: 1a) sum ILI across epidemic weeks (overall magnitude), 1b) cumulative difference in ILI and baseline (second proxy of overall magnitude), 1c) cumulative difference in ILI and epidemic threshold (third proxy of overall magnitude), 2) rate of ILI at epidemic peak, 3) epidemic duration
   dbMetrics.epi <- data5 %>% filter(has.epi & incl.analysis) %>% group_by(season, scale) %>% filter(in.season) %>% summarize(has.epi = first(has.epi), incl.analysis = first(incl.analysis), ilinDt.sum = sum(ilin.dt, na.rm=T), ilinDt.excess.BL = sum(ilin.dt-.fitted, na.rm=T), ilinDt.excess.thresh = sum(ilin.dt-epi.thresh, na.rm=T), ilinDt.peak = max(ilin.dt, na.rm=T), epi.dur = sum(in.season))
-  dbMetrics.noepi <- data5 %>% filter(!has.epi | !incl.analysis) %>% mutate(ilinDt.modified = 0) %>% group_by(season, scale) %>% summarize(has.epi = first(has.epi), incl.analysis = first(incl.analysis), ilinDt.sum = sum(ilinDt.modified, na.rm=T), ilinDt.excess.BL = sum(ilinDt.modified, na.rm=T), ilinDt.excess.thresh = sum(ilinDt.modified, na.rm=T), ilinDt.peak = max(ilinDt.modified, na.rm=T), epi.dur = sum(ilinDt.modified, na.rm=T))
+  dbMetrics.noepi <- data5 %>% filter(!has.epi & incl.analysis) %>% mutate(ilinDt.modified = 0) %>% group_by(season, scale) %>% summarize(has.epi = first(has.epi), incl.analysis = first(incl.analysis), ilinDt.sum = sum(ilinDt.modified, na.rm=T), ilinDt.excess.BL = sum(ilinDt.modified, na.rm=T), ilinDt.excess.thresh = sum(ilinDt.modified, na.rm=T), ilinDt.peak = max(ilinDt.modified, na.rm=T), epi.dur = sum(ilinDt.modified, na.rm=T))
+  dbMetrics.noisy <- data5 %>% filter(!incl.analysis) %>% mutate(ilinDt.modified = NA) %>% group_by(season, scale) %>% summarize(has.epi = first(has.epi), incl.analysis = first(incl.analysis), ilinDt.sum = first(ilinDt.modified), ilinDt.excess.BL = first(ilinDt.modified), ilinDt.excess.thresh = first(ilinDt.modified), ilinDt.peak = first(ilinDt.modified), epi.dur = first(ilinDt.modified))
   
-  # 5/6/16 merge dbMetrics
-  dbMetrics <- bind_rows(dbMetrics.epi, dbMetrics.noepi)
+  # 7/18/16 merge dbMetrics
+  dbMetrics <- bind_rows(dbMetrics.epi, dbMetrics.noepi, dbMetrics.noisy) 
   
   # 8/6/15 create epidemic start timing and peak timing metrics
   # data processing in preparation for timing metrics
@@ -94,7 +96,7 @@ write_relativeDiseaseBurden_ilinDt <- function(span.var, degree.var, spatial){
   dbMetrics2 <- full_join(dbMetrics, dbMetrics.timing, by=c("season", "scale")) %>% 
     select(-minweek, -firstepiweek, -peakweek)
   
-  dbMetrics.g <- gather(dbMetrics2, metric, burden, 5:11)
+  dbMetrics.g <- gather(dbMetrics2, metric, burden, 5:11) 
   # mean and sd for each metric by season for viewing
   dbMetrics_summary <- dbMetrics.g %>% group_by(season, metric) %>% 
     summarize(metric.mn = mean(burden), metric.sd = sd(burden))

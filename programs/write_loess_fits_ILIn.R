@@ -45,9 +45,10 @@ write_loess_fits_ILIn <- function(span.var, degree.var, spatial){
   
   #### data cleaning ####################################
   # 10/27/15 remove zip3s with missing pop data in incl.lm indicator
+  # 7/18/16 incl.lm is redundant with changes in write_ILIc_data.R (incl.lm is already defined as FALSE when is.na(pop)), 100,000 pop multiplier
   ilic_df2 <- ilic_df %>% 
     mutate(incl.lm = ifelse(!incl.lm, FALSE, ifelse(is.na(pop), FALSE, TRUE))) %>% 
-    mutate(ILIn = ili/pop*10000)
+    mutate(ILIn = ili/pop*100000)
 
   # create new data for augment
   newbasedata <- ilic_df2 %>% select(Thu.week, t) %>% unique %>% filter(Thu.week < as.Date('2009-05-01')) 
@@ -62,10 +63,11 @@ write_loess_fits_ILIn <- function(span.var, degree.var, spatial){
   allLoessMods_aug <- augment(allLoessMods, fitZip3, newdata= newbasedata)
  
   # after augment - join ILI data to fits
+  # 7/18/16 incl.lm2 == .fitted>0
   allLoessMods_fit_ILI <- right_join((allLoessMods_aug %>% ungroup %>% select(-t)), (ilic_df2 %>% filter(Thu.week < as.Date('2009-05-01'))), by=c('Thu.week', 'scale')) %>% 
     mutate(week=as.Date(week, origin="1970-01-01")) %>% 
     mutate(Thu.week=as.Date(Thu.week, origin="1970-01-01")) %>% 
-    mutate(incl.lm2 = ifelse(.fitted<=0.05, FALSE, TRUE)) %>%
+    mutate(incl.lm2 = ifelse(.fitted<=0, FALSE, TRUE)) %>%
     mutate(ilin.dt = ifelse(incl.lm2, ILIn/.fitted, NA)) 
   
   # 12/15/15: new indicator incl.lm2 is false if .fitted is negative; true if incl.lm is true
