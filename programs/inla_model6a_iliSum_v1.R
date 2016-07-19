@@ -26,7 +26,7 @@ require(RColorBrewer); require(ggplot2) # export_inlaData_st dependencies
 
 #### set these! ################################
 dbCodeStr <- "_ilinDt_Octfit_span0.4_degree2"
-modCodeStr <- "6a_iliSum_v1-2"; testDataOn <- FALSE
+modCodeStr <- "6a_iliSum_v1-3"; testDataOn <- FALSE
 seasons <- 2:9
 rdmFx_RV <- "nu"
 inverseLink_nonzero <- function(x){exp(x)}
@@ -70,9 +70,8 @@ if (testDataOn){
 } else{
 #### Import and process data ####
   modData <- model5a_iliSum_v1(path_list) # with driver & sampling effort variables
-  #### Model 6a v1: County-level, after variable selection, one model per season ####
-  # formula <- Y ~ -1 + f(fips, model = "iid") + f(fips_st, model = "iid") + f(regionID, model = "iid") + intercept + O_imscoverage + O_careseek + O_insured + X_poverty + X_child + X_adult + X_hospaccess + X_popdensity + X_commute + X_flight + X_vaxcovI + X_vaxcovE + X_H3 + X_humidity
-  formula <- Y ~ -1 + f(fips, model = "iid") + f(fips_st, model = "iid") + f(regionID, model = "iid") + intercept_zero + O_imscoverage_zero + O_careseek_zero + O_insured_zero + X_poverty_zero + X_child_zero + X_adult_zero + X_hospaccess_zero + X_popdensity_zero + X_commute_zero + X_flight_zero + X_vaxcovI_zero + X_vaxcovE_zero + X_H3_zero + X_humidity_zero + intercept_nonzero + O_imscoverage_nonzero + O_careseek_nonzero + O_insured_nonzero + X_poverty_nonzero + X_child_nonzero + X_adult_nonzero + X_hospaccess_nonzero + X_popdensity_nonzero + X_commute_nonzero + X_flight_nonzero + X_vaxcovI_nonzero + X_vaxcovE_nonzero + X_H3_nonzero + X_humidity_nonzero
+  #### Model 6a: County-level, after variable selection, one model per season, separate predictors for the 2 likelihoods ####
+  formula <- Y ~ -1 + f(fips, model = "iid") + f(fips_st, model = "iid") + f(regionID, model = "iid") + intercept_zero + O_imscoverage_zero + O_careseek_zero + O_insured_zero + X_poverty_zero + X_child_zero + X_adult_zero + X_hospaccess_zero + X_popdensity_zero + X_commute_zero + X_flight_zero + X_vaxcovI_zero + X_vaxcovE_zero + X_H3_zero + X_humidity_zero + intercept_nonzero + O_imscoverage_nonzero + O_careseek_nonzero + O_insured_nonzero + X_poverty_nonzero + X_child_nonzero + X_adult_nonzero + X_hospaccess_nonzero + X_popdensity_nonzero + X_commute_nonzero + X_flight_nonzero + X_vaxcovI_nonzero + X_vaxcovE_nonzero + X_H3_nonzero + X_humidity_nonzero + offset(logE_nonzero)
 }
 
 
@@ -102,13 +101,12 @@ for (s in seasons){
   mod <- inla(formula, 
               family = list("binomial", "gamma"), 
               data = modData_hurdle, 
-              # control.family = list(list=(), list = (hyper = list(theta = list(fixed=TRUE)))), # use logit & log links defaults, respectively. fix hyperparameter in gamma 
+              # control.family = list(list=(hyper=list(prob=list(fixed=TRUE))),list=(hyper=list(prob=list(fixed=TRUE)))), 
               Ntrials = 1, # binomial likelihood params
               control.fixed = list(mean = 0, prec = 1/100), # set prior parameters for regression coefficients
-              control.predictor = list(compute = TRUE, link = 1), # compute summary statistics on fitted values, link designates that NA responses are calculated according to the first likelihood
+              control.predictor = list(compute = TRUE, link = 1), # compute summary statistics on fitted values, link designates that NA responses are calculated according to the second likelihood
               control.compute = list(dic = TRUE, cpo = TRUE),
-              verbose = TRUE,
-              offset = logE) # offset (log link with gamma)
+              verbose = TRUE) 
 
   #### assign seasonal paths ################################
   path_plotExport_rdmFxSample <- paste0(path_plotExport, sprintf("/inla_%s_%s1-6_marg_S%s.png", modCodeStr, rdmFx_RV, s))
@@ -130,24 +128,7 @@ for (s in seasons){
   dicData <- tbl_df(data.frame(modCodeStr = c(), season = c(), exportDate = c(), DIC = c(), CPO = c(), cpoFail = c()))
   dicData <- bind_rows(dicData, list(modCodeStr = modCodeStr, season = s, exportDate = as.character(Sys.Date()), DIC = mod$dic$dic, CPO = sum(log(mod$cpo$cpo), na.rm=TRUE), cpoFail = sum(mod$cpo$failure, na.rm=TRUE)))
   
-  #### transform fixed and random effects back to natural scale ####
-#   # fixed and random effect marginals
-#   marg.fx.transf <- lapply(mod$marginals.fixed, function(x) inla.tmarginal(inverseLink, x))
-#   names(marg.fx.transf) <- ifelse(names(marg.fx.transf) == '(Intercept)', 'Intercept', names(marg.fx.transf))
-#   marg.rdm.ID.transf <- lapply(mod$marginals.random$ID, function(x) inla.tmarginal(inverseLink, x))
-#   marg.rdm.stID.transf <- lapply(mod$marginals.random$stateID, function(x) inla.tmarginal(inverseLink, x))
-#   marg.rdm.regID.transf <- lapply(mod$marginals.random$regionID, function(x) inla.tmarginal(inverseLink, x))
-  
-#   # fixed and random effect summary statistics
-#   summ.fx.transf <- matrix(unlist(lapply(marg.fx.transf, function(x) inla.zmarginal(x, silent = TRUE))), ncol = 7, byrow = TRUE)
-#   summ.rdm.ID.transf <- matrix(unlist(lapply(marg.rdm.ID.transf, function(x) inla.zmarginal(x, silent = TRUE))), ncol = 7, byrow = TRUE)
-#   summ.rdm.stID.transf <- matrix(unlist(lapply(marg.rdm.stID.transf, function(x) inla.zmarginal(x, silent = TRUE))), ncol = 7, byrow = TRUE)
-#   summ.rdm.regID.transf <- matrix(unlist(lapply(marg.rdm.regID.transf, function(x) inla.zmarginal(x, silent = TRUE))), ncol = 7, byrow = TRUE)
-#   
-#   # combine to single list object
-#   summ.stats <- list(summ.fx.transf = summ.fx.transf, summ.rdm.ID.transf = summ.rdm.ID.transf, summ.rdm.stID.transf = summ.rdm.stID.transf, summ.rdm.regID.transf = summ.rdm.regID.transf)
-#   fxnames <- names(marg.fx.transf)
-  
+
   #### calculate residuals ####
   residDf <- data.frame(y = modData_full$y, residVec = (modData_full$y - mod$summary.fitted.values$mean)/mod$summary.fitted.values$sd)
   

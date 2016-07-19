@@ -22,6 +22,7 @@ cleanR_iliSum_cty <- function(filepathList){
   # pop data: fips, county, st, season, year, pop, lat lon
   pop_data <- clean_pop_cty(filepathList)
   
+  # 7/18/16: add incl.analysis indicator
   # grab disease burden metric (e.g., ilinDt): match "ili" 1+ times
   dbCode <- grep("ili+", strsplit(filepathList$path_response_zip3, "_")[[1]], value=T)
   # clean burden data
@@ -31,17 +32,17 @@ cleanR_iliSum_cty <- function(filepathList){
     rename(y = burden) %>%
     full_join(cw, by = "zip3") %>% 
     group_by(fips, season) %>%
-    summarise(has.epi = sum(has.epi), zOverlaps = length(zip3), y = weighted.mean(y, proportion, na.rm = TRUE)) %>%
-    mutate(has.epi = ifelse(has.epi > 0, TRUE, FALSE))
+    summarise(has.epi = sum(has.epi), incl.analysis = sum(incl.analysis), zOverlaps = length(zip3), y = weighted.mean(y, proportion, na.rm = TRUE)) %>%
+    mutate(has.epi = ifelse(has.epi > 0, TRUE, FALSE), incl.analysis = ifelse(incl.analysis > 0, TRUE, FALSE))
   
   # merge final data
   return_data <- full_join(iliSum_data, pop_data, by = c("season", "fips")) %>%
-    select(fips, county, st, stateID, lat, lon, season, year, pop, y, has.epi, zOverlaps) %>%
+    select(fips, county, st, stateID, lat, lon, season, year, pop, y, has.epi, incl.analysis, zOverlaps) %>%
     group_by(season) %>%
     mutate(E = weighted.mean(y, pop, na.rm = TRUE)) %>%
     ungroup %>%
-    filter(season != 1) %>%
-    mutate(logy = ifelse(y == 0, log(1E-2), log(y)), logE = log(E)) # 6/1/16 log(1E-2) so no -Inf burden (need to do sensitivity on this) # 6/8/16: y == 0 condition replaces has.epi condition
+    filter(season != 1)
+  # 7/18/19 rm logy & logE # 6/1/16 log(1E-2) so no -Inf burden (need to do sensitivity on this) # 6/8/16: y == 0 condition replaces has.epi condition
   return(return_data)
 }
 ##########################################
@@ -64,17 +65,17 @@ cleanR_iliPeak_cty <- function(filepathList){
     rename(y = burden) %>%
     full_join(cw, by = "zip3") %>% 
     group_by(fips, season) %>%
-    summarise(has.epi = sum(has.epi), zOverlaps = length(zip3), y = weighted.mean(y, proportion, na.rm = TRUE)) %>%
-    mutate(has.epi = ifelse(has.epi > 0, TRUE, FALSE))
+    summarise(has.epi = sum(has.epi), incl.analysis = sum(incl.analysis), zOverlaps = length(zip3), y = weighted.mean(y, proportion, na.rm = TRUE)) %>%
+    mutate(has.epi = ifelse(has.epi > 0, TRUE, FALSE), incl.analysis = ifelse(incl.analysis > 0, TRUE, FALSE))
   
   # merge final data
   return_data <- full_join(iliPeak_data, pop_data, by = c("season", "fips")) %>%
     select(fips, county, st, stateID, lat, lon, season, year, pop, y, has.epi, zOverlaps) %>%
     group_by(season) %>%
-    mutate(E = weighted.mean(y, pop, na.rm = TRUE)) %>%
+    mutate(E = weighted.mean(y, pop, na.rm = TRUE), incl.analysis = ifelse(incl.analysis > 0, TRUE, FALSE)) %>%
     ungroup %>%
-    filter(season != 1) %>%
-    mutate(logy = ifelse(y == 0, log(1E-2), log(y)), logE = log(E)) # 6/1/16 log(1E-2) so no -Inf burden (need to do sensitivity on this) # 6/8/16: y == 0 condition replaces has.epi condition
+    filter(season != 1)
+  # 7/18/16 rm logy & log E 6/1/16 log(1E-2) so no -Inf burden (need to do sensitivity on this) # 6/8/16: y == 0 condition replaces has.epi condition
   return(return_data)
 }
 

@@ -117,7 +117,8 @@ model5a_iliSum_v1 <- function(filepathList){
     ungroup %>%
     filter(fips_st %in% continentalOnly) %>% # include data for continental states only
     select(-stateID, -adjProviderCoverage, -visitsPerProvider, -insured, -poverty, -child, -adult, -hospitalAccess, -popDensity, -commutInflows_prep, -pass, -infantAnyVax, -elderlyAnyVax, -H3, -humidity) %>%
-    filter(season %in% 2:9)
+    filter(season %in% 2:9) %>%
+    mutate(logE = log(E)) # 7/18/16: for gamma likelihood offset
   
   return(full_df)
 }
@@ -189,7 +190,8 @@ model5b_iliPeak_v1 <- function(filepathList){
     ungroup %>%
     filter(fips_st %in% continentalOnly) %>% # include data for continental states only
     select(-stateID, -adjProviderCoverage, -visitsPerProvider, -insured, -poverty, -child, -adult, -hospitalAccess, -popDensity, -commutInflows_prep, -pass, -infantAnyVax, -elderlyAnyVax, -H3, -humidity) %>%
-    filter(season %in% 2:9)
+    filter(season %in% 2:9) %>%
+    mutate(logE = log(E)) # 7/18/16: for gamma likelihood offset
   
   return(full_df)
 }
@@ -239,38 +241,6 @@ combine_shapefile_modelData_cty <- function(filepathList, modelData, seasNum){
 }
 ################################
 
-convert_2stageModelData_sharedPredictors <- function(modData_seas){
-  # prepare data seasonal model data for 2 stage (hurdle) model in INLA 
-  print(match.call())
-  
-  # create response matrix with 0s and non-zeros
-  Y <- modData_seas %>% 
-    select(y) %>%
-    mutate(y0 = ifelse(y == 0, y, NA)) %>%
-    mutate(y1 = ifelse(y > 0, y, NA)) %>%
-    select(-y) %>%
-    data.matrix
-  
-  # create matrix for response, predictors, random effects, offset
-  Mx <- modData_seas %>%
-    select(fips, fips_st, regionID, logE, contains("X_"), contains("O_")) %>%
-    mutate(intercept = 1) 
-  
-  # duplicate rows if covariates are shared across the two likelihoods
-  Mx_dup <- bind_rows(Mx, Mx)
-  
-  # convert matrix information to a list of lists/matrixes
-  modData_seas_lists <- list()
-  for (column in colnames(Mx)){
-    modData_seas_lists[[column]] <- Mx[[column]]
-  }
-  # add Y response matrix as a list
-  modData_seas_lists[['Y']] <- Y
-
-  return(modData_seas_lists)
-}
-################################
-
 convert_2stageModelData_separatePredictors <- function(modData_seas){
   # prepare data seasonal model data for 2 stage (hurdle) model in INLA 
   print(match.call())
@@ -293,7 +263,7 @@ convert_2stageModelData_separatePredictors <- function(modData_seas){
   
   # create matrix for >0s: response, predictors, random effects
   Mx1 <- modData_seas %>%
-    select(y, contains("X_"), contains("O_")) %>%
+    select(y, logE, contains("X_"), contains("O_")) %>%
     mutate(intercept = 1) %>%
     mutate_each(funs(nonzero = ifelse(y > 0, ., NA))) %>%
     select(contains("_nonzero")) %>%
@@ -305,6 +275,38 @@ convert_2stageModelData_separatePredictors <- function(modData_seas){
   
   # convert matrix information to a list of lists/matrixes
   Mx <- cbind(Mx_effects, Mx0, Mx1)
+  modData_seas_lists <- list()
+  for (column in colnames(Mx)){
+    modData_seas_lists[[column]] <- Mx[[column]]
+  }
+  # add Y response matrix as a list
+  modData_seas_lists[['Y']] <- Y
+  
+  return(modData_seas_lists)
+}
+################################
+
+convert_2stageModelData_sharedPredictors <- function(modData_seas){
+  # (7/18/16: No longer in use) prepare data seasonal model data for 2 stage (hurdle) model in INLA 
+  print(match.call())
+  
+  # create response matrix with 0s and non-zeros
+  Y <- modData_seas %>% 
+    select(y) %>%
+    mutate(y0 = ifelse(y == 0, y, NA)) %>%
+    mutate(y1 = ifelse(y > 0, y, NA)) %>%
+    select(-y) %>%
+    data.matrix
+  
+  # create matrix for response, predictors, random effects, offset
+  Mx <- modData_seas %>%
+    select(fips, fips_st, regionID, logE, contains("X_"), contains("O_")) %>%
+    mutate(intercept = 1) 
+  
+  # duplicate rows if covariates are shared across the two likelihoods
+  Mx_dup <- bind_rows(Mx, Mx)
+  
+  # convert matrix information to a list of lists/matrixes
   modData_seas_lists <- list()
   for (column in colnames(Mx)){
     modData_seas_lists[[column]] <- Mx[[column]]
