@@ -65,6 +65,7 @@ plot_diag_scatter_hurdle <- function(path_csvExport, path_plotExport_predVsObs, 
       xlab(xaxisVariable) 
   } else{
     plotOutput <- ggplot(plotDat2, aes(x = xVar, y = pltVar, group = facetlabel)) +
+      geom_point() +
       facet_wrap(~facetlabel, scales = "free") +
       ylab(yaxisVariable) +
       xlab(xaxisVariable)

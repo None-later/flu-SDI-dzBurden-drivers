@@ -141,7 +141,7 @@ importPlot_coefDistr_season_transformed <- function(path_csvExport, path_plotExp
 ################################
 
 plot_coefDistr_season <- function(plotDat, path_plotExport_coefDistr, plotFilename){
-  # plot all coef modes, Q.025 - Q0.975 over time
+  # plot all coef median, Q.025 - Q0.975 over time
   print(match.call())
   
   # plot formatting

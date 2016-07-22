@@ -129,7 +129,7 @@ export_summaryStats_fitted_hurdle <- function(exportPath, oneLik_fits, modDataFu
   names(oneLik_fits) <- c("mean", "sd", "q_025", "q_5", "q_975", "mode")
   modOutput_fitted <- bind_cols(modDataFullOutput %>% select(fips, ID, y), oneLik_fits) %>% 
       mutate(modCodeStr = modCodeString, dbCodeStr = dbCodeString, season = season, exportDate = as.character(Sys.Date())) %>%
-      select(modCodeStr, dbCodeStr, season, exportDate, fips, ID, mean, sd, q025, q5, q975, mode, y)
+      select(modCodeStr, dbCodeStr, season, exportDate, fips, ID, mean, sd, q_025, q_5, q_975, mode, y)
   
   # export data to file
   write_csv(modOutput_fitted, exportPath)

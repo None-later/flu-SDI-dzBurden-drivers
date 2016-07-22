@@ -27,9 +27,6 @@ plot_countyChoro <- function(exportPath, pltDat, pltVarTxt, code){
   if (code == 'tier'){
     # process data for tiers
     # 7/21/16: natural breaks w/ classIntervals
-#     pltDat <- pltDat %>% rename_(pltVar = pltVarTxt) %>%
-#       mutate(pltVarBin = cut(pltVar, breaks = pretty_breaks(n = 5, min.n = 3)(pltVar), ordered_result = TRUE, include.lowest = TRUE)) %>%
-#       mutate(pltVarBin = factor(pltVarBin, levels = rev(levels(pltVarBin))))
     pltDat <- pltDat %>% rename_(pltVar = pltVarTxt) 
     # create natural break intervals with jenks algorithm
     intervals <- classIntervals(pltDat$pltVar[!is.na(pltDat$pltVar)], n = 5, style = "jenks")
@@ -39,7 +36,7 @@ plot_countyChoro <- function(exportPath, pltDat, pltVarTxt, code){
     for (i in 1:length(breakLabels)){
       # create legend labels
       breakLabels[i] <- paste0("(",as.character(breaks[i]), "-", as.character(breaks[i+1]), "]")}
-    # reverse order of break labels
+    # reverse order of break labels so zeros are green and larger values are red
     breakLabels <- rev(breakLabels) 
     pltDat2 <- pltDat %>%
       mutate(pltVarBin = factor(.bincode(pltVar, breaks, right = TRUE, include.lowest = TRUE))) %>%

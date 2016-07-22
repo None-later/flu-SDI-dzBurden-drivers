@@ -250,14 +250,14 @@ convert_2stageModelData_separatePredictors <- function(modData_seas){
   # top half response matrix with epi/no-epi indicator (binomial lik) and NA (gamma lik)
   Y_bin <- modData_seas %>% 
     select(y) %>%
-    mutate(y0 = ifelse(y == 0, 1, ifelse(y > 0, 0, NA))) %>% # 1 = no epidemic, 0 = epidemic, NA = NA
+    mutate(y0 = ifelse(y == 0, 0, ifelse(y > 0, 1, NA))) %>% # 0 = no epidemic, 1 = epidemic, NA = NA
     mutate(y1 = NA) %>%
     select(-y) 
   
   # bottom half response matrix with NA (binomial lik) and non-zeros/NA (gamma lik)
   Y_gam <- modData_seas %>% 
     select(y) %>%
-    mutate(y0 = NA) %>% # 1 = no epidemic, 0 = epidemic, NA = NA
+    mutate(y0 = NA) %>% # 0 = no epidemic, 1 = epidemic, NA = NA
     mutate(y1 = ifelse(y > 0, y, NA)) %>%
     select(-y) 
   

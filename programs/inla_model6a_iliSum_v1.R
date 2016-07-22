@@ -11,6 +11,8 @@
 ## v1testing3 hurdle w/separatePredictors, intercept
 ## v1-1 sharedPredictors
 ## v1-2 separatePredictors
+## v1-3 corrected organization for separatePredictors
+## v1-4 newly implemented diagnostics, phat = prob(epidemic)
 ## 
 ## useful commands:
 ## install.packages("pkg", dependencies=TRUE, lib="/usr/local/lib/R/site-library") # in sudo R
@@ -26,7 +28,7 @@ require(RColorBrewer); require(ggplot2) # export_inlaData_st dependencies
 
 #### set these! ################################
 dbCodeStr <- "_ilinDt_Octfit_span0.4_degree2"
-modCodeStr <- "6a_iliSum_v1testing4"; testDataOn <- TRUE
+modCodeStr <- "6a_iliSum_v1-4"; testDataOn <- FALSE
 seasons <- 3:9
 rdmFx_RV <- "nu"
 dig <- 4 # number of digits in the number of elements at this spatial scale (~3000 counties -> 4 digits)
