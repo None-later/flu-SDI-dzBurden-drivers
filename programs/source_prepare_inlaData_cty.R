@@ -45,7 +45,8 @@ testing_module <- function(filepathList){
     ungroup %>%
     filter(fips_st %in% continentalOnly) %>% # include data for continental states only
     select(-stateID, -adjProviderCoverage, -visitsPerProvider, -poverty, -H3) %>%
-    filter(season %in% 2:9)
+    filter(season %in% 2:9) %>%
+    mutate(logE = log(E))
   
   return(full_df)
 }
@@ -243,38 +244,48 @@ combine_shapefile_modelData_cty <- function(filepathList, modelData, seasNum){
 
 convert_2stageModelData_separatePredictors <- function(modData_seas){
   # prepare data seasonal model data for 2 stage (hurdle) model in INLA 
+  # 7/20/16 duplicate locations
   print(match.call())
   
-  # create response matrix with 0s and non-zeros
-  Y <- modData_seas %>% 
+  # top half response matrix with epi/no-epi indicator (binomial lik) and NA (gamma lik)
+  Y_bin <- modData_seas %>% 
     select(y) %>%
-    mutate(y0 = ifelse(y == 0, y, NA)) %>%
+    mutate(y0 = ifelse(y == 0, 1, ifelse(y > 0, 0, NA))) %>% # 1 = no epidemic, 0 = epidemic, NA = NA
+    mutate(y1 = NA) %>%
+    select(-y) 
+  
+  # bottom half response matrix with NA (binomial lik) and non-zeros/NA (gamma lik)
+  Y_gam <- modData_seas %>% 
+    select(y) %>%
+    mutate(y0 = NA) %>% # 1 = no epidemic, 0 = epidemic, NA = NA
     mutate(y1 = ifelse(y > 0, y, NA)) %>%
-    select(-y) %>%
-    data.matrix
+    select(-y) 
   
-  # create matrix for 0s: response, predictors, random effects
-  Mx0 <- modData_seas %>%
-    select(y, contains("X_"), contains("O_")) %>%
-    mutate(intercept = 1) %>%
-    mutate_each(funs(zero = ifelse(y == 0, ., NA))) %>%
-    select(contains("_zero")) %>%
-    select(-y_zero)
+  Y <- bind_rows(Y_bin, Y_gam) %>% data.matrix
   
-  # create matrix for >0s: response, predictors, random effects
-  Mx1 <- modData_seas %>%
-    select(y, logE, contains("X_"), contains("O_")) %>%
-    mutate(intercept = 1) %>%
-    mutate_each(funs(nonzero = ifelse(y > 0, ., NA))) %>%
-    select(contains("_nonzero")) %>%
-    select(-y_nonzero)
+  # covariate matrix for binomial lik: response, predictors, random effects
+  Mx_bin <- modData_seas %>%
+    select(contains("X_"), contains("O_"), fips, fips_st, regionID) %>%
+    mutate(intercept = 1) 
+  colnames(Mx_bin) <- paste0(colnames(Mx_bin), "_bin")
   
-  # create matrix for non-driver predictors (random effects & offset)
-  Mx_effects <- modData_seas %>%
-    select(fips, fips_st, regionID, logE)
+  # covariate matrix for gamma lik: response, predictors, random effects & offset
+  Mx_gam <- modData_seas %>%
+    select(contains("X_"), contains("O_"), fips, fips_st, regionID, logE) %>%
+    mutate(intercept = 1) 
+  colnames(Mx_gam) <- paste0(colnames(Mx_gam), "_nonzero")
+  
+  # NA block for bin & gam Mx
+  NA_bin <- data.frame(matrix(data = NA, nrow = nrow(Mx_bin), ncol = ncol(Mx_bin)))
+  names(NA_bin) <- colnames(Mx_bin)
+  NA_gam <- data.frame(matrix(data = NA, nrow = nrow(Mx_gam), ncol = ncol(Mx_gam)))
+  names(NA_gam) <- colnames(Mx_gam)
+  # add NAs to appropriate locations
+  Mx_bin2 <- bind_rows(Mx_bin , NA_bin)
+  Mx_gam2 <- bind_rows(NA_gam, Mx_gam)
   
   # convert matrix information to a list of lists/matrixes
-  Mx <- cbind(Mx_effects, Mx0, Mx1)
+  Mx <- bind_cols(Mx_bin2, Mx_gam2)
   modData_seas_lists <- list()
   for (column in colnames(Mx)){
     modData_seas_lists[[column]] <- Mx[[column]]
