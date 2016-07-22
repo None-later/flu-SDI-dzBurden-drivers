@@ -21,9 +21,9 @@ source("source_export_inlaDiagnostics.R") # plot_diag_scatter_hurdle function
 source("source_clean_response_functions_cty.R") # cty response functions
 
 #### set these! ################################
-modCodeStr <- "6a_iliSum_v2testing1"
+modCodeStr <- "6a_iliSum_v3testing1"
 seasons <- 2:4
-likStrings <- c("binomial")
+likStrings <- c("gamma")
 
 #### IMPORT FILEPATHS #################################
 setwd('../reference_data')
