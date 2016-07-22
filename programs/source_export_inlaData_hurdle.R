@@ -54,8 +54,7 @@ importPlot_coefDistr_season_hurdle <- function(path_csvExport, path_plotExport_c
     regIds <- coefDf_lik %>% filter(effectType == 'regID') %>% distinct(RV) %>% unlist 
     regIdDat <- coefDf_lik %>% filter(effectType == 'regID') %>% mutate(RV = factor(RV, levels = regIds))
     plot_coefDistr_season(regIdDat, path_plotExport_coefDistr, sprintf('regionID_%sLikelihood.png', lik))
-  }
-  
+  } 
 }
 ################################
 
@@ -65,31 +64,6 @@ importPlot_coefDistr_season_hurdle <- function(path_csvExport, path_plotExport_c
 ################################
 logit <- function(probability) {
   return(log(probability)-log(1-probability))
-}
-################################
-
-export_summaryStats_fitted_hurdle <- function(exportPath, oneLik_fits, likelihoodString, modDataFullOutput, modCodeString, dbCodeString, season){
-  # process binomial likelihood or gamma likelihood fitted values for diagnostic plotting
-  print(match.call())
-  
-  if (likelihoodString == "binomial"){
-    names(oneLik_fits) <- c("pHat_bin_mn", "pHat_bin_sd", "pHat_bin_q025", "pHat_bin_q5", "pHat_bin_q975", "pHat_bin_mode")
-    modOutput_fitted <- bind_cols(modDataFullOutput %>% select(fips, ID, y), oneLik_fits) %>% 
-      mutate(modCodeStr = modCodeString, dbCodeStr = dbCodeString, season = season, exportDate = as.character(Sys.Date())) %>%
-      select(modCodeStr, dbCodeStr, season, exportDate, fips, ID, pHat_bin_mn, pHat_bin_sd, pHat_bin_q025, pHat_bin_q5, pHat_bin_q975, pHat_bin_mode, y)
-  }
-  else if (likelihoodString == "gamma"){
-    names(oneLik_fits) <- c("yHat_gam_mn", "yHat_gam_sd", "yHat_gam_q025", "yHat_gam_q5", "yHat_gam_q975", "yHat_gam_mode")
-    modOutput_fitted <- bind_cols(modDataFullOutput %>% select(fips, ID, y), oneLik_fits) %>% 
-      mutate(yHat_gam_resid = (y-yHat_gam_mn)/yHat_gam_sd) %>% # residuals aren't typically used as a diagnostic for goodness of fit with binary model
-      mutate(modCodeStr = modCodeString, dbCodeStr = dbCodeString, season = season, exportDate = as.character(Sys.Date())) %>%
-      select(modCodeStr, dbCodeStr, season, exportDate, fips, ID, yHat_bin_mn, yHat_bin_sd, yHat_bin_q025, yHat_bin_q5, yHat_bin_q975, yHat_bin_mode, y, yHat_gam_resid)
-  }
-  
-  # export data to file
-  write_csv(modOutput_fitted, exportPath)
-  
-  return(modOutput_fitted)
 }
 ################################
 
@@ -152,7 +126,7 @@ export_summaryStats_fitted_hurdle <- function(exportPath, oneLik_fits, modDataFu
   # process binomial likelihood or gamma likelihood fitted values for diagnostic plotting
   print(match.call())
   
-  names(oneLik_fits) <- c("mean", "sd", "q025", "q5", "q975", "mode")
+  names(oneLik_fits) <- c("mean", "sd", "q_025", "q_5", "q_975", "mode")
   modOutput_fitted <- bind_cols(modDataFullOutput %>% select(fips, ID, y), oneLik_fits) %>% 
       mutate(modCodeStr = modCodeString, dbCodeStr = dbCodeString, season = season, exportDate = as.character(Sys.Date())) %>%
       select(modCodeStr, dbCodeStr, season, exportDate, fips, ID, mean, sd, q025, q5, q975, mode, y)

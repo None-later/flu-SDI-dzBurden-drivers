@@ -25,31 +25,34 @@ plot_diag_scatter_hurdle <- function(path_csvExport, path_plotExport_predVsObs, 
   # grab list of files names
   setwd(path_csvExport)
   readfile_list <- grep(sprintf("summaryStatsFitted_%s", likelihoodString), list.files(), value = TRUE)
-  plotDat <- tbl_df(data.frame(modCodeStr = c(), dbCodeStr = c(), season = c(), fips = c(), ID = c(), mean = c(), sd = c(), q_025 = c(), q_5 = c(), q_975 = c(), mode = c(), y = c()))
+  plotDat <- tbl_df(data.frame())
 
   # import yhat and y data
   for (infile in readfile_list){
     seasFile <- read_csv(infile, col_types = "cci_ccddddddd")
     plotDat <- bind_rows(plotDat, seasFile)
   }
+  # rename columns
+  names(plotDat) <- c("modCodeStr", "dbCodeStr", "season", "fips", "ID", "mean", "sd", "q_025", "q_5", "q_975", "mode", "y")
   
   # calculate yhat residuals for gamma model only
   if (likelihoodString == "gamma"){
     plotDat <- plotDat %>%
       mutate(yhat_resid = (y-mean)/sd)
   }
-  
+
   # calculate spearman's rho correlations
   corrDat <- plotDat %>% 
     rename_(pltVar = yaxisVariable, xVar = xaxisVariable) %>%
     group_by(season) %>%
-    summarise(rho = cor(xaxisVariable, pltVar, method = "spearman", use = 'complete.obs')) %>%
+    summarise(rho = cor(xVar, pltVar, method = "spearman", use = 'complete.obs')) %>%
     mutate(facetlabel = paste(sprintf("S%s rho", season), round(rho, 3))) %>%
     select(season, facetlabel)
   
   # create new dataset with corr coef in label
-  plotDat2 <- left_join(plotDat, corrDat, by = 'season') 
-  
+  plotDat2 <- left_join(plotDat, corrDat, by = 'season') %>% 
+    rename_(pltVar = yaxisVariable, xVar = xaxisVariable)
+
   # plot formatting
   w <- 8; h <- 8; dp <- 250
   
@@ -58,13 +61,13 @@ plot_diag_scatter_hurdle <- function(path_csvExport, path_plotExport_predVsObs, 
     plotOutput <- ggplot(plotDat2, aes(x = xVar, y = pltVar, group = facetlabel)) +
       geom_pointrange(aes(ymin = q_025, ymax = q_975)) +
       facet_wrap(~facetlabel, scales = "free") +
-      ylab(sprintf("%s (95% CI)", yaxisVariable)) +
-      xlab(sprintf("%s", xaxisVariable)) 
+      ylab(paste(yaxisVariable, "(95%CI)")) +
+      xlab(xaxisVariable) 
   } else{
     plotOutput <- ggplot(plotDat2, aes(x = xVar, y = pltVar, group = facetlabel)) +
       facet_wrap(~facetlabel, scales = "free") +
-      ylab(sprintf("%s", yaxisVariable)) +
-      xlab(sprintf("%s", xaxisVariable)) 
+      ylab(yaxisVariable) +
+      xlab(xaxisVariable)
   }
   
   ggsave(path_plotExport_predVsObs, plotOutput, height = h, width = w, dpi = dp)
