@@ -1,19 +1,13 @@
 
 ## Name: Elizabeth Lee
-## Date: 7/8/16
-## Function: Model 6a, v1-1 covariate & sampling effort hurdle model -- after variable selection
+## Date: 7/22/16
+## Function: Model 6a, v2 binomial component of hurdle model
 ## v1-1: One model per season, see variables selected in 'Drivers' spreadsheet
 ## Filenames: physicianCoverage_IMSHealth_state.csv, dbMetrics_periodicReg_ilinDt_Octfit_span0.4_degree2_analyzeDB_st.csv
 ## Data Source: IMS Health
 ## Notes: need to SSH into snow server
-## v1testing1 hurdle with sharedPredictors, no intercept
-## v1testing2 hurdle with separatePredictors, no intercept
-## v1testing3 hurdle w/separatePredictors, intercept
-## v1-1 sharedPredictors
-## v1-2 separatePredictors
-## v1-3 corrected organization for separatePredictors
-## v1-4 newly implemented diagnostics, phat = prob(epidemic)
-## 
+## forked from model 6a v1-4
+
 ## useful commands:
 ## install.packages("pkg", dependencies=TRUE, lib="/usr/local/lib/R/site-library") # in sudo R
 ## update.packages(lib.loc = "/usr/local/lib/R/site-library")
@@ -28,8 +22,8 @@ require(RColorBrewer); require(ggplot2) # export_inlaData_st dependencies
 
 #### set these! ################################
 dbCodeStr <- "_ilinDt_Octfit_span0.4_degree2"
-modCodeStr <- "6a_iliSum_v1-4"; testDataOn <- FALSE
-seasons <- 3:9
+modCodeStr <- "6a_iliSum_v2testing1"; testDataOn <- TRUE
+seasons <- 2:4
 rdmFx_RV <- "nu"
 dig <- 4 # number of digits in the number of elements at this spatial scale (~3000 counties -> 4 digits)
 
@@ -67,12 +61,12 @@ path_list <- list(path_abbr_st = path_abbr_st,
 if (testDataOn){
   modData <- testing_module(path_list) # with driver & sampling effort variables
   # testing module formula
-  formula <- Y ~ -1 + f(fips_bin, model = "iid") + f(fips_st_bin, model = "iid") + f(regionID_bin, model = "iid") + intercept_bin +  O_imscoverage_bin + O_careseek_bin + X_poverty_bin + X_H3_bin + f(fips_nonzero, model = "iid") + f(fips_st_nonzero, model = "iid") + f(regionID_nonzero, model = "iid") + intercept_nonzero + O_imscoverage_nonzero + O_careseek_nonzero + X_poverty_nonzero + X_H3_nonzero + offset(logE_nonzero)
+  formula <- Y ~ -1 + f(fips_bin, model = "iid") + f(fips_st_bin, model = "iid") + f(regionID_bin, model = "iid") + intercept_bin +  O_imscoverage_bin + O_careseek_bin + X_poverty_bin + X_H3_bin
 } else{
 #### Import and process data ####
   modData <- model5a_iliSum_v1(path_list) # with driver & sampling effort variables
-  #### Model 6a: County-level, after variable selection, one model per season, separate predictors for the 2 likelihoods ####
-  formula <- Y ~ -1 + f(fips_bin, model = "iid") + f(fips_st_bin, model = "iid") + f(regionID_bin, model = "iid") + intercept_bin + O_imscoverage_bin + O_careseek_bin + O_insured_bin + X_poverty_bin + X_child_bin + X_adult_bin + X_hospaccess_bin + X_popdensity_bin + X_commute_bin + X_flight_bin + X_vaxcovI_bin + X_vaxcovE_bin + X_H3_bin + X_humidity_bin + f(fips_nonzero, model = "iid") + f(fips_st_nonzero, model = "iid") + f(regionID_nonzero, model = "iid") + intercept_nonzero + O_imscoverage_nonzero + O_careseek_nonzero + O_insured_nonzero + X_poverty_nonzero + X_child_nonzero + X_adult_nonzero + X_hospaccess_nonzero + X_popdensity_nonzero + X_commute_nonzero + X_flight_nonzero + X_vaxcovI_nonzero + X_vaxcovE_nonzero + X_H3_nonzero + X_humidity_nonzero + offset(logE_nonzero)
+  #### Model 6a: County-level, after variable selection, one model per season ####
+  formula <- Y ~ -1 + f(fips_bin, model = "iid") + f(fips_st_bin, model = "iid") + f(regionID_bin, model = "iid") + intercept_bin + O_imscoverage_bin + O_careseek_bin + O_insured_bin + X_poverty_bin + X_child_bin + X_adult_bin + X_hospaccess_bin + X_popdensity_bin + X_commute_bin + X_flight_bin + X_vaxcovI_bin + X_vaxcovE_bin + X_H3_bin + X_humidity_bin 
 }
 
 #### export formatting ####
@@ -95,17 +89,15 @@ path_csvExport <- getwd()
 #### run models by season ################################
 for (s in seasons){
   modData_full <- modData %>% filter(season == s) %>% mutate(ID = seq_along(fips))
-  modData_hurdle <- convert_hurdleModel_separatePredictors(modData_full)
+  modData_hurdle <- convert_hurdleModel_binomial(modData_full)
   
   mod <- inla(formula, 
-              family = list("binomial", "gamma"), 
+              family = list("binomial"), 
               data = modData_hurdle, 
-              control.family = list(list(link="logit"),
-                                    list(link="log",
-                                         hyper=list(theta=list(fixed=TRUE)))), 
+              control.family = list(list(link="logit")), 
               Ntrials = 1, # binomial likelihood params
               control.fixed = list(mean = 0, prec = 1/100), # set prior parameters for regression coefficients
-              control.predictor = list(compute = TRUE, link = c(rep(1, nrow(modData_full)), rep(2, nrow(modData_full)))), # compute summary statistics on fitted values, link designates that NA responses are calculated according to the first likelihood for the first (nrow(modData_full)) rows & the second likelihood for the second (nrow(modData_full)) rows
+              control.predictor = list(compute = TRUE, link = c(rep(1, nrow(modData_full)))), # compute summary statistics on fitted values, link designates that NA responses are calculated according to the first likelihood for the first (nrow(modData_full)) rows
               control.compute = list(dic = TRUE, cpo = TRUE),
               verbose = TRUE) 
   
@@ -131,7 +123,7 @@ for (s in seasons){
   # file path
   path_csvExport_summaryStats <- paste0(path_csvExport, sprintf("/summaryStats_%s_S%s.csv", modCodeStr, s))
   # write all summary statistics to file
-  export_summaryStats_hurdle(path_csvExport_summaryStats, mod, rdmFx_RV, modCodeStr, dbCodeStr, s) # assuming fixed, spatial, state ID, and region ID exist
+  export_summaryStats_hurdle_binomial(path_csvExport_summaryStats, mod, rdmFx_RV, modCodeStr, dbCodeStr, s) # assuming fixed, spatial, state ID, and region ID exist
   
   #### hyperparameter outputs? ####
   
@@ -141,12 +133,6 @@ for (s in seasons){
   path_csvExport_fittedBinomial <- paste0(path_csvExport, sprintf("/summaryStatsFitted_binomial_%s_S%s.csv", modCodeStr, s))
   dummy_bin <- mod$summary.fitted.values[1:nrow(modData_full),]
   mod_bin_fitted <- export_summaryStats_fitted_hurdle(path_csvExport_fittedBinomial, dummy_bin, modData_full, modCodeStr, dbCodeStr, s) 
-  
-  # gamma model processing
-  path_csvExport_fittedGamma <- paste0(path_csvExport, sprintf("/summaryStatsFitted_gamma_%s_S%s.csv", modCodeStr, s))
-  dummy_gam <- mod$summary.fitted.values[(1+nrow(modData_full)):(2*nrow(modData_full)),]
-  mod_gam_fitted <- export_summaryStats_fitted_hurdle(path_csvExport_fittedGamma, dummy_gam, modData_full, modCodeStr, dbCodeStr, s)
-
 
   #### Diagnostic plots ################################
   
@@ -154,11 +140,6 @@ for (s in seasons){
   # marginal posteriors: first 6 random effects (nu or phi)
   path_plotExport_rdmFxSample_bin <- paste0(path_plotExport, sprintf("/inla_%s_%s1-6_marg_binomial_S%s.png", modCodeStr, rdmFx_RV, s))
   plot_rdmFx_marginalsSample(path_plotExport_rdmFxSample_bin, mod$marginals.random$fips_bin, rdmFx_RV)
-  
-  #### gamma likelihood figures ####
-  # marginal posteriors: first 6 random effects (nu or phi)
-  path_plotExport_rdmFxSample_nonzero <- paste0(path_plotExport, sprintf("/inla_%s_%s1-6_marg_gamma_S%s.png", modCodeStr, rdmFx_RV, s))
-  plot_rdmFx_marginalsSample(path_plotExport_rdmFxSample_nonzero, mod$marginals.random$fips_nonzero, rdmFx_RV)
   
   #### figures (agnostic to likelihood) ####
   # marginal posteriors: fixed effects

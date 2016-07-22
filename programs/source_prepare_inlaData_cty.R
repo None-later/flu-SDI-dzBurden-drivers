@@ -242,7 +242,7 @@ combine_shapefile_modelData_cty <- function(filepathList, modelData, seasNum){
 }
 ################################
 
-convert_2stageModelData_separatePredictors <- function(modData_seas){
+convert_hurdleModel_separatePredictors <- function(modData_seas){
   # prepare data seasonal model data for 2 stage (hurdle) model in INLA 
   # 7/20/16 duplicate locations
   print(match.call())
@@ -292,6 +292,64 @@ convert_2stageModelData_separatePredictors <- function(modData_seas){
   }
   # add Y response matrix as a list
   modData_seas_lists[['Y']] <- Y
+  
+  return(modData_seas_lists)
+}
+################################
+
+convert_hurdleModel_binomial <- function(modData_seas){
+  # 7/22/16: prepare data seasonal model data with 2 stage (hurdle) model structure, but only for binomial model component
+  print(match.call())
+  
+  # top half response matrix with epi/no-epi indicator (binomial lik) and NA (gamma lik)
+  Y_bin <- modData_seas %>% 
+    select(y) %>%
+    mutate(y0 = ifelse(y == 0, 0, ifelse(y > 0, 1, NA))) %>% # 0 = no epidemic, 1 = epidemic, NA = NA
+    select(y0) %>% 
+    unlist
+  
+  # covariate matrix for binomial lik: response, predictors, random effects
+  Mx_bin <- modData_seas %>%
+    select(contains("X_"), contains("O_"), fips, fips_st, regionID) %>%
+    mutate(intercept = 1) 
+  colnames(Mx_bin) <- paste0(colnames(Mx_bin), "_bin")
+  
+  # convert matrix information to a list of lists/matrixes
+  modData_seas_lists <- list()
+  for (column in colnames(Mx_bin)){
+    modData_seas_lists[[column]] <- Mx_bin[[column]]
+  }
+  # add Y response vector as a list
+  modData_seas_lists[['Y']] <- Y_bin
+  
+  return(modData_seas_lists)
+}
+################################
+
+convert_hurdleModel_gamma <- function(modData_seas){
+  # 7/22/16: prepare data seasonal model data for 2 stage (hurdle) model structure, but only for gamma model component
+  print(match.call())
+  
+  # bottom half response matrix with NA (binomial lik) and non-zeros/NA (gamma lik)
+  Y_gam <- modData_seas %>% 
+    select(y) %>%
+    mutate(y1 = ifelse(y > 0, y, NA)) %>%
+    select(y1) %>%
+    unlist
+  
+  # covariate matrix for gamma lik: response, predictors, random effects & offset
+  Mx_gam <- modData_seas %>%
+    select(contains("X_"), contains("O_"), fips, fips_st, regionID, logE) %>%
+    mutate(intercept = 1) 
+  colnames(Mx_gam) <- paste0(colnames(Mx_gam), "_nonzero")
+  
+  # convert matrix information to a list of lists/matrixes
+  modData_seas_lists <- list()
+  for (column in colnames(Mx_gam)){
+    modData_seas_lists[[column]] <- Mx_gam[[column]]
+  }
+  # add Y response vector as a list
+  modData_seas_lists[['Y']] <- Y_gam
   
   return(modData_seas_lists)
 }

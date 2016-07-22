@@ -83,9 +83,9 @@ export_summaryStats_hurdle <- function(exportPath, modelOutput, rdmFxTxt, modCod
   names(modelOutput$summary.random$fips_st_bin) <- names(modelOutput$summary.random$fips_bin)
   names(modelOutput$summary.random$regionID_bin) <- names(modelOutput$summary.random$fips_bin)
   # random effects for nonzero model (gamma) #
-  names(modelOutput$summary.random$fips_nonzero) <- names(modelOutput$summary.random$fips_bin)
-  names(modelOutput$summary.random$fips_st_nonzero) <- names(modelOutput$summary.random$fips_bin)
-  names(modelOutput$summary.random$regionID_nonzero) <- names(modelOutput$summary.random$fips_bin)
+  names(modelOutput$summary.random$fips_nonzero) <- c("ID", names(modelOutput$summary.fixed))
+  names(modelOutput$summary.random$fips_st_nonzero) <- names(modelOutput$summary.random$fips_nonzero)
+  names(modelOutput$summary.random$regionID_nonzero) <- names(modelOutput$summary.random$fips_nonzero)
   
   # clean fixed effects summary statistics output from INLA
   summaryFixed <- tbl_df(modelOutput$summary.fixed) %>%
@@ -103,6 +103,92 @@ export_summaryStats_hurdle <- function(exportPath, modelOutput, rdmFxTxt, modCod
     mutate(effectType = "stID") 
   summaryRandomReg <- bind_rows(modelOutput$summary.random$regionID_bin %>% mutate(likelihood = "binomial"), 
                                 modelOutput$summary.random$regionID_nonzero %>% mutate(likelihood = "gamma")) %>%
+    mutate(ID = as.character(ID)) %>%
+    mutate(effectType = "regID") 
+  
+  # bind random effects summary statistics
+  summaryRandom <- bind_rows(summaryRandomFips, summaryRandomSt, summaryRandomReg) %>%
+    rename(RV = ID) %>%
+    select(RV, effectType, likelihood, mean, sd, q_025, q_5, q_975, mode, kld)
+  
+  # bind data together
+  summaryStats <- bind_rows(summaryFixed, summaryRandom) %>%
+    mutate(modCodeStr = modCodeString, dbCodeStr = dbCodeString, season = season, exportDate = as.character(Sys.Date())) %>%
+    select(modCodeStr, dbCodeStr, season, exportDate, RV, effectType, likelihood, mean, sd, q_025, q_5, q_975, mode, kld)
+  
+  # export data to file
+  write_csv(summaryStats, exportPath)
+  
+}
+################################
+
+export_summaryStats_hurdle_binomial <- function(exportPath, modelOutput, rdmFxTxt, modCodeString, dbCodeString, season){
+  # export summary statistics of INLA model output for hurdle model variables (binomial component ONLY) -- fixed and random effects in the same file
+  print(match.call())
+  
+  ## change variable names output from INLA ##
+  names(modelOutput$summary.fixed) <- c("mean", "sd", "q_025", "q_5", "q_975", "mode", "kld")
+  # random effects for binomial model #
+  names(modelOutput$summary.random$fips_bin) <- c("ID", names(modelOutput$summary.fixed))
+  names(modelOutput$summary.random$fips_st_bin) <- names(modelOutput$summary.random$fips_bin)
+  names(modelOutput$summary.random$regionID_bin) <- names(modelOutput$summary.random$fips_bin)
+  
+  # clean fixed effects summary statistics output from INLA
+  summaryFixed <- tbl_df(modelOutput$summary.fixed) %>%
+    mutate(RV = rownames(modelOutput$summary.fixed)) %>%
+    mutate(effectType = "fixed") %>%
+    mutate(likelihood = ifelse(grepl("_bin", RV, fixed=TRUE), "binomial", ifelse(grepl("_nonzero", RV, fixed=TRUE), "gamma", NA))) %>%
+    select(RV, effectType, likelihood, mean, sd, q_025, q_5, q_975, mode, kld)
+  
+  # clean random effects summary statistics output from INLA
+  summaryRandomFips <- modelOutput$summary.random$fips_bin %>% mutate(likelihood = "binomial") %>%
+    mutate(effectType = "spatial") 
+  summaryRandomSt <- modelOutput$summary.random$fips_st_bin %>% mutate(likelihood = "binomial") %>%
+    mutate(effectType = "stID") 
+  summaryRandomReg <- modelOutput$summary.random$regionID_bin %>% mutate(likelihood = "binomial") %>%
+    mutate(ID = as.character(ID)) %>%
+    mutate(effectType = "regID") 
+  
+  # bind random effects summary statistics
+  summaryRandom <- bind_rows(summaryRandomFips, summaryRandomSt, summaryRandomReg) %>%
+    rename(RV = ID) %>%
+    select(RV, effectType, likelihood, mean, sd, q_025, q_5, q_975, mode, kld)
+  
+  # bind data together
+  summaryStats <- bind_rows(summaryFixed, summaryRandom) %>%
+    mutate(modCodeStr = modCodeString, dbCodeStr = dbCodeString, season = season, exportDate = as.character(Sys.Date())) %>%
+    select(modCodeStr, dbCodeStr, season, exportDate, RV, effectType, likelihood, mean, sd, q_025, q_5, q_975, mode, kld)
+  
+  # export data to file
+  write_csv(summaryStats, exportPath)
+  
+}
+################################
+
+export_summaryStats_hurdle_gamma <- function(exportPath, modelOutput, rdmFxTxt, modCodeString, dbCodeString, season){
+  # export summary statistics of INLA model output for hurdle model variables (gamma component ONLY) -- fixed and random effects in the same file
+  print(match.call())
+  
+  ## change variable names output from INLA ##
+  names(modelOutput$summary.fixed) <- c("mean", "sd", "q_025", "q_5", "q_975", "mode", "kld")
+  # random effects for nonzero model (gamma) #
+  names(modelOutput$summary.random$fips_nonzero) <- c("ID", names(modelOutput$summary.fixed))
+  names(modelOutput$summary.random$fips_st_nonzero) <- names(modelOutput$summary.random$fips_nonzero)
+  names(modelOutput$summary.random$regionID_nonzero) <- names(modelOutput$summary.random$fips_nonzero)
+  
+  # clean fixed effects summary statistics output from INLA
+  summaryFixed <- tbl_df(modelOutput$summary.fixed) %>%
+    mutate(RV = rownames(modelOutput$summary.fixed)) %>%
+    mutate(effectType = "fixed") %>%
+    mutate(likelihood = ifelse(grepl("_bin", RV, fixed=TRUE), "binomial", ifelse(grepl("_nonzero", RV, fixed=TRUE), "gamma", NA))) %>%
+    select(RV, effectType, likelihood, mean, sd, q_025, q_5, q_975, mode, kld)
+  
+  # clean random effects summary statistics output from INLA
+  summaryRandomFips <- modelOutput$summary.random$fips_nonzero %>% mutate(likelihood = "gamma") %>%
+    mutate(effectType = "spatial") 
+  summaryRandomSt <- modelOutput$summary.random$fips_st_nonzero %>% mutate(likelihood = "gamma") %>%
+    mutate(effectType = "stID") 
+  summaryRandomReg <- modelOutput$summary.random$regionID_nonzero %>% mutate(likelihood = "gamma") %>%
     mutate(ID = as.character(ID)) %>%
     mutate(effectType = "regID") 
   
