@@ -17,6 +17,7 @@ setwd(dirname(sys.frame(1)$ofile))
 source("write_loess_fits_ILIn.R")
 source("explore_loess_fits_ILIn.R")
 source("write_periodicReg_fits_ilinDt_Octfit.R")
+source("write_periodicReg_fits_ilinDt_Octfit_emergency.R")
 source("write_fullIndic_periodicReg_ilinDt.R")
 source("explore_periodicReg_fits_ilinDt.R")
 source("write_relativeDiseaseBurden_ilinDt.R")
@@ -37,7 +38,9 @@ spatial.params <- list()
 if (spatial.scale == "state"){
   spatial.params <- list(scale = spatial.scale, stringcode = "State", stringabbr = "_st")
 } else if (spatial.scale == "zip3"){
-  spatial.params <- list(scale = spatial.scale, stringcode = "Zip3", stringabbr = "")
+  spatial.params <- list(scale = spatial.scale, stringcode = "Zip3", stringabbr = "", serv = "_totServ", servToggle = "") 
+  # serv = "_totServ", servToggle = ""
+  # serv = "_emergency", servToggle = "_emergency"
 }
 
 for (span in span.list){
@@ -45,7 +48,7 @@ for (span in span.list){
 
   do.call(write_loess_fits_ILIn, c(params))
   do.call(explore_loess_fits_ILIn, c(params))
-  do.call(write_periodicReg_fits_ilinDt_Octfit, c(params))
+  do.call(write_periodicReg_fits_ilinDt_Octfit_emergency, c(params))
   do.call(write_fullIndic_periodicReg_ilinDt, c(params))
   do.call(explore_periodicReg_fits_ilinDt, c(params))
   do.call(write_relativeDiseaseBurden_ilinDt, c(params))

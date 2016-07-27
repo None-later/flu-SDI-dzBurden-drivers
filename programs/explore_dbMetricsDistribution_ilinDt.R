@@ -29,14 +29,14 @@ explore_dbMetricsDistribution_ilinDt <- function(span.var, degree.var, spatial){
   code2 <- "_Octfit" # fit = Apr to Oct and fluseason = Oct to Apr
   
   ## uncomment when running script separately
-  # spatial <- list(scale = "state", stringcode = "State", stringabbr = "_st")
+  # spatial <- list(scale = "state", stringcode = "State", stringabbr = "_st", serv = "_emergency", servToggle = "_emergency")
   # span.var <- 0.4 # 0.4, 0.6
   # degree.var <- 2
   code.str <- sprintf('_span%s_degree%s', span.var, degree.var)
   
   #### import data ####################################
   setwd('../R_export')
-  dbMetrics.g <- read_csv(sprintf('dbMetrics_periodicReg_%silinDt%s%s_analyzeDB%s.csv', code, code2, code.str, spatial$stringabbr), col_types="icllcd") %>% filter(season!=1)
+  dbMetrics.g <- read_csv(sprintf('dbMetrics_periodicReg_%silinDt%s%s%s_analyzeDB%s.csv', code, code2, spatial$servToggle, code.str, spatial$stringabbr), col_types="icllcd") %>% filter(season!=1)
   # standardized data
   dbMetrics.gz <- dbMetrics.g %>% group_by(season, metric) %>% mutate(burden.z = (burden - mean(burden, na.rm=TRUE))/sd(burden, na.rm=TRUE))
   
@@ -47,8 +47,8 @@ explore_dbMetricsDistribution_ilinDt <- function(span.var, degree.var, spatial){
   #### plot distribution of dbMetrics ####################################
   print(sprintf('plotting db metrics %s', code.str))
   # 7/18/16 - saved figures
-  dir.create(sprintf('../graph_outputs/explore_dbMetricsDistribution_%silinDt%s%s%s', code, code2, code.str, spatial$stringabbr), showWarnings=FALSE)
-  setwd(sprintf('../graph_outputs/explore_dbMetricsDistribution_%silinDt%s%s%s', code, code2, code.str, spatial$stringabbr))
+  dir.create(sprintf('../graph_outputs/explore_dbMetricsDistribution_%silinDt%s%s%s%s', code, code2, spatial$servToggle, code.str, spatial$stringabbr), showWarnings=FALSE)
+  setwd(sprintf('../graph_outputs/explore_dbMetricsDistribution_%silinDt%s%s%s%s', code, code2, spatial$servToggle, code.str, spatial$stringabbr))
   
   # total ILI plot
   plt.distr.iliSum <- ggplot(dbMetrics.g %>% filter(metric=='ilinDt.sum'), aes(x=burden, group=season)) +

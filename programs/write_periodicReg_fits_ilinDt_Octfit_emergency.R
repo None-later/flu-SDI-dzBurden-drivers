@@ -11,12 +11,13 @@
 ## Notes: code2 = 'Octfit' --> October to April is flu period, but we fit the seasonal regression from April to October (i.e., expanded definition of summer) in order to improve phase of regression fits
 ## 52.18 weeks per year in the regression model
 ## 12-10-15 - add spatial scale option (zip3 or state)
+## 7-27-16 - different data cleaning procedure (too many NAs with low loess fits) for emergency room data
 ## 
 ## useful commands:
 ## install.packages("pkg", dependencies=TRUE, lib="/usr/local/lib/R/site-library") # in sudo R
 ## update.packages(lib.loc = "/usr/local/lib/R/site-library")
 
-write_periodicReg_fits_ilinDt_Octfit <- function(span.var, degree.var, spatial){
+write_periodicReg_fits_ilinDt_Octfit_emergency <- function(span.var, degree.var, spatial){
   print(deparse(sys.call()))
   
   #### header ####################################
@@ -50,21 +51,35 @@ write_periodicReg_fits_ilinDt_Octfit <- function(span.var, degree.var, spatial){
   # create new data for augment
   newbasedata <- ILI_full_df %>% select(Thu.week, t) %>% unique %>% filter(Thu.week < as.Date('2009-05-01'))
   
+  # 7/27/16 data cleaning for emergency room data
+  noILIdata <- ILI_full_df %>% filter(fit.week) %>%
+    filter(Thu.week < as.Date('2009-05-01')) %>%
+    group_by(scale) %>%
+    summarise(num.NA = sum(is.na(ilin.dt))) %>%
+    mutate(incl.lm.emerg = ifelse(num.NA < 50, TRUE, FALSE)) %>%
+    select(-num.NA)
+  
   # perform periodic regression
   print('performing periodic regression')
-  allMods <- ILI_full_df %>% filter(fit.week) %>% filter(Thu.week < as.Date('2009-05-01')) %>% 
+  ILI_full_df2 <- ILI_full_df %>% 
+    right_join(noILIdata, by = "scale") %>%
+    mutate(incl.lm = ifelse(incl.lm.emerg, incl.lm, FALSE)) # overwrite incl.lm = TRUE in non fit.weeks if incl.lm.emerg = FALSE
+  
+  # 7/27/16: different than totServ because more NAs (loessfit <= 0)
+  allMods <- ILI_full_df2 %>%
+    filter(fit.week) %>% filter(Thu.week < as.Date('2009-05-01')) %>%
     filter(incl.lm) %>% group_by(scale) %>%
     do(fitZip3 = lm(ilin.dt ~ t + cos(2*pi*t/52.18) + sin(2*pi*t/52.18), data = ., na.action=na.exclude))
+
   allMods_tidy <- tidy(allMods, fitZip3)
   allMods_aug <- augment(allMods, fitZip3, newdata= newbasedata)
   allMods_glance <- glance(allMods, fitZip3)
-  
+
   # after augment - join ILI data to fits
-  allMods_fit_ILI <- right_join((allMods_aug %>% select(-t)), (ILI_full_df %>% filter(Thu.week < as.Date('2009-05-01'))), by=c('Thu.week', 'scale')) %>% 
+  allMods_fit_ILI <- right_join((allMods_aug %>% select(-t)), (ILI_full_df2 %>% filter(Thu.week < as.Date('2009-05-01'))), by=c('Thu.week', 'scale')) %>% 
     mutate(Thu.week=as.Date(Thu.week, origin="1970-01-01")) %>% 
     mutate(week=as.Date(week, origin="1970-01-01")) 
-  
-  
+
   #### write data to file ####################################
   print(sprintf('writing periodic reg data to file %s', code.str))
   setwd('../R_export')
@@ -73,7 +88,7 @@ write_periodicReg_fits_ilinDt_Octfit <- function(span.var, degree.var, spatial){
   perReg <- scaleRename(spatial$scale, allMods_fit_ILI)
   tidCoef <- scaleRename(spatial$scale, allMods_tidy)
   sumStats <- scaleRename(spatial$scale, allMods_glance)
-  
+
   # write fitted and original IR data 
   write.csv(perReg, file=sprintf('periodicReg_%sall%sMods_ilinDt%s%s%s.csv', code, spatial$stringcode, code2, spatial$servToggle, code.str), row.names=FALSE)
   # write tidy coefficient dataset

@@ -1,11 +1,11 @@
 
 ## Name: Elizabeth Lee
-## Date: 10/24/15
+## Date: 7/27/16
 ## Function: write ilic data: ilic_{z, w} = ili_{z, w} / alpha_{z, y} / effPhysCov_{z, y}
 ## ilic --> number of ili cases in zip z in week w, correcting for constant care-seeking rates across zip3s and scaling up for physician coverage; scaling up assumes that the ili/physician ratio is the same for the reported and unreported cases
 ## alpha_{z, y} = (viz_{z, y}/numPhys_{z, y}) / (\bar{viz_y}/\bar{phys_y}) --> correction for general care-seeking behavior
 
-## Filenames: physician_coverage/DX_Coverage_by_Flu_Season_20150620.csv; Py_export/iliByallZip_allWeekly_totServ_totAge.csv
+## Filenames: physician_coverage/DX_Coverage_by_Flu_Season_20150620.csv; Py_export/iliByallZip_allWeekly_emergency_totAge.csv
 ## Data Source: IMS Health ili dataset and physician coverage dataset
 ## Notes: 7/15/16
 ## 
@@ -23,8 +23,7 @@ setwd(dirname(sys.frame(1)$ofile))
 
 #### import data ################################
 setwd('../Py_export')
-ili_df <- read.csv('iliByallZip_allWeekly_totServ_totAge.csv', header=T, colClasses=c("week"="Date"))
-# viz_df <- read.csv('vizByallZip_allWeekly_totServ_totAge.csv', header=T, colClasses=c("week"="Date"))
+ili_df <- read.csv('iliByallZip_allWeekly_emergency_totAge.csv', header=T, colClasses=c("week"="Date"))
 pop_df <- read.csv('popByallZip_allYearly_totAge.csv', header=T, colClasses=c("year"="character"))
 
 setwd('../R_export')
@@ -40,7 +39,7 @@ ili_df2 <- ili_df %>% mutate(Thu.week = as.Date(week+4)) %>%
   mutate(fit.week = (month >= 4 & month <= 10))
 
 # gather ili data
-ili_gather_df <- gather(ili_df2, zip3, ili, X2:X999, convert=FALSE) %>% 
+ili_gather_df <- gather(ili_df2, zip3, ili, X3:X999, convert=FALSE) %>% 
   mutate(week = as.Date(week, origin="1970-01-01")) %>%
   mutate(Thu.week = as.Date(Thu.week, origin="1970-01-01")) %>% 
   mutate(zip3 = substr.Right(sub('X', '00', zip3), 3)) %>%
@@ -191,9 +190,8 @@ ilicDat <- left_join(iliDat2, alphaDat, by = c("zip3", "year")) %>%
   mutate(ILIc = ili/alpha_z.y/cov_z.y)
 
 #### write Data to file ####################################
-write.csv(alphaDat_Full2, file = 'vizPhysRatio_zipYear_corrections.csv', row.names=F)
-write.csv(ilicDat, file = 'ilicByallZip3_allWeekly_totServ_totAge.csv', row.names=F)
-# exported 7/16/16
+write.csv(ilicDat, file = 'ilicByallZip3_allWeekly_emergency_totAge.csv', row.names=F)
+# exported 7/27/16
 
 
 

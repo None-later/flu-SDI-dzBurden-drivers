@@ -29,7 +29,7 @@ write_relativeDiseaseBurden_ilinDt <- function(span.var, degree.var, spatial){
   code2 <- "_Octfit"
   
 #   # uncomment when running script separately
-#   spatial <- list(scale = "zip3", stringcode = "Zip3", stringabbr = "")
+#   spatial <- list(scale = "zip3", stringcode = "Zip3", stringabbr = "", serv = "_emergency", servToggle = "_emergency")
 #   span.var <- 0.4 # 0.4, 0.6
 #   degree.var <- 2
   
@@ -39,7 +39,7 @@ write_relativeDiseaseBurden_ilinDt <- function(span.var, degree.var, spatial){
   
   if (spatial$scale == 'zip3'){
     setwd('../R_export')
-    data5 <- read_csv(sprintf('fullIndicAll_periodicReg_%silinDt%s%s_analyzeDB%s.csv', code, code2, code.str, spatial$stringabbr), col_names = T, col_types = list(zip3 = col_character(), ili = col_integer(), pop = col_integer(), .fitted = col_double(), .se.fit = col_double(), .fittedLoess = col_double(), .se.fitLoess = col_double(), ilin.dt = col_double(), ILIn = col_double(), in.season = col_logical(), has.epi = col_logical(), incl.analysis = col_logical())) %>%
+    data5 <- read_csv(sprintf('fullIndicAll_periodicReg_%silinDt%s%s%s_analyzeDB%s.csv', code, code2, spatial$servToggle, code.str, spatial$stringabbr), col_names = T, col_types = list(zip3 = col_character(), ili = col_integer(), pop = col_integer(), .fitted = col_double(), .se.fit = col_double(), .fittedLoess = col_double(), .se.fitLoess = col_double(), ilin.dt = col_double(), ILIn = col_double(), in.season = col_logical(), has.epi = col_logical(), incl.analysis = col_logical())) %>%
       rename(scale = zip3)
     
     # import zip3 lat/long coordinate data
@@ -114,12 +114,12 @@ write_relativeDiseaseBurden_ilinDt <- function(span.var, degree.var, spatial){
   # save summary data to file 
   # these data are used in "explore_dbMetricsDistribution_ilinDt.R" for exploratory analysis of outcome metrics
   setwd('../R_export')
-  write.csv(dbMetrics.g2, file = sprintf('dbMetrics_periodicReg_%silinDt%s%s_analyzeDB%s.csv', code, code2, code.str, spatial$stringabbr), row.names=FALSE)
+  write.csv(dbMetrics.g2, file = sprintf('dbMetrics_periodicReg_%silinDt%s%s%s_analyzeDB%s.csv', code, code2, spatial$servToggle, code.str, spatial$stringabbr), row.names=FALSE)
   
   # save summary data to file with coords 
   # these data are used in "analyze_dbMetricsDistance_IR.R" for matrix correlations
   setwd('../R_export')
-  write.csv(dbMetrics.coords2, file = sprintf('dbMetrics_periodicReg_%silinDt%s%s_analyzeDBdist%s.csv', code, code2, code.str, spatial$stringabbr), row.names=FALSE)
+  write.csv(dbMetrics.coords2, file = sprintf('dbMetrics_periodicReg_%silinDt%s%s%s_analyzeDBdist%s.csv', code, code2, spatial$servToggle, code.str, spatial$stringabbr), row.names=FALSE)
   
 }
 

@@ -27,13 +27,13 @@ write_loess_fits_ILIn <- function(span.var, degree.var, spatial){
   setwd(dirname(sys.frame(1)$ofile))
   
 #   # uncomment when running script separately
-#   spatial <- list(scale = "state", stringcode = "State", stringabbr = "_st")
+#   spatial <- list(scale = "state", stringcode = "State", stringabbr = "_st", serv = "_emergency", servToggle = "_emergency")
 #   span.var <- 0.4 # 0.4, 0.6
 #   degree.var <- 2
   #### import data ####################################
   setwd('../R_export')
   if (spatial$scale == 'zip3'){
-    ilic_df <- read_csv(sprintf('ilicByall%s_allWeekly_totServ_totAge.csv', spatial$stringcode), col_types = list(zip3 = col_character(), ili = col_integer(), pop = col_integer(), cov_z.y = col_double(), alpha_z.y = col_double(), ILIc = col_double(), cov_below5 = col_logical())) %>%
+    ilic_df <- read_csv(sprintf('ilicByall%s_allWeekly%s_totAge.csv', spatial$stringcode, spatial$serv), col_types = list(zip3 = col_character(), ili = col_integer(), pop = col_integer(), cov_z.y = col_double(), alpha_z.y = col_double(), ILIc = col_double(), cov_below5 = col_logical())) %>%
       rename(scale = zip3)
   } else if (spatial$scale == 'state'){
     ilic_df <- read_csv(sprintf('ilicByall%s_allWeekly_totServ_totAge.csv', spatial$stringcode), col_types = list(state = col_character(), ili = col_integer(), pop = col_integer(), cov_z.y = col_double(), alpha_z.y = col_double(), ILIc = col_double(), cov_below5 = col_logical())) %>%
@@ -81,7 +81,7 @@ write_loess_fits_ILIn <- function(span.var, degree.var, spatial){
     select(-cov_z.y, -alpha_z.y, -cov_below5, -ILIc)
   
   # write fitted and original loess smoothed ILI data 
-  write.csv(allLoessMods_fit_ILI2, file=sprintf('loess%s_all%sMods_ILIn.csv', code.str, spatial$stringcode), row.names=FALSE)
+  write.csv(allLoessMods_fit_ILI2, file=sprintf('loess%s_all%sMods_ILIn%s.csv', code.str, spatial$stringcode, spatial$servToggle), row.names=FALSE)
 
 }
 

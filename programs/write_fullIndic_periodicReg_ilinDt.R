@@ -49,7 +49,7 @@ write_fullIndic_periodicReg_ilinDt <- function(span.var, degree.var, spatial){
   code2 <- "_Octfit"
   
 #   # uncomment when running script separately
-#   spatial <- list(scale = "zip3", stringcode = "Zip3", stringabbr = "")
+#   spatial <- list(scale = "zip3", stringcode = "Zip3", stringabbr = "", serv = "_emergency", servToggle = "_emergency")
 #   span.var <- 0.4 # 0.4, 0.6
 #   degree.var <- 2
   
@@ -59,7 +59,7 @@ write_fullIndic_periodicReg_ilinDt <- function(span.var, degree.var, spatial){
   setwd('../R_export')
   
   if (spatial$scale == 'zip3'){
-    data <- read_csv(file=sprintf('periodicReg_%sall%sMods_ilinDt%s%s.csv', code, spatial$stringcode, code2, code.str), col_types=list(zip3 = col_character(), ili = col_integer(), pop = col_integer(), .fitted = col_double(), .se.fit = col_double(), .fittedLoess = col_double(), .se.fitLoess = col_double(), ilin.dt = col_double(), ILIn = col_double())) %>%
+    data <- read_csv(file=sprintf('periodicReg_%sall%sMods_ilinDt%s%s%s.csv', code, spatial$stringcode, code2, spatial$servToggle, code.str), col_types=list(zip3 = col_character(), ili = col_integer(), pop = col_integer(), .fitted = col_double(), .se.fit = col_double(), .fittedLoess = col_double(), .se.fitLoess = col_double(), ilin.dt = col_double(), ILIn = col_double())) %>%
       rename(scale = zip3)
     num.weeks <- 5 # see explore_fluSeasonDefinition_ilinDt.R
     } else if (spatial$scale == 'state'){
@@ -97,8 +97,8 @@ write_fullIndic_periodicReg_ilinDt <- function(span.var, degree.var, spatial){
   # save to file 
   print(sprintf('writing full indicators to file %s', code.str))
   # these data are used in "write_relativeDiseaseBurden_ilinDt.R" for further processing of disease burden metrics
-  write.csv(data5_write, file = sprintf('fullIndicFlu_periodicReg_%silinDt%s%s_analyzeDB%s.csv', code, code2, code.str, spatial$stringabbr), row.names=FALSE)
-  write.csv(data6_write, file = sprintf('fullIndicAll_periodicReg_%silinDt%s%s_analyzeDB%s.csv', code, code2, code.str, spatial$stringabbr), row.names=FALSE)
+  write.csv(data5_write, file = sprintf('fullIndicFlu_periodicReg_%silinDt%s%s%s_analyzeDB%s.csv', code, code2, spatial$servToggle, code.str, spatial$stringabbr), row.names=FALSE)
+  write.csv(data6_write, file = sprintf('fullIndicAll_periodicReg_%silinDt%s%s%s_analyzeDB%s.csv', code, code2, spatial$servToggle, code.str, spatial$stringabbr), row.names=FALSE)
   
 }
 

@@ -25,7 +25,7 @@ explore_periodicReg_fits_ilinDt <- function(span.var, degree.var, spatial){
   code2 <- "_Octfit" # fit = Apr to Oct and fluseason = Oct to Apr
   
   ## uncomment when running script separately
-  # spatial <- list(scale = "state", stringcode = "State", stringabbr = "_st")
+  # spatial <- list(scale = "state", stringcode = "State", stringabbr = "_st", serv = "_emergency", servToggle = "_emergency")
   # span.var <- 0.4 # 0.4, 0.6
   # degree.var <- 2
   code.str <- sprintf('_span%s_degree%s', span.var, degree.var)
@@ -38,9 +38,9 @@ explore_periodicReg_fits_ilinDt <- function(span.var, degree.var, spatial){
   setwd('../R_export')
   
   if (spatial$scale == 'zip3'){
-    data <- read_csv(file=sprintf('periodicReg_%sall%sMods_ilinDt%s%s.csv', code, spatial$stringcode, code2, code.str), col_types=list(zip3 = col_character(), ili = col_integer(), pop = col_integer(), .fitted = col_double(), .se.fit = col_double(), .fittedLoess = col_double(), .se.fitLoess = col_double(), ilin.dt = col_double(), ILIn = col_double())) %>%
+    data <- read_csv(file=sprintf('periodicReg_%sall%sMods_ilinDt%s%s%s.csv', code, spatial$stringcode, code2, spatial$servToggle, code.str), col_types=list(zip3 = col_character(), ili = col_integer(), pop = col_integer(), .fitted = col_double(), .se.fit = col_double(), .fittedLoess = col_double(), .se.fitLoess = col_double(), ilin.dt = col_double(), ILIn = col_double())) %>%
       rename(scale = zip3)
-    fitdata <- read_csv(file=sprintf('summaryStats_periodicReg_%sall%sMods_ilinDt%s%s.csv', code, spatial$stringcode, code2, code.str), col_types=list(zip3 = col_character())) %>%
+    fitdata <- read_csv(file=sprintf('summaryStats_periodicReg_%sall%sMods_ilinDt%s%s%s.csv', code, spatial$stringcode, code2, spatial$servToggle, code.str), col_types=list(zip3 = col_character())) %>%
       rename(scale = zip3)
     
   } else if (spatial$scale == 'state'){
@@ -52,8 +52,8 @@ explore_periodicReg_fits_ilinDt <- function(span.var, degree.var, spatial){
   
   #### initial time series plots ################################
   print(sprintf('plotting time series %s', code.str))
-  dir.create(sprintf('../graph_outputs/explore_periodicReg_%sfits_ilinDt%s%s%s', code, code2, code.str, spatial$stringabbr), showWarnings = FALSE)
-  setwd(sprintf('../graph_outputs/explore_periodicReg_%sfits_ilinDt%s%s%s', code, code2, code.str, spatial$stringabbr))
+  dir.create(sprintf('../graph_outputs/explore_periodicReg_%sfits_ilinDt%s%s%s%s', code, code2, spatial$servToggle, code.str, spatial$stringabbr), showWarnings = FALSE)
+  setwd(sprintf('../graph_outputs/explore_periodicReg_%sfits_ilinDt%s%s%s%s', code, code2, spatial$servToggle, code.str, spatial$stringabbr))
   
   zip3list <- data %>% filter(incl.lm) %>% select(scale) %>% distinct(scale) %>% mutate(for.plot = seq_along(1:nrow(.)))
   data_plot <- right_join(data, zip3list, by="scale")

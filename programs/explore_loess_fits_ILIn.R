@@ -20,7 +20,7 @@ explore_loess_fits_ILIn <- function(span.var, degree.var, spatial){
   
   #### set these! ####################################
   #   # uncomment when running script separately
-#     spatial <- list(scale = "state", stringcode = "State", stringabbr = "_st")
+#     spatial <- list(scale = "state", stringcode = "State", stringabbr = "_st", serv = "_emergency", servToggle = "_emergency")
 #     span.var <- 0.4 # 0.4, 0.6
 #     degree.var <- 2
   code.str <- sprintf('_span%s_degree%s', span.var, degree.var)
@@ -32,7 +32,7 @@ explore_loess_fits_ILIn <- function(span.var, degree.var, spatial){
   setwd('../R_export')
   
   if (spatial$scale == 'zip3'){
-    data <- read_csv(file=sprintf('loess%s_all%sMods_ILIn.csv', code.str, spatial$stringcode), col_types=list(zip3 = col_character(), ili = col_integer(), pop = col_integer(),  ILIn = col_double(), .fitted=col_double(), .se.fit=col_double(), ilin.dt=col_double(), ILIn = col_double())) %>%
+    data <- read_csv(file=sprintf('loess%s_all%sMods_ILIn%s.csv', code.str, spatial$stringcode, spatial$servToggle), col_types=list(zip3 = col_character(), ili = col_integer(), pop = col_integer(),  ILIn = col_double(), .fitted=col_double(), .se.fit=col_double(), ilin.dt=col_double(), ILIn = col_double())) %>%
       rename(scale = zip3)
   } else if (spatial$scale == 'state'){
     data <- read_csv(file=sprintf('loess%s_all%sMods_ILIn.csv', code.str, spatial$stringcode), col_types=list(state = col_character(), ili = col_integer(), pop = col_integer(),  ILIn = col_double(), .fitted=col_double(), .se.fit=col_double(), ilin.dt=col_double(), ILIn = col_double())) %>%
@@ -42,9 +42,9 @@ explore_loess_fits_ILIn <- function(span.var, degree.var, spatial){
   
   #### loess fit plots ################################
   print('plotting loess fits')
-  dir.create(sprintf('../graph_outputs/explore_loess_fits_ILIn%s', spatial$stringabbr), showWarnings = FALSE)
-  dir.create(sprintf('../graph_outputs/explore_loess_fits_ILIn%s/fits%s', spatial$stringabbr, code.str), showWarnings = FALSE)
-  setwd(sprintf('../graph_outputs/explore_loess_fits_ILIn%s/fits%s', spatial$stringabbr, code.str))
+  dir.create(sprintf('../graph_outputs/explore_loess_fits_ILIn%s%s', spatial$servToggle, spatial$stringabbr), showWarnings = FALSE)
+  dir.create(sprintf('../graph_outputs/explore_loess_fits_ILIn%s%s/fits%s', spatial$servToggle, spatial$stringabbr, code.str), showWarnings = FALSE)
+  setwd(sprintf('../graph_outputs/explore_loess_fits_ILIn%s%s/fits%s', spatial$servToggle, spatial$stringabbr, code.str))
   
   
   test <- tbl_df(data.frame(a = c(1, 1, 1, 2, 2), b= c(1, 1, 2, 2, 2)))

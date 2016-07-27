@@ -23,21 +23,22 @@ setwd(dirname(sys.frame(1)$ofile))
 #### plot formatting ################################
 w <- 9; h <- 6
 num <- 6
+serv <- "_emergency" # or _totServ
 
 #### import data ################################
 setwd('../R_export')
-ilic_df <- read_csv('ilicByallZip_allWeekly_totServ_totAge.csv', col_types = list("zip3" = col_character(), ili = col_integer(), pop = col_integer(), cov_z.y = col_double(), alpha_z.y = col_double(), ILIc = col_double(), cov_below5 = col_logical()))
+ilic_df <- read_csv(sprintf('ilicByallZip3_allWeekly%s_totAge.csv', serv), col_types = list("zip3" = col_character(), ili = col_integer(), pop = col_integer(), cov_z.y = col_double(), alpha_z.y = col_double(), ILIc = col_double(), cov_below5 = col_logical()))
 
 #### prepare data for plotting ################################
-zip3list <- ilic_df %>% filter(incl.lm) %>% select(zip3) %>% distinct %>% mutate(for.plot = seq_along(1:nrow(.))) 
+zip3list <- ilic_df %>% filter(incl.lm) %>% distinct(zip3) %>% mutate(for.plot = seq_along(1:nrow(.))) 
 data_plot <- right_join(ilic_df, zip3list, by="zip3") %>%
   filter(Thu.week < as.Date('2009-05-01')) %>%
   mutate(covIndic = ifelse(cov_below5, 0, NA))
 indexes <- seq(1, max(data_plot %>% select(for.plot)), by=num)
 
 #### plot data ################################
-dir.create('../graph_outputs/explore_ILIc_ts', showWarnings = FALSE)
-setwd('../graph_outputs/explore_ILIc_ts')
+dir.create(sprintf('../graph_outputs/explore_ILIc%s_ts', serv), showWarnings = FALSE)
+setwd(sprintf('../graph_outputs/explore_ILIc%s_ts', serv))
 
 for(i in indexes){
   dummyplots <- ggplot(data_plot %>% filter(for.plot>= i & for.plot < i+num), aes(x=Thu.week, y=ILIc, group=zip3)) +
@@ -46,7 +47,7 @@ for(i in indexes){
     geom_line(aes(y = covIndic)) + 
     facet_wrap(~zip3, scales="free_y")
   # grab zip3s in plot for file name
-  ziplabels <- data_plot %>% select(zip3) %>% distinct %>% slice(c(i, i+num-1)) 
-  ggsave(sprintf("ilic_ts_%s-%s.png", ziplabels[1,], ziplabels[2,]), dummyplots, width=w, height=h)
+  ziplabels <- data_plot %>% distinct(zip3) %>% slice(c(i, i+num-1)) 
+  ggsave(sprintf("ilic%s_ts_%s-%s.png", serv, ziplabels[1,], ziplabels[2,]), dummyplots, width=w, height=h)
 } # saved 10/25/15
 
