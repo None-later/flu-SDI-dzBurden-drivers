@@ -2,7 +2,10 @@
 ## Name: Elizabeth Lee
 ## Date: 7/22/16
 ## Function: Model 6a, v2 binomial component of hurdle model
-## v1-1: One model per season, see variables selected in 'Drivers' spreadsheet
+## v2-1: all iid random effects
+## v2-2: county CAR, others iid random effects
+## v2-3: all CAR random effects 
+## see variables selected in 'Drivers' spreadsheet
 ## Filenames: physicianCoverage_IMSHealth_state.csv, dbMetrics_periodicReg_ilinDt_Octfit_span0.4_degree2_analyzeDB_st.csv
 ## Data Source: IMS Health
 ## Notes: need to SSH into snow server
@@ -21,8 +24,8 @@ require(RColorBrewer); require(ggplot2) # export_inlaData_st dependencies
 
 
 #### set these! ################################
-dbCodeStr <- "_ilinDt_Octfit_span0.4_degree2"
-modCodeStr <- "6a_iliSum_v2-1"; testDataOn <- FALSE
+dbCodeStr <- "_ilinDt_Octfit_emergency_span0.4_degree2"
+modCodeStr <- "6a_iliSum_v2-2"; testDataOn <- FALSE
 seasons <- 2:9
 rdmFx_RV <- "nu"
 dig <- 4 # number of digits in the number of elements at this spatial scale (~3000 counties -> 4 digits)
@@ -54,14 +57,17 @@ path_list <- list(path_abbr_st = path_abbr_st,
                   path_shape_cty = path_shape_cty,
                   path_adjMxExport_cty = path_adjMxExport_cty,
                   path_response_zip3 = path_response_zip3)
+#### troubleshooting #################################
 
+# inla.debug.graph(path_adjMxExport_cty)
+# g <- inla.read.graph(filename = path_adjMxExport_cty)
 
 #### MAIN #################################
 #### test data module ####
 if (testDataOn){
   modData <- testing_module(path_list) # with driver & sampling effort variables
   # testing module formula
-  formula <- Y ~ -1 + f(fips_bin, model = "iid") + f(fips_st_bin, model = "iid") + f(regionID_bin, model = "iid") + intercept_bin +  O_imscoverage_bin + O_careseek_bin + X_poverty_bin + X_H3_bin
+  formula <- Y ~ -1 + f(fips_bin, model = "besag", graph = path_adjMxExport_cty) + f(fips_st_bin, model = "iid") + f(regionID_bin, model = "iid") + intercept_bin +  O_imscoverage_bin + O_careseek_bin + X_poverty_bin + X_H3_bin
 } else{
 #### Import and process data ####
   modData <- model5a_iliSum_v1(path_list) # with driver & sampling effort variables
@@ -92,9 +98,9 @@ for (s in seasons){
   modData_hurdle <- convert_hurdleModel_binomial(modData_full)
   
   mod <- inla(formula, 
-              family = list("binomial"), 
+              family = "binomial", 
               data = modData_hurdle, 
-              control.family = list(list(link="logit")), 
+              control.family = list(link="logit"), 
               Ntrials = 1, # binomial likelihood params
               control.fixed = list(mean = 0, prec = 1/100), # set prior parameters for regression coefficients
               control.predictor = list(compute = TRUE), # compute summary statistics on fitted values, link designates that NA responses are calculated according to the first likelihood for the first (nrow(modData_full)) rows
@@ -152,6 +158,6 @@ for (s in seasons){
   
 }
 
-# #### export model data ###
-# setwd(dirname(sys.frame(1)$ofile))
-# write_csv(modData_full, "testmethod_inlaData_model3b_v1.csv")
+# # #### export model data ###
+# # setwd(dirname(sys.frame(1)$ofile))
+# # write_csv(modData_full, "testmethod_inlaData_model3b_v1.csv")
