@@ -106,7 +106,7 @@ cleanO_imsCoverage_cty <- function(){
     ungroup %>%
     filter(!is.na(fips)) %>% 
     mutate(visitsPerProvider = sampViz/sampProv) %>%
-    select(fips, year, adjProviderCoverage, visitsPerProvider)
+    select(fips, year, adjProviderCoverage, visitsPerProvider, sampViz)
   return(covDat)
 }
 
@@ -159,3 +159,24 @@ clean_pop_cty <- function(filepathList){
   return(output)
 }
 
+################################
+clean_pop_cty_plain <- function(){
+  # clean pop data at county level -- fips, all years, pop (for write_loess_fits_ILIn.R)
+  print(match.call())
+  
+  # import population data from mysql
+  con <- dbConnect(RMySQL::MySQL(), group = "rmysql-fludrivers")
+  dbListTables(con)
+  
+  dbListFields(con, "demog_Census_agePop_county")
+  # sel.statement <- "Select * from demog_Census_agePop_county limit 5"
+  sel.statement <- "SELECT fips, county, agegroup, year, pop FROM demog_Census_agePop_county WHERE scale = 'county' and agegroup = 'total'"
+  dummy <- dbGetQuery(con, sel.statement)
+  
+  dbDisconnect(con)
+  
+  # clean final dataset
+  output <- tbl_df(dummy) %>% 
+    select(fips, year, pop)
+  return(output)
+}

@@ -59,6 +59,15 @@ write_relativeDiseaseBurden_ilinDt <- function(span.var, degree.var, spatial){
     setwd('../reference_data')
     coordsData <- read_csv(file='state_latlon.csv') %>%
       rename(scale = state, lat = latitude, long = longitude)
+  } else if (spatial$scale == 'county'){
+    setwd('../R_export')
+    data5 <- read_csv(sprintf('fullIndicAll_periodicReg_%silinDt%s%s_analyzeDB%s.csv', code, code2, code.str, spatial$stringabbr), col_names = T, col_types = list(fips = col_character(), ili = col_double(), pop = col_integer(), .fitted = col_double(), .se.fit = col_double(), .fittedLoess = col_double(), .se.fitLoess = col_double(), ilin.dt = col_double(), ILIn = col_double(), in.season = col_logical(), has.epi = col_logical(), incl.analysis = col_logical())) %>%
+      rename(scale = fips)
+    
+    # import state lat/long coordinate data
+    setwd('../reference_data')
+    coordsData <- read_csv(file='cty_pop_latlon.csv') %>%
+      rename(scale = fips, lat = latitude, long = longitude)
   }
   
   

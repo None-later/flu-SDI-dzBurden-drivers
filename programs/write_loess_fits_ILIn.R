@@ -30,6 +30,8 @@ write_loess_fits_ILIn <- function(span.var, degree.var, spatial){
 #   spatial <- list(scale = "state", stringcode = "State", stringabbr = "_st", serv = "_emergency", servToggle = "_emergency")
 #   span.var <- 0.4 # 0.4, 0.6
 #   degree.var <- 2
+  
+  
   #### import data ####################################
   setwd('../R_export')
   if (spatial$scale == 'zip3'){
@@ -38,6 +40,25 @@ write_loess_fits_ILIn <- function(span.var, degree.var, spatial){
   } else if (spatial$scale == 'state'){
     ilic_df <- read_csv(sprintf('ilicByall%s_allWeekly_totServ_totAge.csv', spatial$stringcode), col_types = list(state = col_character(), ili = col_integer(), pop = col_integer(), cov_z.y = col_double(), alpha_z.y = col_double(), ILIc = col_double(), cov_below5 = col_logical())) %>%
       rename(scale = state)
+  } else if (spatial$scale == 'county'){
+    # import county-zip3 weights (source_clean_response_functions_cty.R)
+    cw <- cw_zip3_cty()
+    # import population data (source_clean_response_functions_cty.R)
+    pop_data <- clean_pop_cty_plain()
+    # import zip3 data
+    zipILI_df <- read_csv(sprintf('ilicByallZip3_allWeekly%s_totAge.csv', spatial$serv), col_types = list(zip3 = col_character(), ili = col_integer(), pop = col_integer(), cov_z.y = col_double(), alpha_z.y = col_double(), ILIc = col_double(), cov_below5 = col_logical())) %>%
+      select(week, Thu.week, year, month, flu.week, t, fit.week, zip3, ili)
+    # use population-weighted proportions to convert zip3 data to county
+    ctyILI_df <- left_join(zipILI_df, cw, by = "zip3") %>%
+      group_by(fips, Thu.week) %>% 
+      summarise(week = first(week), year = first(year), month = first(month), flu.week = first(flu.week), t = first(t), fit.week = first(fit.week), ili = weighted.mean(ili, proportion, na.rm = TRUE)) %>%
+      ungroup
+    # merge with county pop data, re-create incl.lm (pop != NA)
+    ilic_df <- left_join(ctyILI_df, pop_data, by = c("fips", "year")) %>%
+      select(week, Thu.week, year, month, flu.week, t, fit.week, fips, ili, pop) %>%
+      mutate(incl.lm = ifelse(is.na(pop) | is.na(ili), FALSE, TRUE)) %>%
+      rename(scale = fips) %>%
+      filter(!is.na(scale)) # it seemed that there were some empty data points with scale as NA
   }
  
   #### set these! ################################
@@ -67,18 +88,17 @@ write_loess_fits_ILIn <- function(span.var, degree.var, spatial){
   allLoessMods_fit_ILI <- right_join((allLoessMods_aug %>% ungroup %>% select(-t)), (ilic_df2 %>% filter(Thu.week < as.Date('2009-05-01'))), by=c('Thu.week', 'scale')) %>% 
     mutate(week=as.Date(week, origin="1970-01-01")) %>% 
     mutate(Thu.week=as.Date(Thu.week, origin="1970-01-01")) %>% 
-    mutate(incl.lm2 = ifelse(.fitted<=0, FALSE, TRUE)) %>%
-    mutate(ilin.dt = ifelse(incl.lm2, ILIn/.fitted, NA)) 
+    mutate(incl.lm2 = ifelse(.fitted > ILIn, FALSE, TRUE)) %>%
+    mutate(ilin.dt = ILIn-.fitted) # 7/28/16: don't make any change to detrending based on incl.lm2
   
-  # 12/15/15: new indicator incl.lm2 is false if .fitted is negative; true if incl.lm is true
+  # 7/28/16: new indicator incl.lm2 is false if .fitted > ILIn; true if incl.lm is true
   
   #### write data to file ####################################
   print('writing loess fits')
   setwd('../R_export')
   
   # rename scale variable
-  allLoessMods_fit_ILI2 <- scaleRename(spatial$scale, allLoessMods_fit_ILI) %>%
-    select(-cov_z.y, -alpha_z.y, -cov_below5, -ILIc)
+  allLoessMods_fit_ILI2 <- scaleRename(spatial$scale, allLoessMods_fit_ILI) 
   
   # write fitted and original loess smoothed ILI data 
   write.csv(allLoessMods_fit_ILI2, file=sprintf('loess%s_all%sMods_ILIn%s.csv', code.str, spatial$stringcode, spatial$servToggle), row.names=FALSE)

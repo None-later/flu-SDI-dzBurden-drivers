@@ -27,7 +27,8 @@ code <- ''
 code2 <- '_Octfit'
 
 # spatial <- list(scale = "state", stringcode = "State", stringabbr = "_st")
-spatial <- list(scale = "zip3", stringcode = "Zip3", stringabbr = "")
+# spatial <- list(scale = "zip3", stringcode = "Zip3", stringabbr = "")
+spatial <- list(scale = "county", stringcode = "County", stringabbr = "_cty")
 span.var <- 0.4 # 0.4
 degree.var <- 2
 code.str <- sprintf('_span%s_degree%s', span.var, degree.var)
@@ -43,6 +44,9 @@ if (spatial$scale == 'zip3'){
 } else if (spatial$scale == 'state'){
   data <- read_csv(file=sprintf('periodicReg_%sall%sMods_ilinDt%s%s.csv', code, spatial$stringcode, code2, code.str), col_types=list(state = col_character(), ili = col_integer(), pop = col_integer(), .fitted = col_double(), .se.fit = col_double(), .fittedLoess = col_double(), .se.fitLoess = col_double(), ilin.dt = col_double(), ILIn = col_double())) %>%
     rename(scale = state)
+} else if (spatial$scale == 'county'){
+  data <- read_csv(file=sprintf('periodicReg_%sall%sMods_ilinDt%s%s.csv', code, spatial$stringcode, code2, code.str), col_types=list(fips = col_character(), ili = col_double(), pop = col_integer(), .fitted = col_double(), .se.fit = col_double(), .fittedLoess = col_double(), .se.fitLoess = col_double(), ilin.dt = col_double(), ILIn = col_double())) %>%
+    rename(scale = fips)
 }
 
 # 1) add ISO week numbers; 2) add season numbers ; 3) add real zip3 names
@@ -93,6 +97,13 @@ consec.summary <- zips.over.thresh_consec_flat %>% group_by(season) %>% summaris
 zips.over.thresh_consec %>% ungroup %>% filter(period=="flu") %>% select(consec.weeks) %>% unlist %>% quantile(seq(0, 1, 0.05), na.rm=T)
 # quantile for non flu period
 zips.over.thresh_consec %>% ungroup %>% filter(period=="nf") %>% select(consec.weeks) %>% unlist %>% quantile(seq(0, 1, 0.05), na.rm=T)
+
+## span0.4, county - 7/28/16  ###########################
+# during flu period: 70%+ of zip3-season combinations have 4+ consecutive weeks above the epidemic threshold
+# during flu period: 65%+ of zip3-season combinations have 5+ consecutive weeks above the epidemic threshold
+# during non-flu period: 75%+ of zip3-season combinations have 4 or fewer consecutive weeks above the epidemic threshold
+# during non-flu period: 85% of zip3-season combinations have 5 or fewer consecutive weeks above the epidemic threshold
+# choose 4 week threshold
 ## span0.4, zip3 - 5/31/16  ###########################
 # during flu period: 75% of zip3-season combinations have 4+ consecutive weeks above the epidemic threshold
 # during flu period: ~70%+ of zip3-season combinations have 5+ consecutive weeks above the epidemic threshold

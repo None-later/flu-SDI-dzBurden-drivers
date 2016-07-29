@@ -44,6 +44,9 @@ write_periodicReg_fits_ilinDt_Octfit <- function(span.var, degree.var, spatial){
   } else if (spatial$scale == 'state'){
     ILI_full_df <- read_csv(file=sprintf('loess%s_all%sMods_ILIn.csv', code.str, spatial$stringcode), col_types=list(state = col_character(), ili = col_integer(), pop = col_integer(),  ILIn = col_double(), .fitted=col_double(), .se.fit=col_double(), ilin.dt=col_double(), ILIn = col_double())) %>%
       rename(scale = state, .fittedLoess = .fitted, .se.fitLoess = .se.fit)
+  } else if (spatial$scale == 'county'){
+    ILI_full_df <- read_csv(file=sprintf('loess%s_all%sMods_ILIn.csv', code.str, spatial$stringcode), col_types=list(fips = col_character(), ili = col_double(), pop = col_integer(),  ILIn = col_double(), .fitted=col_double(), .se.fit=col_double(), ilin.dt=col_double(), ILIn = col_double())) %>%
+      rename(scale = fips, .fittedLoess = .fitted, .se.fitLoess = .se.fit)
   }
   
   #### process data for periodic regression ####################################
@@ -69,7 +72,7 @@ write_periodicReg_fits_ilinDt_Octfit <- function(span.var, degree.var, spatial){
   print(sprintf('writing periodic reg data to file %s', code.str))
   setwd('../R_export')
   
-  # rename variable "scale" to zip3 or state
+  # rename variable "scale" to zip3, state, or fips
   perReg <- scaleRename(spatial$scale, allMods_fit_ILI)
   tidCoef <- scaleRename(spatial$scale, allMods_tidy)
   sumStats <- scaleRename(spatial$scale, allMods_glance)
