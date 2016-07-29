@@ -3,7 +3,7 @@
 ## Function: Functions for cleaning disease burden response data at the county level for INLA
 ## Filenames: 
 ## Data Source: 
-## Notes: 
+## Notes: 7/28/16 downscaleDB suffix refers to downscaling procedure for the already-processed disease burden metrics; renamed functions from cleanR_iliSum_cty and cleanR_iliPeak_cty
 ## 
 ## useful commands:
 ## install.packages("pkg", dependencies=TRUE, lib="/usr/local/lib/R/site-library") # in sudo R
@@ -14,6 +14,64 @@ require(dplyr); require(tidyr); require(readr); require(DBI); require(RMySQL)
 
 ##### COUNTY-LEVEL VARIABLES ##########################################
 cleanR_iliSum_cty <- function(filepathList){
+  # clean response variable: ilinDt.sum; revised 7/28/16
+  print(match.call())
+  
+
+  # pop data: fips, county, st, season, year, pop, lat lon
+  pop_data <- clean_pop_cty(filepathList)
+  
+  # 7/18/16: add incl.analysis indicator
+  # grab disease burden metric (e.g., ilinDt): match "ili" 1+ times
+  dbCode <- grep("ili+", strsplit(filepathList$path_response_zip3, "_")[[1]], value=T)
+  # clean burden data
+  iliSum_data <- read_csv(filepathList$path_response_zip3, col_types = "icllcd") %>%
+    filter(metric == sprintf("%s.sum", dbCode)) %>%
+    select(-metric) %>%
+    rename(y = burden)
+  
+  # merge final data
+  return_data <- full_join(iliSum_data, pop_data, by = c("season", "fips")) %>%
+    select(fips, county, st, stateID, lat, lon, season, year, pop, y, has.epi, incl.analysis) %>%
+    group_by(season) %>%
+    mutate(E = weighted.mean(y, pop, na.rm = TRUE)) %>%
+    ungroup %>%
+    filter(season != 1)
+
+  return(return_data)
+}
+##########################################
+
+cleanR_iliPeak_cty <- function(filepathList){
+  # clean response variable: ilinDt.peak; revised 7/28/16
+  print(match.call())
+  
+  
+  # pop data: fips, county, st, season, year, pop, lat lon
+  pop_data <- clean_pop_cty(filepathList)
+  
+  # 7/18/16: add incl.analysis indicator
+  # grab disease burden metric (e.g., ilinDt): match "ili" 1+ times
+  dbCode <- grep("ili+", strsplit(filepathList$path_response_zip3, "_")[[1]], value=T)
+  # clean burden data
+  iliSum_data <- read_csv(filepathList$path_response_zip3, col_types = "icllcd") %>%
+    filter(metric == sprintf("%s.peak", dbCode)) %>%
+    select(-metric) %>%
+    rename(y = burden)
+  
+  # merge final data
+  return_data <- full_join(iliSum_data, pop_data, by = c("season", "fips")) %>%
+    select(fips, county, st, stateID, lat, lon, season, year, pop, y, has.epi, incl.analysis) %>%
+    group_by(season) %>%
+    mutate(E = weighted.mean(y, pop, na.rm = TRUE)) %>%
+    ungroup %>%
+    filter(season != 1)
+  
+  return(return_data)
+}
+##########################################
+
+cleanR_iliSum_cty_downscaleDB <- function(filepathList){
   # clean response variable: ilinDt.sum
   print(match.call())
   
@@ -47,7 +105,7 @@ cleanR_iliSum_cty <- function(filepathList){
 }
 ##########################################
 
-cleanR_iliPeak_cty <- function(filepathList){
+cleanR_iliPeak_cty_downscaleDB <- function(filepathList){
   # clean response variable: ilinDt.peak
   print(match.call())
   

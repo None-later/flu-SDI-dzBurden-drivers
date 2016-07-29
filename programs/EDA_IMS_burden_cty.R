@@ -3,6 +3,7 @@
 ## Function: EDA iliSum county level burden, plot functions found in source_EDA_plots.R
 ## Filename: 
 ## Notes: need to ssh into Snow, renamed from EDA_IMS_burden_iliSum_cty.R (6/24/16)
+# 7/28/16 downscaleDB suffix refers to downscaling procedure for the already-processed disease burden metrics; renamed from cleanR_iliSum_cty and cleanR_iliPeak_cty
 ## useful commands:
 ## install.packages("pkg", dependencies=TRUE, lib="/usr/local/lib/R/site-library") # in sudo R
 ## update.packages(lib.loc = "/usr/local/lib/R/site-library")
@@ -21,8 +22,10 @@ source("source_EDA_plots.R")
 #### SET THESE! PART 1 ################################
 dbCodeStr <- "_ilinDt_Octfit_span0.4_degree2"
 num <- 6
-dbMetric <- "iliPeak" # "iliSum", "iliPeak"
-dbLabel <- "Peak Intensity" # "Seasonal Intensity", "Peak Intensity"
+dbMetric <- "iliSum" # "iliSum", "iliPeak"
+dbLabel <- "Seasonal Intensity" # "Seasonal Intensity", "Peak Intensity"
+# 7/28/16 adapt code for downscaled ILI data
+spatial <- list(scale = "county", stringcode = "County", stringabbr = "_cty", serv = "_totServ", servToggle = "") 
 
 #### import data ################################
 setwd('../reference_data')
@@ -32,11 +35,11 @@ path_abbr_st <- paste0(getwd(), "/state_abbreviations_FIPS.csv")
 path_latlon_cty <- paste0(getwd(), "/cty_pop_latlon.csv")
 
 setwd("../R_export")
-path_response_zip3 <- paste0(getwd(), sprintf("/dbMetrics_periodicReg%s_analyzeDB.csv", dbCodeStr))
+path_response_cty <- paste0(getwd(), sprintf("/dbMetrics_periodicReg%s_analyzeDB%s.csv", dbCodeStr, spatial$stringabbr))
 
 path_list <- list(path_abbr_st = path_abbr_st,
                   path_latlon_cty = path_latlon_cty,
-                  path_response_zip3 = path_response_zip3)
+                  path_response_zip3 = path_response_cty)
 
 # import data
 if (dbMetric == "iliSum"){

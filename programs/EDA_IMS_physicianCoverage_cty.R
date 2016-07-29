@@ -3,6 +3,7 @@
 ## Function: EDA iliSum county level burden, plot functions found in source_EDA_plots.R
 ## Filename: 
 ## Notes: need to ssh into Snow
+## 7/28/16: try sampViz per population
 ## useful commands:
 ## install.packages("pkg", dependencies=TRUE, lib="/usr/local/lib/R/site-library") # in sudo R
 ## update.packages(lib.loc = "/usr/local/lib/R/site-library")
@@ -26,13 +27,16 @@ abbrDat <- read_csv("state_abbreviations_FIPS.csv", col_types = list(FIPS = col_
   rename(fips_st = FIPS)
 
 # import data
-importDat <- cleanO_imsCoverage_cty() 
+importDat <- cleanO_imsCoverage_cty() # fips, year, adjProviderCoverage, visitsPerProvider, sampViz
+popDat <- clean_pop_cty_plain() # fips, year, pop
 
 #### clean data ################################
 # for choro
 # required data format: year = year or season, covariate = variable name, value = covariate value, fips = county fips id
 fullDat <- importDat %>%
-  gather(covariate, value, adjProviderCoverage, visitsPerProvider) %>%
+  left_join(popDat, by = c("fips", "year")) %>%
+  mutate(visitsPerPop = sampViz/pop) %>%
+  gather(covariate, value, adjProviderCoverage, visitsPerProvider, visitsPerPop) %>%
   arrange(fips, year) 
 
 # for ts
@@ -57,11 +61,12 @@ spatial <- 'cty'
 ## choropleth parameters ##
 choroParams <- list(spatial = spatial, code = 'adjProviderCoverage', lab = 'Effective Physician Coverage', src = src, yr = years)
 choroParams2 <- list(spatial = spatial, code = 'visitsPerProvider', lab = 'Visits per Provider (care-seeking)', src = src, yr = years)
+choroParams3 <- list(spatial = spatial, code = 'visitsPerPop', lab = 'Visits per Pop (care-seeking)', src = src, yr = years)
 choroplotParams <- list(labVec = paste("Tier", 1:5), colVec = brewer.pal(5, 'RdYlGn'), h = 5, w = 8, dp = 300)
 
 ## time series parameters ##
 tsParams <- list(indexes = indexes, years = years, varnames = varnames, spatial = spatial, src = src)
-tsplotParams <- list(num = num, h = 12, w = 12, dp = 300, leg.lab = c("Effective Physician Coverage", "Visits per Provider (care-seeking)"))
+tsplotParams <- list(num = num, h = 12, w = 12, dp = 300, leg.lab = c("Effective Physician Coverage", "Visits per Provider (care-seeking)", "Visits per Pop (care-seeking)"))
 
 
 #### draw plots ################################
@@ -74,6 +79,8 @@ dir.create("./choro", showWarnings = FALSE)
 setwd("./choro")
 choroplots_cty_1yr(fullDat, choroParams, choroplotParams)
 choroplots_cty_1yr(fullDat, choroParams2, choroplotParams)
+choroplots_cty_1yr(fullDat, choroParams3, choroplotParams)
+
 
 # time series
 dir.create("../ts", showWarnings = FALSE)
