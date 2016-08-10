@@ -39,12 +39,12 @@ testing_module <- function(filepathList){
   full_df <- dummy_df2 %>%
     group_by(season) %>%
     mutate(O_imscoverage = centerStandardize(adjProviderCoverage)) %>%
-    mutate(O_careseek = centerStandardize(visitsPerProvider)) %>%
+    mutate(O_careseek = centerStandardize(visitsPerPop)) %>%
     mutate(X_poverty = centerStandardize(poverty)) %>%
     mutate(X_H3 = centerStandardize(H3)) %>%
     ungroup %>%
     filter(fips_st %in% continentalOnly) %>% # include data for continental states only
-    select(-stateID, -adjProviderCoverage, -visitsPerProvider, -poverty, -H3) %>%
+    select(-stateID, -adjProviderCoverage, -visitsPerProvider, -visitsPerPop, -poverty, -H3) %>%
     filter(season %in% 2:9) %>%
     mutate(logE = log(E))
   
