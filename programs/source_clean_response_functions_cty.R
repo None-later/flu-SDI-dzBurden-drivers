@@ -23,9 +23,9 @@ cleanR_iliSum_cty <- function(filepathList){
   
   # 7/18/16: add incl.analysis indicator
   # grab disease burden metric (e.g., ilinDt): match "ili" 1+ times
-  dbCode <- grep("ili+", strsplit(filepathList$path_response_zip3, "_")[[1]], value=T)
+  dbCode <- grep("ili+", strsplit(filepathList$path_response_cty, "_")[[1]], value=T)
   # clean burden data
-  iliSum_data <- read_csv(filepathList$path_response_zip3, col_types = "icllcd") %>%
+  iliSum_data <- read_csv(filepathList$path_response_cty, col_types = "icllcd") %>%
     filter(metric == sprintf("%s.sum", dbCode)) %>%
     select(-metric) %>%
     rename(y = burden)
@@ -52,9 +52,9 @@ cleanR_iliPeak_cty <- function(filepathList){
   
   # 7/18/16: add incl.analysis indicator
   # grab disease burden metric (e.g., ilinDt): match "ili" 1+ times
-  dbCode <- grep("ili+", strsplit(filepathList$path_response_zip3, "_")[[1]], value=T)
+  dbCode <- grep("ili+", strsplit(filepathList$path_response_cty, "_")[[1]], value=T)
   # clean burden data
-  iliSum_data <- read_csv(filepathList$path_response_zip3, col_types = "icllcd") %>%
+  iliSum_data <- read_csv(filepathList$path_response_cty, col_types = "icllcd") %>%
     filter(metric == sprintf("%s.peak", dbCode)) %>%
     select(-metric) %>%
     rename(y = burden)

@@ -17,3 +17,4 @@ sample_code/
 *.Rhistory
 INLA_resources/
 testmethod_inla/
+create_FluDrivers_local.sql
