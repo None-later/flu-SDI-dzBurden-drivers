@@ -46,35 +46,35 @@ setwd(dirname(sys.frame(1)$ofile))
 setwd(sprintf("../R_export/inlaModelData_export/%s", modCodeStr))
 path_csvExport <- getwd()
 
-# #### results across seasons #################################
-# # coef distributions by season
-# importPlot_coefDistr_season_hurdle(path_csvExport, path_plotExport_coefDistr)
-# 
-# #### diagnostics across seasons #################################
-# 
-# ### model validity ###
-# for (likStr in likStrings){
-#   # scatter: predicted vs. observed data (phat - binomial, yhat - gamma) + 95%CI vs. y observed 
-#   path_plotExport_predVsObs <- paste0(path_plotExport, sprintf("/diag_predVsObs_%s_%s.png", likStr, modCodeStr))
-#   plot_diag_scatter_hurdle(path_csvExport, path_plotExport_predVsObs, likStr, "y", "mean", TRUE)
-# }
-# 
-# ### model fit ###
-# if ("gamma" %in% likStrings){
-#   # scatter: residuals vs. fitted (yhat - gamma model only)
-#   path_plotExport_residVsYhat <- paste0(path_plotExport, sprintf("/diag_residVsYhat_%s_%s.png", likStr, modCodeStr))
-#   plot_diag_scatter_hurdle(path_csvExport, path_plotExport_residVsYhat, "gamma", "mean", "yhat_resid", FALSE)
-# }
+#### results across seasons #################################
+# coef distributions by season
+importPlot_coefDistr_season_hurdle(path_csvExport, path_plotExport_coefDistr)
+
+#### diagnostics across seasons #################################
+
+### model validity ###
+for (i in 1:length(likStrings)){
+  # scatter: predicted vs. observed data (phat - binomial, yhat - gamma) + 95%CI vs. y observed 
+  path_plotExport_predVsObs <- paste0(path_plotExport, sprintf("/diag_predVsObs_%s_%s.png", likStrings[i], modCodeStr))
+  plot_diag_scatter_hurdle(path_csvExport, path_plotExport_predVsObs, likStrings[i], "y", "mean", TRUE)
+}
+
+### model fit ###
+if ("gamma" %in% likStrings){
+  # scatter: residuals vs. fitted (yhat - gamma model only)
+  path_plotExport_residVsYhat <- paste0(path_plotExport, sprintf("/diag_residVsYhat_%s_%s.png", likStr, modCodeStr))
+  plot_diag_scatter_hurdle(path_csvExport, path_plotExport_residVsYhat, "gamma", "mean", "yhat_resid", FALSE)
+}
 
 #### diagnostics by season #################################
 for (s in seasons){
 
   #### any likelihood model figures ####
-  for (likStr in likStrings){
+  for (i in 1:length(likStrings)){
     ## map county random effect error terms - check for spatial clustering ##
     path_csvImport_estimates <- paste0(path_csvExport, sprintf("/summaryStats_%s_S%s.csv", modCodeStr, s))
     mod_est <- read_csv(path_csvImport_estimates, col_types = c("RV" = col_character())) %>%
-      filter(likelihood == likStr)
+      filter(likelihood == likStrings[i])
     
     path_plotExport_ctyEffects <- paste0(path_plotExport, sprintf("/choro_spatialEffect_%s_S%s.png", modCodeStr, s))
     mod_est_ctyEffects <- mod_est %>% 

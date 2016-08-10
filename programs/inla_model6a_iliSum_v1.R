@@ -9,6 +9,8 @@
 ## v1testing1 hurdle with sharedPredictors, no intercept
 ## v1testing2 hurdle with separatePredictors, no intercept
 ## v1testing3 hurdle w/separatePredictors, intercept
+## v1testing4 phat = prob(epidemic)
+## v1testing5 zip3->county before data processing (new db calculation)
 ## v1-1 sharedPredictors
 ## v1-2 separatePredictors
 ## v1-3 corrected organization for separatePredictors
@@ -28,8 +30,8 @@ require(RColorBrewer); require(ggplot2) # export_inlaData_st dependencies
 
 #### set these! ################################
 dbCodeStr <- "_ilinDt_Octfit_span0.4_degree2"
-modCodeStr <- "6a_iliSum_v1-4"; testDataOn <- FALSE
-seasons <- 3:9
+modCodeStr <- "6a_iliSum_v1-5"; testDataOn <- FALSE
+seasons <- 2:9
 rdmFx_RV <- "nu"
 dig <- 4 # number of digits in the number of elements at this spatial scale (~3000 counties -> 4 digits)
 
@@ -52,14 +54,14 @@ setwd('./UScounty_shapefiles')
 path_shape_cty <- paste0(getwd(), "/gz_2010_us_050_00_500k") # for dbf metadata only
 
 setwd("../../R_export")
-path_response_zip3 <- paste0(getwd(), sprintf("/dbMetrics_periodicReg%s_analyzeDB.csv", dbCodeStr))
+path_response_cty <- paste0(getwd(), sprintf("/dbMetrics_periodicReg%s_analyzeDB_cty.csv", dbCodeStr))
 
 # put all paths in a list to pass them around in functions
 path_list <- list(path_abbr_st = path_abbr_st,
                   path_latlon_cty = path_latlon_cty,
                   path_shape_cty = path_shape_cty,
                   path_adjMxExport_cty = path_adjMxExport_cty,
-                  path_response_zip3 = path_response_zip3)
+                  path_response_cty = path_response_cty)
 
 
 #### MAIN #################################
@@ -70,7 +72,7 @@ if (testDataOn){
   formula <- Y ~ -1 + f(fips_bin, model = "iid") + f(fips_st_bin, model = "iid") + f(regionID_bin, model = "iid") + intercept_bin +  O_imscoverage_bin + O_careseek_bin + X_poverty_bin + X_H3_bin + f(fips_nonzero, model = "iid") + f(fips_st_nonzero, model = "iid") + f(regionID_nonzero, model = "iid") + intercept_nonzero + O_imscoverage_nonzero + O_careseek_nonzero + X_poverty_nonzero + X_H3_nonzero + offset(logE_nonzero)
 } else{
 #### Import and process data ####
-  modData <- model5a_iliSum_v1(path_list) # with driver & sampling effort variables
+  modData <- model6a_iliSum_v1(path_list) # with driver & sampling effort variables
   #### Model 6a: County-level, after variable selection, one model per season, separate predictors for the 2 likelihoods ####
   formula <- Y ~ -1 + f(fips_bin, model = "iid") + f(fips_st_bin, model = "iid") + f(regionID_bin, model = "iid") + intercept_bin + O_imscoverage_bin + O_careseek_bin + O_insured_bin + X_poverty_bin + X_child_bin + X_adult_bin + X_hospaccess_bin + X_popdensity_bin + X_commute_bin + X_flight_bin + X_vaxcovI_bin + X_vaxcovE_bin + X_H3_bin + X_humidity_bin + f(fips_nonzero, model = "iid") + f(fips_st_nonzero, model = "iid") + f(regionID_nonzero, model = "iid") + intercept_nonzero + O_imscoverage_nonzero + O_careseek_nonzero + O_insured_nonzero + X_poverty_nonzero + X_child_nonzero + X_adult_nonzero + X_hospaccess_nonzero + X_popdensity_nonzero + X_commute_nonzero + X_flight_nonzero + X_vaxcovI_nonzero + X_vaxcovE_nonzero + X_H3_nonzero + X_humidity_nonzero + offset(logE_nonzero)
 }
