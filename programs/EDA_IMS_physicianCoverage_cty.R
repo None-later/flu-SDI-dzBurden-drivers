@@ -51,6 +51,8 @@ indexes <- seq(1, max(fullDat2 %>% select(for.plot)), by=num)
 years <- fullDat2 %>% select(year) %>% filter(!is.na(year)) %>% distinct(year) %>% arrange(year) %>% unlist
 varnames <- fullDat2 %>% select(covariate) %>% unique %>% unlist
 
+datSpread <- fullDat2 %>%
+  spread(covariate, value)
 
 #### SET THESE! PART 2 ################################
 ## general parameters ##
@@ -73,6 +75,15 @@ tsplotParams <- list(num = num, h = 12, w = 12, dp = 300, leg.lab = c("Effective
 setwd(dirname(sys.frame(1)$ofile))
 dir.create(sprintf("../graph_outputs/%s", plotfolder), showWarnings = FALSE)
 setwd(sprintf("../graph_outputs/%s", plotfolder))
+
+# 8/10/16 scatter vizPerProv & vizPerPop (no relationship observed)
+scatter <- ggplot(datSpread, aes(x = visitsPerProvider, y = visitsPerPop, group = year)) +
+  geom_point() +
+  theme_bw() +
+  scale_x_continuous("visits per provider") +
+  scale_y_continuous("visits per population") +
+  facet_wrap(~year)
+ggsave("visitsPerPop_visitsPerProvider_cty.png", scatter, h = tsplotParams$h, w = tsplotParams$w, dpi = tsplotParams$dp)
 
 # choropleths
 dir.create("./choro", showWarnings = FALSE)
