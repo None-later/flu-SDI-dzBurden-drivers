@@ -144,6 +144,7 @@ cleanO_imsCoverage_cty <- function(){
 
   # spatial crosswalk: fips, zip3, proportion (of overlap in zip3 & fips population)
   cw <- cw_zip3_cty() 
+  popDat <- clean_pop_cty_plain() # fips, year, pop
   
   # import physician coverage data
   con <- dbConnect(RMySQL::MySQL(), group = "rmysql-fludrivers")
@@ -164,7 +165,10 @@ cleanO_imsCoverage_cty <- function(){
     ungroup %>%
     filter(!is.na(fips)) %>% 
     mutate(visitsPerProvider = sampViz/sampProv) %>%
-    select(fips, year, adjProviderCoverage, visitsPerProvider, sampViz)
+    left_join(popDat, by = c("fips", "year")) %>%
+    mutate(visitsPerPop = sampViz/pop) %>%
+    select(fips, year, adjProviderCoverage, visitsPerProvider, visitsPerPop) %>%
+    arrange(fips, year)
   return(covDat)
 }
 

@@ -28,14 +28,11 @@ abbrDat <- read_csv("state_abbreviations_FIPS.csv", col_types = list(FIPS = col_
 
 # import data
 importDat <- cleanO_imsCoverage_cty() # fips, year, adjProviderCoverage, visitsPerProvider, sampViz
-popDat <- clean_pop_cty_plain() # fips, year, pop
 
 #### clean data ################################
 # for choro
 # required data format: year = year or season, covariate = variable name, value = covariate value, fips = county fips id
 fullDat <- importDat %>%
-  left_join(popDat, by = c("fips", "year")) %>%
-  mutate(visitsPerPop = sampViz/pop) %>%
   gather(covariate, value, adjProviderCoverage, visitsPerProvider, visitsPerPop) %>%
   arrange(fips, year) 
 
