@@ -21,8 +21,8 @@ source("source_export_inlaDiagnostics.R") # plot_diag_scatter_hurdle function
 source("source_clean_response_functions_cty.R") # cty response functions
 
 #### set these! ################################
-modCodeStr <- "6a_iliSum_v1-4"
-seasons <- 2:9
+modCodeStr <- "6a_iliSum_v1-5"
+seasons <- c(2:7,9)
 likStrings <- c("binomial", "gamma")
 
 #### IMPORT FILEPATHS #################################
@@ -62,7 +62,7 @@ for (i in 1:length(likStrings)){
 ### model fit ###
 if ("gamma" %in% likStrings){
   # scatter: residuals vs. fitted (yhat - gamma model only)
-  path_plotExport_residVsYhat <- paste0(path_plotExport, sprintf("/diag_residVsYhat_%s_%s.png", likStr, modCodeStr))
+  path_plotExport_residVsYhat <- paste0(path_plotExport, sprintf("/diag_residVsYhat_%s_%s.png", likStrings[i], modCodeStr))
   plot_diag_scatter_hurdle(path_csvExport, path_plotExport_residVsYhat, "gamma", "mean", "yhat_resid", FALSE)
 }
 
