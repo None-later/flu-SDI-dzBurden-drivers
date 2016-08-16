@@ -5,6 +5,7 @@
 ## Filenames: 
 ## Data Source: 
 ## Notes: 12/12/15 - add switch between state-level and zip3-level
+## 8/16/16 - new downscaling procedure to convert ILIn from zip3 to county level, control flow "write_loess_fits_ILIn_cty.R"
 ## 
 ## useful commands:
 ## install.packages("pkg", dependencies=TRUE, lib="/usr/local/lib/R/site-library") # in sudo R
@@ -14,7 +15,6 @@ rm(list = ls())
 
 
 setwd(dirname(sys.frame(1)$ofile))
-source("write_loess_fits_ILIn.R")
 source("explore_loess_fits_ILIn.R")
 source("write_periodicReg_fits_ilinDt_Octfit.R")
 source("write_periodicReg_fits_ilinDt_Octfit_emergency.R")
@@ -40,10 +40,13 @@ deg <- 2
 spatial.params <- list()
 if (spatial.scale == "state"){
   spatial.params <- list(scale = spatial.scale, stringcode = "State", stringabbr = "_st")
+  source("write_loess_fits_ILIn.R")
 } else if (spatial.scale == "zip3"){
   spatial.params <- list(scale = spatial.scale, stringcode = "Zip3", stringabbr = "", serv = "_totServ", servToggle = "") 
+  source("write_loess_fits_ILIn.R")
 } else if (spatial.scale == "county"){
   spatial.params <- list(scale = spatial.scale, stringcode = "County", stringabbr = "_cty", serv = "_totServ", servToggle = "") 
+  source("write_loess_fits_ILIn_cty.R")
 }
 
 # serv = "_totServ", servToggle = ""
@@ -53,12 +56,12 @@ for (span in span.list){
   params <- list(span.var = span, degree.var = deg, spatial = spatial.params)
 
   do.call(write_loess_fits_ILIn, c(params))
-  do.call(explore_loess_fits_ILIn, c(params))
-  do.call(write_periodicReg_fits_ilinDt_Octfit, c(params))
-  do.call(write_fullIndic_periodicReg_ilinDt, c(params))
-  do.call(explore_periodicReg_fits_ilinDt, c(params))
-  do.call(write_relativeDiseaseBurden_ilinDt, c(params))
-  do.call(explore_dbMetricsDistribution_ilinDt, c(params))
-  do.call(explore_periodicReg_inSeasonFits_ilinDt, c(params))
+#   do.call(explore_loess_fits_ILIn, c(params))
+#   do.call(write_periodicReg_fits_ilinDt_Octfit, c(params))
+#   do.call(write_fullIndic_periodicReg_ilinDt, c(params))
+#   do.call(explore_periodicReg_fits_ilinDt, c(params))
+#   do.call(write_relativeDiseaseBurden_ilinDt, c(params))
+#   do.call(explore_dbMetricsDistribution_ilinDt, c(params))
+#   do.call(explore_periodicReg_inSeasonFits_ilinDt, c(params))
 }
 

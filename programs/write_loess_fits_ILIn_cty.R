@@ -1,7 +1,7 @@
 
 ## Name: Elizabeth Lee
-## Date: 12/15/15
-## Function: smooth ILIn data using loess smoother during summer weeks, divide observed ili by smoothed loess fits for entire time series. Pass the processed ILI metric to write_loess_PeriodicReg_....R
+## Date: 8/16/16
+## Function: downscale ILIn from zip3 to county, smooth ILIn data using loess smoother during summer weeks, divide observed ili by smoothed loess fits for entire time series. Pass the processed ILI metric to write_loess_PeriodicReg_....R
 ## timetrend <- loess(ILIn ~ t) during summer weeks 
 ## ILInDt <- ILI/pop/timetrend
 ## lm(ILInDt ~ t + cos(2*pi*t/52.18) + sin(2*pi*t/52.18))
@@ -10,8 +10,7 @@
 ## Data Source: 
 ## Notes: code2 = 'Octfit' --> October to April is flu period, but we fit the seasonal regression from April to October (i.e., expanded definition of summer) in order to improve phase of regression fits
 ## 52.18 weeks per year in the regression model
-## 12-10-15 - add spatial scale option (zip3 or state)
-## 8-16-16 - remove county procedure from this program (see write_loess_fits_ILIn_cty.R instead)
+## 8/16/16 - forked from write_loess_fits_ILIn.R, separate downscaling procedure for ILIn (zip3 to county)
 ## 
 ## useful commands:
 ## install.packages("pkg", dependencies=TRUE, lib="/usr/local/lib/R/site-library") # in sudo R
@@ -26,35 +25,48 @@ write_loess_fits_ILIn <- function(span.var, degree.var, spatial){
   require(tidyr)
   require(readr)
   setwd(dirname(sys.frame(1)$ofile))
-
-#   # uncomment when running script separately
-#   spatial <- list(scale = "zip3", stringcode = "Zip3", stringabbr = "", serv = "_totServ", servToggle = "")  
-#   span.var <- 0.4 # 0.4, 0.6
-#   degree.var <- 2
+  # zip to county conversion functions
+  source("source_clean_response_functions_cty.R")
   
+  #### set these! ################################
+  #   # uncomment when running script separately
+  #   spatial <- list(scale = "county", stringcode = "County", stringabbr = "_cty", serv = "_totServ", servToggle = "") 
+  #   span.var <- 0.4 # 0.4, 0.6
+  #   degree.var <- 2
+  # code.str <- sprintf('_span%s_degree%s', span.var, degree.var)
   
   #### import data ####################################
   setwd('../R_export')
-  if (spatial$scale == 'zip3'){
-    ilic_df <- read_csv(sprintf('ilicByall%s_allWeekly%s_totAge.csv', spatial$stringcode, spatial$serv), col_types = list(zip3 = col_character(), ili = col_integer(), pop = col_integer(), cov_z.y = col_double(), alpha_z.y = col_double(), ILIc = col_double(), cov_below5 = col_logical())) %>%
-      rename(scale = zip3)
-  } else if (spatial$scale == 'state'){
-    ilic_df <- read_csv(sprintf('ilicByall%s_allWeekly_totServ_totAge.csv', spatial$stringcode), col_types = list(state = col_character(), ili = col_integer(), pop = col_integer(), cov_z.y = col_double(), alpha_z.y = col_double(), ILIc = col_double(), cov_below5 = col_logical())) %>%
-      rename(scale = state)
-  } 
- 
-  #### set these! ################################
-  code.str <- sprintf('_span%s_degree%s', span.var, degree.var)
+  # import county-zip3 weights (source_clean_response_functions_cty.R)
+  cw <- cw_zip3_cty()
+  # import population data (source_clean_response_functions_cty.R)
+  pop_data <- clean_pop_cty_plain()
+  
+  # import zip3 data
+  zipILI_df <- read_csv(sprintf('ilicByallZip3_allWeekly%s_totAge.csv', spatial$serv), col_types = list(zip3 = col_character(), ili = col_integer(), pop = col_integer(), cov_z.y = col_double(), alpha_z.y = col_double(), ILIc = col_double(), cov_below5 = col_logical())) %>%
+    select(week, Thu.week, year, month, flu.week, t, fit.week, zip3, ili, pop) %>%
+    mutate(ILIn = ili/pop*100000)
   
   #### data cleaning ####################################
-  # 10/27/15 remove zip3s with missing pop data in incl.lm indicator
-  # 7/18/16 incl.lm is redundant with changes in write_ILIc_data.R (incl.lm is already defined as FALSE when is.na(pop)), 100,000 pop multiplier
-  ilic_df2 <- ilic_df %>% 
-    mutate(incl.lm = ifelse(!incl.lm, FALSE, ifelse(is.na(pop), FALSE, TRUE))) %>% 
-    mutate(ILIn = ili/pop*10000)
-
+  # use population-weighted proportions to convert zip3 ILIn data to county
+  ctyILI_df <- left_join(zipILI_df, cw, by = "zip3") %>%
+    group_by(fips, Thu.week) %>% 
+    summarise(week = first(week), year = first(year), month = first(month), flu.week = first(flu.week), t = first(t), fit.week = first(fit.week), ILIn = weighted.mean(ILIn, proportion, na.rm = TRUE)) %>%
+    ungroup
+  
+  # merge with county pop data, re-create incl.lm (pop != NA)
+  ilic_df2 <- left_join(ctyILI_df, pop_data, by = c("fips", "year")) %>%
+    mutate(ili = ILIn/100000*pop) %>% # impute county level ili from ILIn
+    select(week, Thu.week, year, month, flu.week, t, fit.week, fips, ILIn, pop, ili) %>%
+    mutate(incl.lm = ifelse(is.na(pop) | is.na(ILIn), FALSE, TRUE)) %>%
+    rename(scale = fips) %>%
+    filter(!is.na(scale)) # %>% # it appears that there are 496 scale NAs that are generated
+#     mutate(ili = ifelse(ili.init < 1, 0, ili.init)) %>%
+#     mutate(ILIn = ili/pop*100000)
+  
   # create new data for augment
   newbasedata <- ilic_df2 %>% select(Thu.week, t) %>% unique %>% filter(Thu.week < as.Date('2009-05-01')) 
+  
   #### perform loess regression ####################################
   allLoessMods <- ilic_df2 %>%
     filter(fit.week) %>% 
