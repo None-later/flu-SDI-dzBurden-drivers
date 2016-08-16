@@ -33,7 +33,7 @@ write_loess_fits_ILIn <- function(span.var, degree.var, spatial){
   #   spatial <- list(scale = "county", stringcode = "County", stringabbr = "_cty", serv = "_totServ", servToggle = "") 
   #   span.var <- 0.4 # 0.4, 0.6
   #   degree.var <- 2
-  # code.str <- sprintf('_span%s_degree%s', span.var, degree.var)
+  code.str <- sprintf('_span%s_degree%s', span.var, degree.var)
   
   #### import data ####################################
   setwd('../R_export')
@@ -82,11 +82,10 @@ write_loess_fits_ILIn <- function(span.var, degree.var, spatial){
   allLoessMods_fit_ILI <- right_join((allLoessMods_aug %>% ungroup %>% select(-t)), (ilic_df2 %>% filter(Thu.week < as.Date('2009-05-01'))), by=c('Thu.week', 'scale')) %>% 
     mutate(week=as.Date(week, origin="1970-01-01")) %>% 
     mutate(Thu.week=as.Date(Thu.week, origin="1970-01-01")) %>% 
-    mutate(incl.lm2 = ifelse(.fitted > ILIn, FALSE, TRUE)) %>%
-    mutate(ilin.dt = ILIn-.fitted) # 7/28/16: don't make any change to detrending based on incl.lm2
+    mutate(incl.lm2 = ifelse(ILIn >= .fitted, TRUE, FALSE)) %>%
+    mutate(ilin.dt = ifelse(incl.lm2, ILIn-.fitted, 0)) # 8/16/16 update: convert value to 0 if !incl.lm2; 7/28/16: don't make any change to detrending based on incl.lm2
   
-  # 7/28/16: new indicator incl.lm2 is false if .fitted > ILIn; true if incl.lm is true
-  
+
   #### write data to file ####################################
   print('writing loess fits')
   setwd('../R_export')
