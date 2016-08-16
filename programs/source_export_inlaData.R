@@ -152,7 +152,7 @@ plot_coefDistr_season <- function(plotDat, path_plotExport_coefDistr, plotFilena
     geom_pointrange(aes(ymin = q_025, ymax = q_975)) +
     geom_hline(yintercept = 0) +
     facet_wrap(~RV, scales = "free_y") +
-    ylab("coefMedian (95%CI)") +
+    scale_y_continuous("coefMedian (95%CI)") +
     xlim(c(1, 10)) 
   ggsave(paste0(path_plotExport_coefDistr, plotFilename), plotOutput, height = h, width = w, dpi = dp)
   
