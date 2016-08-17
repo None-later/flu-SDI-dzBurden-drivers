@@ -33,7 +33,7 @@ source("source_clean_response_functions_cty.R")
 
 #### set these! ####################################
 spatial.scale <- "county"
-span.list <- seq(0.4, 0.42, by=0.05)
+span.list <- seq(0.5, 0.52, by=0.05)
 deg <- 2
 
 #### control flow for spatial scale ####################################
