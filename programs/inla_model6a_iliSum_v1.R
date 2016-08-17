@@ -30,8 +30,8 @@ require(RColorBrewer); require(ggplot2) # export_inlaData_st dependencies
 
 #### set these! ################################
 dbCodeStr <- "_ilinDt_Octfit_span0.4_degree2"
-modCodeStr <- "6a_iliSum_v1-7"; testDataOn <- FALSE
-seasons <- 2:9 # 8/10/16 S8 idx 2533? NAN
+modCodeStr <- "6a_iliSum_v1testing7"; testDataOn <- TRUE
+seasons <- 8:8 # 8/10/16 S8 idx 2533? NAN
 rdmFx_RV <- "nu"
 dig <- 4 # number of digits in the number of elements at this spatial scale (~3000 counties -> 4 digits)
 
@@ -69,12 +69,28 @@ path_list <- list(path_abbr_st = path_abbr_st,
 if (testDataOn){
   modData <- testing_module(path_list) # with driver & sampling effort variables
   # testing module formula
-  formula <- Y ~ -1 + f(fips_bin, model = "iid") + f(fips_st_bin, model = "iid") + f(regionID_bin, model = "iid") + intercept_bin +  O_imscoverage_bin + O_careseek_bin + X_poverty_bin + X_H3_bin + f(fips_nonzero, model = "iid") + f(fips_st_nonzero, model = "iid") + f(regionID_nonzero, model = "iid") + intercept_nonzero + O_imscoverage_nonzero + O_careseek_nonzero + X_poverty_nonzero + X_H3_nonzero + offset(logE_nonzero)
+  formula <- Y ~ -1 + 
+    f(fips_bin, model = "iid", hyper=list(theta=list(prior="loggamma", fixed=TRUE))) + 
+    f(fips_st_bin, model = "iid", hyper=list(theta=list(prior="loggamma", fixed=TRUE))) + 
+    f(regionID_bin, model = "iid", hyper=list(theta=list(prior="loggamma", fixed=TRUE))) + 
+    intercept_bin +  O_imscoverage_bin + O_careseek_bin + X_poverty_bin + X_H3_bin + 
+    f(fips_nonzero, model = "iid", hyper=list(theta=list(prior="loggamma", fixed=TRUE))) + 
+    f(fips_st_nonzero, model = "iid", hyper=list(theta=list(prior="loggamma", fixed=TRUE))) + 
+    f(regionID_nonzero, model = "iid", hyper=list(theta=list(prior="loggamma", fixed=TRUE))) + 
+    intercept_nonzero + O_imscoverage_nonzero + O_careseek_nonzero + X_poverty_nonzero + X_H3_nonzero + offset(logE_nonzero)
 } else{
 #### Import and process data ####
   modData <- model6a_iliSum_v1(path_list) # with driver & sampling effort variables
   #### Model 6a: County-level, after variable selection, one model per season, separate predictors for the 2 likelihoods ####
-  formula <- Y ~ -1 + f(fips_bin, model = "iid") + f(fips_st_bin, model = "iid") + f(regionID_bin, model = "iid") + intercept_bin + O_imscoverage_bin + O_careseek_bin + O_insured_bin + X_poverty_bin + X_child_bin + X_adult_bin + X_hospaccess_bin + X_popdensity_bin + X_commute_bin + X_flight_bin + X_vaxcovI_bin + X_vaxcovE_bin + X_H3_bin + X_humidity_bin + f(fips_nonzero, model = "iid") + f(fips_st_nonzero, model = "iid") + f(regionID_nonzero, model = "iid") + intercept_nonzero + O_imscoverage_nonzero + O_careseek_nonzero + O_insured_nonzero + X_poverty_nonzero + X_child_nonzero + X_adult_nonzero + X_hospaccess_nonzero + X_popdensity_nonzero + X_commute_nonzero + X_flight_nonzero + X_vaxcovI_nonzero + X_vaxcovE_nonzero + X_H3_nonzero + X_humidity_nonzero + offset(logE_nonzero)
+  formula <- Y ~ -1 + 
+    f(fips_bin, model = "iid", hyper=list(theta=list(prior="loggamma", fixed=TRUE))) + 
+    f(fips_st_bin, model = "iid") + 
+    f(regionID_bin, model = "iid") + 
+    intercept_bin + O_imscoverage_bin + O_careseek_bin + O_insured_bin + X_poverty_bin + X_child_bin + X_adult_bin + X_hospaccess_bin + X_popdensity_bin + X_commute_bin + X_flight_bin + X_vaxcovI_bin + X_vaxcovE_bin + X_H3_bin + X_humidity_bin + 
+    f(fips_nonzero, model = "iid", hyper=list(theta=list(prior="loggamma", fixed=TRUE))) + 
+    f(fips_st_nonzero, model = "iid") + 
+    f(regionID_nonzero, model = "iid") + 
+    intercept_nonzero + O_imscoverage_nonzero + O_careseek_nonzero + O_insured_nonzero + X_poverty_nonzero + X_child_nonzero + X_adult_nonzero + X_hospaccess_nonzero + X_popdensity_nonzero + X_commute_nonzero + X_flight_nonzero + X_vaxcovI_nonzero + X_vaxcovE_nonzero + X_H3_nonzero + X_humidity_nonzero + offset(logE_nonzero)
 }
 
 #### export formatting ####
@@ -109,7 +125,8 @@ for (s in seasons){
               control.fixed = list(mean = 0, prec = 1/100), # set prior parameters for regression coefficients
               control.predictor = list(compute = TRUE, link = c(rep(1, nrow(modData_full)), rep(2, nrow(modData_full)))), # compute summary statistics on fitted values, link designates that NA responses are calculated according to the first likelihood for the first (nrow(modData_full)) rows & the second likelihood for the second (nrow(modData_full)) rows
               control.compute = list(dic = TRUE, cpo = TRUE),
-              control.inla = list(correct = TRUE, correct.factor = 10, verbose = TRUE)) # http://www.r-inla.org/events/newfeaturesinr-inlaapril2015
+              control.inla = list(correct = TRUE, correct.factor = 10), # http://www.r-inla.org/events/newfeaturesinr-inlaapril2015
+              verbose = TRUE) 
 
   
   #### model summary outputs ################################
@@ -133,10 +150,12 @@ for (s in seasons){
   #### write fixed and random effects summary statistics ####
   # file path
   path_csvExport_summaryStats <- paste0(path_csvExport, sprintf("/summaryStats_%s_S%s.csv", modCodeStr, s))
-  # write all summary statistics to file
-  export_summaryStats_hurdle(path_csvExport_summaryStats, mod, rdmFx_RV, modCodeStr, dbCodeStr, s) # assuming fixed, spatial, state ID, and region ID exist
-  
-  #### hyperparameter outputs? ####
+  # write all summary statistics to file # 8/17/16 control flow to export summary statistics of hyperparameters
+  if (is.null(mod$summary.hyperpar)){
+    export_summaryStats_hurdle(path_csvExport_summaryStats, mod, rdmFx_RV, modCodeStr, dbCodeStr, s) # assuming fixed, spatial, state ID, and region ID exist
+  } else{
+    export_summaryStats_hurdle_wHyperpar(path_csvExport_summaryStats, mod, rdmFx_RV, modCodeStr, dbCodeStr, s) # assuming hyperpar, fixed, spatial, state ID, and region ID exist
+  }
   
   
   #### process fitted values for each model ################################

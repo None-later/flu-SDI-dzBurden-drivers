@@ -267,11 +267,17 @@ export_summaryStats <- function(exportPath, modelOutput, rdmFxTxt, modCodeString
   names(modelOutput$summary.random$fips) <- c("ID", names(modelOutput$summary.fixed))
   names(modelOutput$summary.random$fips_st) <- names(modelOutput$summary.random$fips)
   names(modelOutput$summary.random$regionID) <- names(modelOutput$summary.random$fips)
+  names(modelOutput$summary.hyperpar) <- names(modelOutput$summary.fixed) # 8/17/16 add hyperpar export
   
   # clean fixed effects summary statistics output from INLA
   summaryFixed <- tbl_df(modelOutput$summary.fixed) %>%
     mutate(RV = rownames(modelOutput$summary.fixed)) %>%
     mutate(effectType = "fixed") %>%
+    select(RV, effectType, mean, sd, q_025, q_5, q_975, mode, kld)
+  # clean hyperpar summary statistics output from INLA
+  summaryHyperpar <- tbl_df(modelOutput$summary.hyperpar) %>%
+    mutate(RV = rownames(modelOutput$summary.hyperpar)) %>%
+    mutate(effectType = "hyperpar", kld = NA) %>%
     select(RV, effectType, mean, sd, q_025, q_5, q_975, mode, kld)
   
   # clean random effects summary statistics output from INLA
@@ -287,7 +293,7 @@ export_summaryStats <- function(exportPath, modelOutput, rdmFxTxt, modCodeString
     select(RV, effectType, mean, sd, q_025, q_5, q_975, mode, kld)
   
   # bind data together
-  summaryStats <- bind_rows(summaryFixed, summaryRandom) %>%
+  summaryStats <- bind_rows(summaryFixed, summaryRandom, summaryHyperpar) %>%
     mutate(modCodeStr = modCodeString, dbCodeStr = dbCodeString, season = season, exportDate = as.character(Sys.Date())) %>%
     select(modCodeStr, dbCodeStr, season, exportDate, RV, effectType, mean, sd, q_025, q_5, q_975, mode, kld)
   
