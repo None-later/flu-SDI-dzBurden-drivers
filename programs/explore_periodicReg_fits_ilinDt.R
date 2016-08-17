@@ -24,10 +24,10 @@ explore_periodicReg_fits_ilinDt <- function(span.var, degree.var, spatial){
   code <-"" # linear time trend term
   code2 <- "_Octfit" # fit = Apr to Oct and fluseason = Oct to Apr
   
-  ## uncomment when running script separately
-  # spatial <- list(scale = "state", stringcode = "State", stringabbr = "_st", serv = "_emergency", servToggle = "_emergency")
-  # span.var <- 0.4 # 0.4, 0.6
-  # degree.var <- 2
+#   ## uncomment when running script separately
+#   spatial <- list(scale = "county", stringcode = "County", stringabbr = "_cty", serv = "_totServ", servToggle = "")
+#   span.var <- 0.4 # 0.4, 0.6
+#   degree.var <- 2
   code.str <- sprintf('_span%s_degree%s', span.var, degree.var)
   
   #### plot formatting ################################
@@ -102,7 +102,7 @@ explore_periodicReg_fits_ilinDt <- function(span.var, degree.var, spatial){
   quantD <- fitdata %>% summarise(q05 = quantile(adj.r.squared, 0.05), q25 = quantile(adj.r.squared, 0.25), q50 = quantile(adj.r.squared, 0.5), q75 = quantile(adj.r.squared, 0.75), q95 = quantile(adj.r.squared, 0.95)) %>% gather(quant, val, q05:q95)
   
   adjR2plot <- ggplot(fitdata, aes(x = adj.r.squared)) +
-    geom_histogram() + 
+    geom_histogram(na.rm=TRUE) + 
     geom_vline(data = quantD, aes(xintercept = val), colour = 'red')
   ggsave(sprintf("periodicReg_%sAdjR2_ilinDt%s%s.png", code, code2, code.str), adjR2plot, width=w, height=h)
  
