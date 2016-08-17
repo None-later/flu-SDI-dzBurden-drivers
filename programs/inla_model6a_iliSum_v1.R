@@ -30,7 +30,7 @@ require(RColorBrewer); require(ggplot2) # export_inlaData_st dependencies
 
 #### set these! ################################
 dbCodeStr <- "_ilinDt_Octfit_span0.4_degree2"
-modCodeStr <- "6a_iliSum_v1testing5"; testDataOn <- TRUE
+modCodeStr <- "6a_iliSum_v1-7"; testDataOn <- FALSE
 seasons <- 2:9 # 8/10/16 S8 idx 2533? NAN
 rdmFx_RV <- "nu"
 dig <- 4 # number of digits in the number of elements at this spatial scale (~3000 counties -> 4 digits)
@@ -109,7 +109,8 @@ for (s in seasons){
               control.fixed = list(mean = 0, prec = 1/100), # set prior parameters for regression coefficients
               control.predictor = list(compute = TRUE, link = c(rep(1, nrow(modData_full)), rep(2, nrow(modData_full)))), # compute summary statistics on fitted values, link designates that NA responses are calculated according to the first likelihood for the first (nrow(modData_full)) rows & the second likelihood for the second (nrow(modData_full)) rows
               control.compute = list(dic = TRUE, cpo = TRUE),
-              verbose = TRUE) 
+              control.inla = list(correct = TRUE, correct.factor = 10, verbose = TRUE)) # http://www.r-inla.org/events/newfeaturesinr-inlaapril2015
+
   
   #### model summary outputs ################################
   # 7/20/16 reorganized
