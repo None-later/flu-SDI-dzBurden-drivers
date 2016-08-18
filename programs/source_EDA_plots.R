@@ -14,6 +14,8 @@ require(dplyr)
 require(readr)
 require(RColorBrewer)
 require(ggcounty)
+require(scales)
+require(classInt)
 
 ################################################################
 
@@ -149,14 +151,26 @@ choroplots_zip3_1yr <- function(fullDat, zipShapefile, params, plotparams){
   for (s in seas){
     seasDat <- fullDat %>%
       filter(season == s)
-    mergeDat <- merge(zipShapefile, seasDat, by = "id", all.x = TRUE) %>%
-      mutate(vbin = cut(burden, breaks = pretty_breaks(n = 6, min.n = 3)(burden), ordered_result = TRUE, include.lowest = TRUE)) %>%
+    mergeDat <- merge(zipShapefile, seasDat, by = "id", all.x = TRUE) 
+    
+    # create natural break intervals with jenks algorithm
+    intervals <- classIntervals(seasDat$burden[!is.na(seasDat$burden)], n = 5, style = "jenks")
+    # 0s have their own color
+    breaks <- c(0, round(intervals$brks, 1)) 
+    breakLabels <- matrix(1:(length(breaks)-1))
+    for (i in 1:length(breakLabels)){
+      # create legend labels
+      breakLabels[i] <- paste0("(",as.character(breaks[i]), "-", as.character(breaks[i+1]), "]")}
+    # reverse order of break labels so zeros are green and larger values are red
+    breakLabels <- rev(breakLabels) 
+    mergeDat1 <- mergeDat %>%
+      mutate(vbin = factor(.bincode(burden, breaks, right = TRUE, include.lowest = TRUE))) %>%
       mutate(vbin = factor(vbin, levels = rev(levels(vbin))))
-    mergeDat2 <- mergeDat[order(mergeDat$order),]
+    mergeDat2 <- mergeDat1[order(mergeDat1$order),]
     
     choro.tier <- ggplot() +
       geom_polygon(data = mergeDat2, aes(x = long, y = lat, group = group, fill = vbin), color = "grey25", size = 0.2) +
-      scale_fill_brewer(name = lab, palette = "RdYlGn", na.value = "grey50") +
+      scale_fill_brewer(name = lab, palette = "RdYlGn", label = breakLabels, na.value = "grey50") +
       scale_x_continuous(limits = c(-124.849, -66.885)) +
       scale_y_continuous(limits = c(24.396, 49.384)) +
       theme_minimal() +
