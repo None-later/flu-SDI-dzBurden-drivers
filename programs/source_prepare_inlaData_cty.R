@@ -315,6 +315,61 @@ combine_shapefile_modelData_cty <- function(filepathList, modelData, seasNum){
 }
 ################################
 
+convert_hurdleModel_separatePredictors_spatiotemporal <- function(modData_seas){
+  # 8/17/16: prepare all seasons model data for 2 stage (hurdle) model in INLA 
+  print(match.call())
+  
+  # top half response matrix with epi/no-epi indicator (binomial lik) and NA (gamma lik)
+  Y_bin <- modData_seas %>% 
+    select(y) %>%
+    mutate(y0 = ifelse(y == 0, 0, ifelse(y > 0, 1, NA))) %>% # 0 = no epidemic, 1 = epidemic, NA = NA
+    mutate(y1 = NA) %>%
+    select(-y) 
+  
+  # bottom half response matrix with NA (binomial lik) and non-zeros/NA (gamma lik)
+  Y_gam <- modData_seas %>% 
+    select(y) %>%
+    mutate(y0 = NA) %>% # 0 = no epidemic, 1 = epidemic, NA = NA
+    mutate(y1 = ifelse(y > 0, y, NA)) %>%
+    select(-y) 
+  
+  Y <- bind_rows(Y_bin, Y_gam) %>% data.matrix
+  
+  # covariate matrix for binomial lik: response, predictors, random effects
+  Mx_bin <- modData_seas %>%
+    select(contains("X_"), contains("O_"), fips, fips_st, regionID, season) %>%
+    mutate(intercept = 1) 
+  colnames(Mx_bin) <- paste0(colnames(Mx_bin), "_bin")
+  
+  # covariate matrix for gamma lik: response, predictors, random effects & offset
+  Mx_gam <- modData_seas %>%
+    select(contains("X_"), contains("O_"), fips, fips_st, regionID, logE, season) %>%
+    mutate(intercept = 1) 
+  colnames(Mx_gam) <- paste0(colnames(Mx_gam), "_nonzero")
+  
+  # NA block for bin & gam Mx
+  NA_bin <- data.frame(matrix(data = NA, nrow = nrow(Mx_bin), ncol = ncol(Mx_bin)))
+  names(NA_bin) <- colnames(Mx_bin)
+  NA_gam <- data.frame(matrix(data = NA, nrow = nrow(Mx_gam), ncol = ncol(Mx_gam)))
+  names(NA_gam) <- colnames(Mx_gam)
+  # add NAs to appropriate locations
+  Mx_bin2 <- bind_rows(Mx_bin , NA_bin)
+  Mx_gam2 <- bind_rows(NA_gam, Mx_gam)
+  
+  # convert matrix information to a list of lists/matrixes
+  Mx <- bind_cols(Mx_bin2, Mx_gam2)
+  modData_seas_lists <- list()
+  for (column in colnames(Mx)){
+    modData_seas_lists[[column]] <- Mx[[column]]
+  }
+  # add Y response matrix as a list
+  modData_seas_lists[['Y']] <- Y
+  
+  return(modData_seas_lists)
+}
+
+################################
+
 convert_hurdleModel_separatePredictors <- function(modData_seas){
   # prepare data seasonal model data for 2 stage (hurdle) model in INLA 
   # 7/20/16 duplicate locations
