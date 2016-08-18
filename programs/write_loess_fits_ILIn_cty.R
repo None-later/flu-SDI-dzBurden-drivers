@@ -55,25 +55,26 @@ write_loess_fits_ILIn <- function(span.var, degree.var, spatial){
     ungroup
   
   # merge with county pop data, re-create incl.lm (pop != NA)
-  ilic_df <- left_join(ctyILI_df, pop_data, by = c("fips", "year")) %>%
+  ilic_df2 <- left_join(ctyILI_df, pop_data, by = c("fips", "year")) %>%
     mutate(ili = ILIn/100000*pop) %>% # impute county level ili from ILIn
     select(week, Thu.week, year, month, flu.week, t, fit.week, fips, ILIn, pop, ili) %>%
     mutate(incl.lm = ifelse(is.na(pop) | is.na(ILIn), FALSE, TRUE)) %>%
     rename(scale = fips) %>%
-    filter(!is.na(scale)) %>% # it appears that there are 496 scale NAs that are generated
-    mutate(ili = ifelse(ili < 1, 0, ili)) %>% # 8/17/16 `dataprocessing_backcalculateILI_ili1'
-    mutate(ILIn = ili/pop*100000)
+    filter(!is.na(scale)) #%>% # it appears that there are 496 scale NAs that are generated
+#     mutate(ili = ifelse(ili < 1, 0, ili)) %>% # 8/17/16 `dataprocessing_backcalculateILI_ili1'
+#     mutate(ILIn = ili/pop*100000)
   
-  # change incl.lm to FALSE for counties with more than 300 weeks where ili=0
-  rmcty<- ilic_df %>%
-    mutate(zero = ifelse(ili == 0, 1, 0)) %>%
-    group_by(scale) %>%
-    summarise(zeros = sum(zero)) %>%
-    mutate(rm = ifelse(zeros >= 300, TRUE, FALSE)) 
-  ilic_df2 <- ilic_df %>%
-    full_join(rmcty, by = "scale") %>%
-    mutate(incl.lm = ifelse(rm==TRUE, FALSE, incl.lm)) %>%
-    select(-zeros, -rm)
+#   # 8/17/16 `dataprocessing_backcalculateILI_ili1'
+#   # change incl.lm to FALSE for counties with more than 300 weeks where ili=0
+#   rmcty<- ilic_df %>%
+#     mutate(zero = ifelse(ili == 0, 1, 0)) %>%
+#     group_by(scale) %>%
+#     summarise(zeros = sum(zero)) %>%
+#     mutate(rm = ifelse(zeros >= 300, TRUE, FALSE)) 
+#   ilic_df2 <- ilic_df %>%
+#     full_join(rmcty, by = "scale") %>%
+#     mutate(incl.lm = ifelse(rm==TRUE, FALSE, incl.lm)) %>%
+#     select(-zeros, -rm)
 
   # create new data for augment
   newbasedata <- ilic_df2 %>% select(Thu.week, t) %>% unique %>% filter(Thu.week < as.Date('2009-05-01')) 
