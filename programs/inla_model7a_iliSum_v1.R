@@ -71,14 +71,14 @@ if (testDataOn){
   # testing module formula
   formula <- Y ~ -1 + 
     f(fips_bin, model = "iid", hyper=list(theta=list(prior="loggamma", fixed=TRUE))) + 
-    f(fips_st_bin, model = "iid") + 
-    f(regionID_bin, model = "iid") + 
-    f(season_bin, model = "iid") +
+    f(fips_st_bin, model = "iid", hyper=list(theta=list(prior="loggamma", fixed=TRUE))) + 
+    f(regionID_bin, model = "iid", hyper=list(theta=list(prior="loggamma", fixed=TRUE))) + 
+    f(season_bin, model = "iid", hyper=list(theta=list(prior="loggamma", fixed=TRUE))) +
     intercept_bin +  O_imscoverage_bin + O_careseek_bin + X_poverty_bin + X_H3_bin + 
     f(fips_nonzero, model = "iid", hyper=list(theta=list(prior="loggamma", fixed=TRUE))) + 
-    f(fips_st_nonzero, model = "iid") + 
-    f(regionID_nonzero, model = "iid") + 
-    f(season_nonzero, model = "iid") +
+    f(fips_st_nonzero, model = "iid", hyper=list(theta=list(prior="loggamma", fixed=TRUE))) + 
+    f(regionID_nonzero, model = "iid", hyper=list(theta=list(prior="loggamma", fixed=TRUE))) + 
+    f(season_nonzero, model = "iid", hyper=list(theta=list(prior="loggamma", fixed=TRUE))) +
     intercept_nonzero + O_imscoverage_nonzero + O_careseek_nonzero + X_poverty_nonzero + X_H3_nonzero + offset(logE_nonzero)
 } else{
 #### Import and process data ####
