@@ -33,7 +33,7 @@ source("source_clean_response_functions_cty.R")
 
 #### set these! ####################################
 spatial.scale <- "county"
-span.list <- seq(0.5, 0.52, by=0.1)
+span.list <- seq(0.4, 0.42, by=0.1)
 deg <- 2
 
 #### control flow for spatial scale ####################################
@@ -55,12 +55,12 @@ if (spatial.scale == "state"){
 for (span in span.list){
   params <- list(span.var = span, degree.var = deg, spatial = spatial.params)
 
-  # do.call(write_loess_fits_ILIn, c(params))
-  # do.call(explore_loess_fits_ILIn, c(params))
-#   do.call(write_periodicReg_fits_ilinDt_Octfit, c(params))
-#   do.call(write_fullIndic_periodicReg_ilinDt, c(params))
+  do.call(write_loess_fits_ILIn, c(params))
+  do.call(explore_loess_fits_ILIn, c(params))
+  do.call(write_periodicReg_fits_ilinDt_Octfit, c(params))
+  do.call(write_fullIndic_periodicReg_ilinDt, c(params))
   do.call(explore_periodicReg_fits_ilinDt, c(params))
-  # do.call(write_relativeDiseaseBurden_ilinDt, c(params))
+  do.call(write_relativeDiseaseBurden_ilinDt, c(params))
   do.call(explore_dbMetricsDistribution_ilinDt, c(params))
   do.call(explore_periodicReg_inSeasonFits_ilinDt, c(params))
 }

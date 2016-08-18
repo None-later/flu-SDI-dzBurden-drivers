@@ -21,7 +21,7 @@ source("source_export_inlaDiagnostics.R") # plot_diag_scatter_hurdle function
 source("source_clean_response_functions_cty.R") # cty response functions
 
 #### set these! ################################
-modCodeStr <- "6a_iliSum_v1-7"
+modCodeStr <- "6a_iliSum_v1-8"
 seasons <- c(2:9)
 likStrings <- c("binomial", "gamma")
 
@@ -107,7 +107,7 @@ for (s in seasons){
     
     # choropleth: fitted values (yhat_i) - Magnitude of non-zero epidemic
     path_plotExport_yhat_gam <- paste0(path_plotExport, sprintf("/choro_yHat_%s_S%s.png", modCodeStr, s))
-    plot_countyChoro(path_plotExport_yhat_gam, mod_gam_fitted, "mean", "gradient")
+    plot_countyChoro(path_plotExport_yhat_gam, mod_gam_fitted, "mean", "tier")
     
     # choropleth: SD of fitted values (yhat_i)
     path_plotExport_yhatSD_gam <- paste0(path_plotExport, sprintf("/choro_yHatSD_%s_S%s.png", modCodeStr, s))
