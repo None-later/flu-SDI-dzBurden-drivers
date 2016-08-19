@@ -98,6 +98,11 @@ zips.over.thresh_consec %>% ungroup %>% filter(period=="flu") %>% select(consec.
 # quantile for non flu period
 zips.over.thresh_consec %>% ungroup %>% filter(period=="nf") %>% select(consec.weeks) %>% unlist %>% quantile(seq(0, 1, 0.05), na.rm=T)
 
+## span0.4, county, ILIn = per 10K - 8/19/16  ###########################
+# during flu period: 80%+ of zip3-season combinations have 2+ consecutive weeks above the epidemic threshold
+# during flu period: 65%+ of zip3-season combinations have 5+ consecutive weeks above the epidemic threshold
+# during non-flu period: 65%+ of zip3-season combinations have 2 or fewer consecutive weeks above the epidemic threshold
+# during non-flu period: 90% of zip3-season combinations have 5 or fewer consecutive weeks above the epidemic threshold
 ## span0.4, county - 7/28/16  ###########################
 # during flu period: 70%+ of zip3-season combinations have 4+ consecutive weeks above the epidemic threshold
 # during flu period: 65%+ of zip3-season combinations have 5+ consecutive weeks above the epidemic threshold
