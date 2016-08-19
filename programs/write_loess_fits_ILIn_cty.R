@@ -45,7 +45,7 @@ write_loess_fits_ILIn <- function(span.var, degree.var, spatial){
   # import zip3 data
   zipILI_df <- read_csv(sprintf('ilicByallZip3_allWeekly%s_totAge.csv', spatial$serv), col_types = list(zip3 = col_character(), ili = col_integer(), pop = col_integer(), cov_z.y = col_double(), alpha_z.y = col_double(), ILIc = col_double(), cov_below5 = col_logical())) %>%
     select(week, Thu.week, year, month, flu.week, t, fit.week, zip3, ili, pop) %>%
-    mutate(ILIn = ili/pop*100000)
+    mutate(ILIn = ili/pop*10000)
   
   #### data cleaning ####################################
   # use population-weighted proportions to convert zip3 ILIn data to county
@@ -56,7 +56,7 @@ write_loess_fits_ILIn <- function(span.var, degree.var, spatial){
   
   # merge with county pop data, re-create incl.lm (pop != NA)
   ilic_df2 <- left_join(ctyILI_df, pop_data, by = c("fips", "year")) %>%
-    mutate(ili = ILIn/100000*pop) %>% # impute county level ili from ILIn
+    mutate(ili = ILIn/10000*pop) %>% # impute county level ili from ILIn
     select(week, Thu.week, year, month, flu.week, t, fit.week, fips, ILIn, pop, ili) %>%
     mutate(incl.lm = ifelse(is.na(pop) | is.na(ILIn), FALSE, TRUE)) %>%
     rename(scale = fips) %>%
