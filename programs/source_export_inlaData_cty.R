@@ -32,7 +32,7 @@ plot_countyChoro <- function(exportPath, pltDat, pltVarTxt, code){
     intervals <- classIntervals(pltDat$pltVar[!is.na(pltDat$pltVar)], n = 5, style = "jenks")
     # 0s have their own color
     breaksRound <- c(0, round(intervals$brks, 1)) 
-    breakLabels <- matrix(1:(length(breaks)-1))
+    breakLabels <- matrix(1:(length(breaksRound)-1))
     for (i in 1:length(breakLabels)){
       # create legend labels
       breakLabels[i] <- paste0("(",as.character(breaksRound[i]), "-", as.character(breaksRound[i+1]), "]")}
@@ -41,7 +41,7 @@ plot_countyChoro <- function(exportPath, pltDat, pltVarTxt, code){
     pltDat2 <- pltDat %>%
       mutate(pltVarBin = factor(.bincode(pltVar, intervals$brks, right = TRUE, include.lowest = TRUE))) %>%
       mutate(pltVarBin = factor(pltVarBin, levels = rev(levels(pltVarBin))))
-    
+
     choro <- gg +
       geom_map(data = pltDat2, aes(map_id = fips, fill = pltVarBin), map = us$map, color = "grey25", size = 0.2) +
       scale_fill_brewer(palette = "RdYlGn", label = breakLabels, na.value = "grey60") +

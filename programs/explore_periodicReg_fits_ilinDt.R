@@ -63,7 +63,7 @@ explore_periodicReg_fits_ilinDt <- function(span.var, degree.var, spatial){
   zip3list <- data %>% filter(incl.lm) %>% select(scale) %>% distinct(scale) %>% mutate(for.plot = seq_along(1:nrow(.)))
   data_plot <- right_join(data, zip3list, by="scale")
   indexes <- seq(1, max(data_plot %>% select(for.plot)), by=num)
-  
+
   for(i in indexes){
     dummyplots <- ggplot(data_plot %>% filter(for.plot>= i & for.plot < i+num), aes(x=week, y=ilin.dt, group=scale)) +
       theme(axis.text=element_text(size=12), axis.title=element_text(size=14,face="bold")) +
