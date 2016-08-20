@@ -31,7 +31,8 @@ plot_countyChoro <- function(exportPath, pltDat, pltVarTxt, code){
     # create natural break intervals with jenks algorithm
     intervals <- classIntervals(pltDat$pltVar[!is.na(pltDat$pltVar)], n = 5, style = "jenks")
     # 0s have their own color
-    breaksRound <- c(0, round(intervals$brks, 1)) 
+    breaks <- c(0, intervals$brks)
+    breaksRound <- round(breaks, 1) 
     breakLabels <- matrix(1:(length(breaksRound)-1))
     for (i in 1:length(breakLabels)){
       # create legend labels
@@ -39,7 +40,7 @@ plot_countyChoro <- function(exportPath, pltDat, pltVarTxt, code){
     # reverse order of break labels so zeros are green and larger values are red
     breakLabels <- rev(breakLabels) 
     pltDat2 <- pltDat %>%
-      mutate(pltVarBin = factor(.bincode(pltVar, intervals$brks, right = TRUE, include.lowest = TRUE))) %>%
+      mutate(pltVarBin = factor(.bincode(pltVar, breaks, right = TRUE, include.lowest = TRUE))) %>%
       mutate(pltVarBin = factor(pltVarBin, levels = rev(levels(pltVarBin))))
 
     choro <- gg +
