@@ -68,25 +68,25 @@ tsParams <- list(indexes = indexes, years = years, varnames = varnames, spatial 
 tsplotParams <- list(num = num, h = 12, w = 12, dp = 300, leg.lab = c("Effective Physician Coverage", "Visits per Provider (care-seeking)", "Visits per Pop (care-seeking)"))
 
 
-#### draw plots ################################
-setwd(dirname(sys.frame(1)$ofile))
-dir.create(sprintf("../graph_outputs/%s", plotfolder), showWarnings = FALSE)
-setwd(sprintf("../graph_outputs/%s", plotfolder))
-
-# 8/10/16 scatter vizPerProv & vizPerPop (no relationship observed)
-scatter <- ggplot(datSpread, aes(x = visitsPerProvider, y = visitsPerPop, group = year)) +
-  geom_point() +
-  theme_bw() +
-  scale_x_continuous("visits per provider") +
-  scale_y_continuous("visits per population") +
-  facet_wrap(~year)
-ggsave("visitsPerPop_visitsPerProvider_cty.png", scatter, h = tsplotParams$h, w = tsplotParams$w, dpi = tsplotParams$dp)
+# #### draw plots ################################
+# setwd(dirname(sys.frame(1)$ofile))
+# dir.create(sprintf("../graph_outputs/%s", plotfolder), showWarnings = FALSE)
+# setwd(sprintf("../graph_outputs/%s", plotfolder))
+# 
+# # 8/10/16 scatter vizPerProv & vizPerPop (no relationship observed)
+# scatter <- ggplot(datSpread, aes(x = visitsPerProvider, y = visitsPerPop, group = year)) +
+#   geom_point() +
+#   theme_bw() +
+#   scale_x_continuous("visits per provider") +
+#   scale_y_continuous("visits per population") +
+#   facet_wrap(~year)
+# ggsave("visitsPerPop_visitsPerProvider_cty.png", scatter, h = tsplotParams$h, w = tsplotParams$w, dpi = tsplotParams$dp)
 
 # choropleths
 dir.create("./choro", showWarnings = FALSE)
 setwd("./choro")
-choroplots_cty_1yr(fullDat, choroParams, choroplotParams)
-choroplots_cty_1yr(fullDat, choroParams2, choroplotParams)
+# choroplots_cty_1yr(fullDat, choroParams, choroplotParams)
+# choroplots_cty_1yr(fullDat, choroParams2, choroplotParams)
 choroplots_cty_1yr(fullDat, choroParams3, choroplotParams)
 
 
