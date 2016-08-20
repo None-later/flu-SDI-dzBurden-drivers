@@ -60,8 +60,8 @@ for (span in span.list){
   # do.call(write_periodicReg_fits_ilinDt_Octfit, c(params))
   # do.call(write_fullIndic_periodicReg_ilinDt, c(params))
   # do.call(explore_periodicReg_fits_ilinDt, c(params))
-  do.call(write_relativeDiseaseBurden_ilinDt, c(params))
-  do.call(explore_dbMetricsDistribution_ilinDt, c(params))
+  # do.call(write_relativeDiseaseBurden_ilinDt, c(params))
+  # do.call(explore_dbMetricsDistribution_ilinDt, c(params))
   do.call(explore_periodicReg_inSeasonFits_ilinDt, c(params))
 }
 

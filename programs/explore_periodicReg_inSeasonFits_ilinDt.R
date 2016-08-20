@@ -57,7 +57,7 @@ explore_periodicReg_inSeasonFits_ilinDt <- function(span.var, degree.var, spatia
   zip3list2 <- data5 %>% select(scale) %>% distinct(scale) %>% arrange(scale) %>% mutate(for.plot = seq_along(1:nrow(.)))
   data_plot2 <- right_join(data5, zip3list2, by="scale")
   indexes2 <- seq(1, max(data_plot2 %>% select(for.plot)), by=num)
-  
+
   for(i in indexes2){
     dummyplots <- ggplot(data_plot2 %>% filter(for.plot>= i & for.plot < i+num), aes(x=week, y=ilin.dt, group=scale)) +
       theme(axis.text=element_text(size=12), axis.title=element_text(size=14,face="bold")) +
