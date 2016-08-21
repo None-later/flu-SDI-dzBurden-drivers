@@ -30,8 +30,8 @@ require(RColorBrewer); require(ggplot2) # export_inlaData_st dependencies
 
 #### set these! ################################
 dbCodeStr <- "_ilinDt_Octfit_span0.4_degree2"
-modCodeStr <- "6a_iliSum_v1-9"; testDataOn <- FALSE
-seasons <- 2:5 
+modCodeStr <- "6a_iliSum_v1-10"; testDataOn <- FALSE
+seasons <- 6:9 
 rdmFx_RV <- "nu"
 dig <- 4 # number of digits in the number of elements at this spatial scale (~3000 counties -> 4 digits)
 
@@ -83,13 +83,13 @@ if (testDataOn){
   modData <- model6a_iliSum_v1(path_list) # with driver & sampling effort variables
   #### Model 6a: County-level, after variable selection, one model per season, separate predictors for the 2 likelihoods ####
   formula <- Y ~ -1 + 
-    f(fips_bin, model = "iid") + 
-    f(fips_st_bin, model = "iid") + 
-    f(regionID_bin, model = "iid") + 
+    f(fips_bin, model = "iid", hyper=list(theta=list(prior="loggamma", fixed=TRUE))) + 
+    f(fips_st_bin, model = "iid", hyper=list(theta=list(prior="loggamma", fixed=TRUE))) + 
+    f(regionID_bin, model = "iid", hyper=list(theta=list(prior="loggamma", fixed=TRUE))) + 
     intercept_bin + O_imscoverage_bin + O_careseek_bin + O_insured_bin + X_poverty_bin + X_child_bin + X_adult_bin + X_hospaccess_bin + X_popdensity_bin + X_commute_bin + X_flight_bin + X_vaxcovI_bin + X_vaxcovE_bin + X_H3_bin + X_humidity_bin + 
-    f(fips_nonzero, model = "iid") + 
-    f(fips_st_nonzero, model = "iid") + 
-    f(regionID_nonzero, model = "iid") + 
+    f(fips_nonzero, model = "iid", hyper=list(theta=list(prior="loggamma", fixed=TRUE))) + 
+    f(fips_st_nonzero, model = "iid", hyper=list(theta=list(prior="loggamma", fixed=TRUE))) + 
+    f(regionID_nonzero, model = "iid", hyper=list(theta=list(prior="loggamma", fixed=TRUE))) + 
     intercept_nonzero + O_imscoverage_nonzero + O_careseek_nonzero + O_insured_nonzero + X_poverty_nonzero + X_child_nonzero + X_adult_nonzero + X_hospaccess_nonzero + X_popdensity_nonzero + X_commute_nonzero + X_flight_nonzero + X_vaxcovI_nonzero + X_vaxcovE_nonzero + X_H3_nonzero + X_humidity_nonzero + offset(logE_nonzero)
 }
 
