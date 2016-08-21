@@ -14,7 +14,7 @@ require(RColorBrewer); require(ggplot2); require(ggcounty); require(scales); req
 
 #### functions for diagnostic plots  ################################
 
-plot_countyChoro <- function(exportPath, pltDat, pltVarTxt, code){
+plot_countyChoro <- function(exportPath, pltDat, pltVarTxt, code, zeroes){
 # draw state choropleth with tiers or gradient colors and export to file
   print(match.call())
   
@@ -30,8 +30,12 @@ plot_countyChoro <- function(exportPath, pltDat, pltVarTxt, code){
     pltDat <- pltDat %>% rename_(pltVar = pltVarTxt) 
     # create natural break intervals with jenks algorithm
     intervals <- classIntervals(pltDat$pltVar[!is.na(pltDat$pltVar)], n = 5, style = "jenks")
-    # 0s have their own color
-    breaks <- c(0, intervals$brks)
+    if (zeroes){
+      # 0s have their own color
+      breaks <- sort(c(0, intervals$brks))
+    } else{
+      breaks <- c(intervals$brks)
+    }
     breaksRound <- round(breaks, 1) 
     breakLabels <- matrix(1:(length(breaksRound)-1))
     for (i in 1:length(breakLabels)){

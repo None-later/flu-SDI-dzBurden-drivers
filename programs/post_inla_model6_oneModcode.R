@@ -21,7 +21,7 @@ source("source_export_inlaDiagnostics.R") # plot_diag_scatter_hurdle function
 source("source_clean_response_functions_cty.R") # cty response functions
 
 #### set these! ################################
-modCodeStr <- "6a_iliSum_v1-8"
+modCodeStr <- "6a_iliSum_v1-11"
 seasons <- c(2:9)
 likStrings <- c("binomial", "gamma")
 
@@ -80,7 +80,7 @@ for (s in seasons){
     mod_est_ctyEffects <- mod_est %>% 
       filter(effectType == "spatial") %>%
       rename(fips = RV)
-    plot_countyChoro(path_plotExport_ctyEffects, mod_est_ctyEffects, "q_5", "gradient")
+    plot_countyChoro(path_plotExport_ctyEffects, mod_est_ctyEffects, "q_5", "gradient", FALSE)
   }
   
   #### binomial model figures ####
@@ -91,11 +91,11 @@ for (s in seasons){
     
     # choropleth: fitted values (phat_i) -> Prob(epidemic)
     path_plotExport_phat_bin <- paste0(path_plotExport, sprintf("/choro_pHat_%s_S%s.png", modCodeStr, s))
-    plot_countyChoro(path_plotExport_phat_bin, mod_bin_fitted, "mean", "gradient")
+    plot_countyChoro(path_plotExport_phat_bin, mod_bin_fitted, "mean", "gradient", FALSE)
     
     # choropleth: SD of fitted values (phat_i)
     path_plotExport_phatSD_bin <- paste0(path_plotExport, sprintf("/choro_pHatSD_%s_S%s.png", modCodeStr, s))
-    plot_countyChoro(path_plotExport_phatSD_bin, mod_bin_fitted, "sd", "gradient")
+    plot_countyChoro(path_plotExport_phatSD_bin, mod_bin_fitted, "sd", "gradient", FALSE)
   
   }
   
@@ -107,15 +107,15 @@ for (s in seasons){
     
     # choropleth: fitted values (yhat_i) - Magnitude of non-zero epidemic
     path_plotExport_yhat_gam <- paste0(path_plotExport, sprintf("/choro_yHat_%s_S%s.png", modCodeStr, s))
-    plot_countyChoro(path_plotExport_yhat_gam, mod_gam_fitted, "mean", "tier")
+    plot_countyChoro(path_plotExport_yhat_gam, mod_gam_fitted, "mean", "tier", FALSE)
     
     # choropleth: SD of fitted values (yhat_i)
     path_plotExport_yhatSD_gam <- paste0(path_plotExport, sprintf("/choro_yHatSD_%s_S%s.png", modCodeStr, s))
-    plot_countyChoro(path_plotExport_yhatSD_gam, mod_gam_fitted, "sd", "gradient")
+    plot_countyChoro(path_plotExport_yhatSD_gam, mod_gam_fitted, "sd", "gradient", FALSE)
     
     # choropleth: residuals 
     path_plotExport_resid_gam <- paste0(path_plotExport, sprintf("/choro_yResid_%s_S%s.png", modCodeStr, s))
-    plot_countyChoro(path_plotExport_resid_gam, mod_gam_fitted, "yhat_resid", "gradient")
+    plot_countyChoro(path_plotExport_resid_gam, mod_gam_fitted, "yhat_resid", "tier", TRUE)
   }
   
 }
