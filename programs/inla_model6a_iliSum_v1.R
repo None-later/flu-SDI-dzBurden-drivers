@@ -30,8 +30,8 @@ require(RColorBrewer); require(ggplot2) # export_inlaData_st dependencies
 
 #### set these! ################################
 dbCodeStr <- "_ilinDt_Octfit_span0.4_degree2"
-modCodeStr <- "6a_iliSum_v1-12"; testDataOn <- FALSE
-seasons <- 2:9 
+modCodeStr <- "6a_iliSum_v1dicExplore1"; testDataOn <- TRUE
+seasons <- 4:4 
 rdmFx_RV <- "nu"
 dig <- 4 # number of digits in the number of elements at this spatial scale (~3000 counties -> 4 digits)
 
@@ -116,17 +116,29 @@ for (s in seasons){
   modData_full <- modData %>% filter(season == s) %>% mutate(ID = seq_along(fips))
   modData_hurdle <- convert_hurdleModel_separatePredictors(modData_full)
   
+  starting <- inla(formula, 
+                   family = list("binomial", "gamma"), 
+                   data = modData_hurdle, 
+                   control.family = list(list(link="logit"),
+                                         list(link="log")), 
+                   Ntrials = 1, # binomial likelihood params
+                   control.fixed = list(mean = 0, prec = 1/100), # set prior parameters for regression coefficients
+                   control.predictor = list(compute = TRUE, link = c(rep(1, nrow(modData_full)), rep(2, nrow(modData_full)))), # compute summary statistics on fitted values, link designates that NA responses are calculated according to the first likelihood for the first (nrow(modData_full)) rows & the second likelihood for the second (nrow(modData_full)) rows
+                   control.compute = list(dic = TRUE, cpo = TRUE),
+                   control.inla = list(correct = TRUE, correct.factor = 10, diagonal = 100, strategy = "gaussian", int.strategy = "eb"), # http://www.r-inla.org/events/newfeaturesinr-inlaapril2015; http://www.r-inla.org/?place=msg%2Fr-inla-discussion-group%2Fuf2ZGh4jmWc%2FA0rdPE5W7uMJ
+                   verbose = TRUE) 
+  
   mod <- inla(formula, 
               family = list("binomial", "gamma"), 
               data = modData_hurdle, 
               control.family = list(list(link="logit"),
-                                    list(link="log",
-                                         hyper=list(theta=list(fixed=TRUE)))), 
+                                    list(link="log")), 
               Ntrials = 1, # binomial likelihood params
               control.fixed = list(mean = 0, prec = 1/100), # set prior parameters for regression coefficients
               control.predictor = list(compute = TRUE, link = c(rep(1, nrow(modData_full)), rep(2, nrow(modData_full)))), # compute summary statistics on fitted values, link designates that NA responses are calculated according to the first likelihood for the first (nrow(modData_full)) rows & the second likelihood for the second (nrow(modData_full)) rows
               control.compute = list(dic = TRUE, cpo = TRUE),
-              control.inla = list(correct = TRUE, correct.factor = 10), # http://www.r-inla.org/events/newfeaturesinr-inlaapril2015
+              control.inla = list(correct = TRUE, correct.factor = 10, tolerance=1E-6), # http://www.r-inla.org/events/newfeaturesinr-inlaapril2015
+              control.mode = list(result = starting, restart = TRUE), # http://www.r-inla.org/?place=msg%2Fr-inla-discussion-group%2Fuf2ZGh4jmWc%2FA0rdPE5W7uMJ
               verbose = TRUE) 
 
   
