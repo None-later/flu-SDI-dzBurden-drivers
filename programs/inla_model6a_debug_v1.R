@@ -20,9 +20,9 @@ require(RColorBrewer); require(ggplot2) # export_inlaData_st dependencies
 
 
 #### set these! ################################
-stabbr <- "TX"
+stabbr <- "WV"
 dbCodeStr <- "_ilinDt_Octfit_span0.4_degree2"
-testDataOn <- 1
+testDataOn <- 2
 modCodeStr <- sprintf("6a_debug_v%s-1_%s", testDataOn, stabbr)
 seasons <- 2:9 
 rdmFx_RV <- "nu"
