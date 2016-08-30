@@ -31,7 +31,7 @@ require(RColorBrewer); require(ggplot2) # export_inlaData_st dependencies
 #### set these! ################################
 dbCodeStr <- "_ilinDt_Octfit_span0.4_degree2"
 modCodeStr <- "6a_iliSum_v1dicExplore1"; testDataOn <- TRUE
-seasons <- 4:4 
+seasons <- 3:3 
 rdmFx_RV <- "nu"
 dig <- 4 # number of digits in the number of elements at this spatial scale (~3000 counties -> 4 digits)
 
@@ -116,30 +116,30 @@ for (s in seasons){
   modData_full <- modData %>% filter(season == s) %>% mutate(ID = seq_along(fips))
   modData_hurdle <- convert_hurdleModel_separatePredictors(modData_full)
   
-  starting1 <- inla(formula, 
-                   family = list("binomial", "gamma"), 
-                   data = modData_hurdle, 
-                   control.family = list(list(link="logit"),
-                                         list(link="log")), 
-                   Ntrials = 1, # binomial likelihood params
-                   control.fixed = list(mean = 0, prec = 1/100), # set prior parameters for regression coefficients
-                   control.predictor = list(compute = TRUE, link = c(rep(1, nrow(modData_full)), rep(2, nrow(modData_full)))), # compute summary statistics on fitted values, link designates that NA responses are calculated according to the first likelihood for the first (nrow(modData_full)) rows & the second likelihood for the second (nrow(modData_full)) rows
-                   control.compute = list(dic = TRUE, cpo = TRUE),
-                   control.inla = list(correct = TRUE, correct.factor = 10, diagonal = 1000, strategy = "gaussian", int.strategy = "eb"), # http://www.r-inla.org/events/newfeaturesinr-inlaapril2015; http://www.r-inla.org/?place=msg%2Fr-inla-discussion-group%2Fuf2ZGh4jmWc%2FA0rdPE5W7uMJ
-                   verbose = TRUE)
+#   starting1 <- inla(formula, 
+#                    family = list("binomial", "gamma"), 
+#                    data = modData_hurdle, 
+#                    control.family = list(list(link="logit"),
+#                                          list(link="log")), 
+#                    Ntrials = 1, # binomial likelihood params
+#                    control.fixed = list(mean = 0, prec = 1/100), # set prior parameters for regression coefficients
+#                    control.predictor = list(compute = TRUE, link = c(rep(1, nrow(modData_full)), rep(2, nrow(modData_full)))), # compute summary statistics on fitted values, link designates that NA responses are calculated according to the first likelihood for the first (nrow(modData_full)) rows & the second likelihood for the second (nrow(modData_full)) rows
+#                    control.compute = list(dic = TRUE, cpo = TRUE),
+#                    control.inla = list(correct = TRUE, correct.factor = 10, diagonal = 1000, strategy = "gaussian", int.strategy = "eb"), # http://www.r-inla.org/events/newfeaturesinr-inlaapril2015; http://www.r-inla.org/?place=msg%2Fr-inla-discussion-group%2Fuf2ZGh4jmWc%2FA0rdPE5W7uMJ
+#                    verbose = TRUE)
   
-  starting2 <- inla(formula, 
-                    family = list("binomial", "gamma"), 
-                    data = modData_hurdle, 
-                    control.family = list(list(link="logit"),
-                                          list(link="log")), 
-                    Ntrials = 1, # binomial likelihood params
-                    control.fixed = list(mean = 0, prec = 1/100), # set prior parameters for regression coefficients
-                    control.predictor = list(compute = TRUE, link = c(rep(1, nrow(modData_full)), rep(2, nrow(modData_full)))), # compute summary statistics on fitted values, link designates that NA responses are calculated according to the first likelihood for the first (nrow(modData_full)) rows & the second likelihood for the second (nrow(modData_full)) rows
-                    control.compute = list(dic = TRUE, cpo = TRUE),
-                    control.inla = list(correct = TRUE, correct.factor = 10, diagonal = 100, strategy = "gaussian", int.strategy = "eb"), # http://www.r-inla.org/events/newfeaturesinr-inlaapril2015; http://www.r-inla.org/?place=msg%2Fr-inla-discussion-group%2Fuf2ZGh4jmWc%2FA0rdPE5W7uMJ
-                    control.mode = list(result = starting1, restart = TRUE),
-                    verbose = TRUE) 
+#   starting2 <- inla(formula, 
+#                     family = list("binomial", "gamma"), 
+#                     data = modData_hurdle, 
+#                     control.family = list(list(link="logit"),
+#                                           list(link="log")), 
+#                     Ntrials = 1, # binomial likelihood params
+#                     control.fixed = list(mean = 0, prec = 1/100), # set prior parameters for regression coefficients
+#                     control.predictor = list(compute = TRUE, link = c(rep(1, nrow(modData_full)), rep(2, nrow(modData_full)))), # compute summary statistics on fitted values, link designates that NA responses are calculated according to the first likelihood for the first (nrow(modData_full)) rows & the second likelihood for the second (nrow(modData_full)) rows
+#                     control.compute = list(dic = TRUE, cpo = TRUE),
+#                     control.inla = list(correct = TRUE, correct.factor = 10, diagonal = 100, strategy = "gaussian", int.strategy = "eb"), # http://www.r-inla.org/events/newfeaturesinr-inlaapril2015; http://www.r-inla.org/?place=msg%2Fr-inla-discussion-group%2Fuf2ZGh4jmWc%2FA0rdPE5W7uMJ
+#                     # control.mode = list(result = starting1, restart = TRUE),
+#                     verbose = TRUE) 
   
   mod <- inla(formula, 
               family = list("binomial", "gamma"), 
@@ -150,9 +150,10 @@ for (s in seasons){
               control.fixed = list(mean = 0, prec = 1/100), # set prior parameters for regression coefficients
               control.predictor = list(compute = TRUE, link = c(rep(1, nrow(modData_full)), rep(2, nrow(modData_full)))), # compute summary statistics on fitted values, link designates that NA responses are calculated according to the first likelihood for the first (nrow(modData_full)) rows & the second likelihood for the second (nrow(modData_full)) rows
               control.compute = list(dic = TRUE, cpo = TRUE),
-              control.inla = list(correct = TRUE, correct.factor = 10), # http://www.r-inla.org/events/newfeaturesinr-inlaapril2015
-              control.mode = list(result = starting2, restart = TRUE), # http://www.r-inla.org/?place=msg%2Fr-inla-discussion-group%2Fuf2ZGh4jmWc%2FA0rdPE5W7uMJ
-              verbose = TRUE) 
+              control.inla = list(correct = TRUE, correct.factor = 10, tolerance = 1e-6), # http://www.r-inla.org/events/newfeaturesinr-inlaapril2015
+              # control.mode = list(result = starting2, restart = TRUE), # http://www.r-inla.org/?place=msg%2Fr-inla-discussion-group%2Fuf2ZGh4jmWc%2FA0rdPE5W7uMJ
+              verbose = TRUE, 
+              keep = TRUE, debug = TRUE) 
 
   
   #### model summary outputs ################################
@@ -196,26 +197,26 @@ for (s in seasons){
   mod_gam_fitted <- export_summaryStats_fitted_hurdle(path_csvExport_fittedGamma, dummy_gam, modData_full, modCodeStr, dbCodeStr, s)
 
 
-  #### Diagnostic plots ################################
-  
-  #### binomial likelihood figures ####
-  # marginal posteriors: first 6 random effects (nu or phi)
-  path_plotExport_rdmFxSample_bin <- paste0(path_plotExport, sprintf("/inla_%s_%s1-6_marg_binomial_S%s.png", modCodeStr, rdmFx_RV, s))
-  plot_rdmFx_marginalsSample(path_plotExport_rdmFxSample_bin, mod$marginals.random$fips_bin, rdmFx_RV)
-  
-  #### gamma likelihood figures ####
-  # marginal posteriors: first 6 random effects (nu or phi)
-  path_plotExport_rdmFxSample_nonzero <- paste0(path_plotExport, sprintf("/inla_%s_%s1-6_marg_gamma_S%s.png", modCodeStr, rdmFx_RV, s))
-  plot_rdmFx_marginalsSample(path_plotExport_rdmFxSample_nonzero, mod$marginals.random$fips_nonzero, rdmFx_RV)
-  
-  #### figures (agnostic to likelihood) ####
-  # marginal posteriors: fixed effects
-  path_plotExport_fixedFxMarginals <- paste0(path_plotExport)
-  plot_fixedFx_marginals(path_plotExport_fixedFxMarginals, mod$marginals.fixed, modCodeStr, s)
-  
-  # choropleth: observations (y_i)  
-  path_plotExport_obsY <- paste0(path_plotExport, sprintf("/choro_obsY_%s_S%s.png", modCodeStr, s))
-  plot_countyChoro(path_plotExport_obsY, modData_full, "y", "tier", TRUE)
+#   #### Diagnostic plots ################################
+#   
+#   #### binomial likelihood figures ####
+#   # marginal posteriors: first 6 random effects (nu or phi)
+#   path_plotExport_rdmFxSample_bin <- paste0(path_plotExport, sprintf("/inla_%s_%s1-6_marg_binomial_S%s.png", modCodeStr, rdmFx_RV, s))
+#   plot_rdmFx_marginalsSample(path_plotExport_rdmFxSample_bin, mod$marginals.random$fips_bin, rdmFx_RV)
+#   
+#   #### gamma likelihood figures ####
+#   # marginal posteriors: first 6 random effects (nu or phi)
+#   path_plotExport_rdmFxSample_nonzero <- paste0(path_plotExport, sprintf("/inla_%s_%s1-6_marg_gamma_S%s.png", modCodeStr, rdmFx_RV, s))
+#   plot_rdmFx_marginalsSample(path_plotExport_rdmFxSample_nonzero, mod$marginals.random$fips_nonzero, rdmFx_RV)
+#   
+#   #### figures (agnostic to likelihood) ####
+#   # marginal posteriors: fixed effects
+#   path_plotExport_fixedFxMarginals <- paste0(path_plotExport)
+#   plot_fixedFx_marginals(path_plotExport_fixedFxMarginals, mod$marginals.fixed, modCodeStr, s)
+#   
+#   # choropleth: observations (y_i)  
+#   path_plotExport_obsY <- paste0(path_plotExport, sprintf("/choro_obsY_%s_S%s.png", modCodeStr, s))
+#   plot_countyChoro(path_plotExport_obsY, modData_full, "y", "tier", TRUE)
   
 
 }
