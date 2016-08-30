@@ -5,6 +5,7 @@
 ## Filenames: reference_data/USstate_shapefiles/gz_2010_us_040_00_500k
 ## Data Source: shapefile from US Census 2010 - https://www.census.gov/geo/maps-data/data/cbf/cbf_state.html
 ## Notes: 
+## 8/30/16: move testing module to source_prepare_testing_inlaData_cty.R
 ## 
 ## useful commands:
 ## install.packages("pkg", dependencies=TRUE, lib="/usr/local/lib/R/site-library") # in sudo R
@@ -28,7 +29,7 @@ testing_module <- function(filepathList){
   # list of continental states
   statesOnly <- read_csv(filepathList$path_abbr_st, col_types = "__c", col_names = c("stateID"), skip = 1) 
   continentalOnly <- statesOnly %>% filter(!(stateID %in% c("02", "15"))) %>% unlist
- 
+  
   #### join data ####
   dummy_df <- full_join(mod_cty_df, imsCov_cty_df, by = c("year", "fips"))
   dummy_df2 <- full_join(dummy_df, saipePov_cty_df, by = c("year", "fips")) %>%
@@ -41,7 +42,6 @@ testing_module <- function(filepathList){
     mutate(O_imscoverage = centerStandardize(adjProviderCoverage)) %>%
     mutate(O_careseek = centerStandardize(visitsPerPop)) %>%
     mutate(X_poverty = centerStandardize(poverty)) %>%
-    mutate(X_H3 = centerStandardize(H3)) %>%
     ungroup %>%
     filter(fips_st %in% continentalOnly) %>% # include data for continental states only
     select(-stateID, -adjProviderCoverage, -visitsPerProvider, -visitsPerPop, -poverty, -H3) %>%

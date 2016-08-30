@@ -81,12 +81,12 @@ export_summaryStats_hurdle_wHyperpar <- function(exportPath, modelOutput, rdmFxT
   names(modelOutput$summary.hyperpar) <- names(modelOutput$summary.fixed)[1:6] # 8/17/16 add hyperpar export
   # random effects for binomial model #
   names(modelOutput$summary.random$fips_bin) <- c("ID", names(modelOutput$summary.fixed))
-  names(modelOutput$summary.random$fips_st_bin) <- names(modelOutput$summary.random$fips_bin)
-  names(modelOutput$summary.random$regionID_bin) <- names(modelOutput$summary.random$fips_bin)
+  names(modelOutput$summary.random$fips_st_bin) <- c("ID", names(modelOutput$summary.fixed))
+  names(modelOutput$summary.random$regionID_bin) <- c("ID", names(modelOutput$summary.fixed))
   # random effects for nonzero model (gamma) #
   names(modelOutput$summary.random$fips_nonzero) <- c("ID", names(modelOutput$summary.fixed))
-  names(modelOutput$summary.random$fips_st_nonzero) <- names(modelOutput$summary.random$fips_nonzero)
-  names(modelOutput$summary.random$regionID_nonzero) <- names(modelOutput$summary.random$fips_nonzero)
+  names(modelOutput$summary.random$fips_st_nonzero) <- c("ID", names(modelOutput$summary.fixed))
+  names(modelOutput$summary.random$regionID_nonzero) <- c("ID", names(modelOutput$summary.fixed))
   
   # clean fixed effects summary statistics output from INLA
   summaryFixed <- tbl_df(modelOutput$summary.fixed) %>%
