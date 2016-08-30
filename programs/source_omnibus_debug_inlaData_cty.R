@@ -87,6 +87,60 @@ debug_module2 <- function(filepathList){
 }
 ################################
 
+debug_module3 <- function(filepathList){
+  # iliSum response, all sampling effort, and driver variables
+  # y = response, E = expected response
+  print(match.call())
+  print(filepathList)
+  
+  #### import data ####
+  mod_cty_df <- cleanR_iliSum_cty(filepathList)
+  imsCov_cty_df <- cleanO_imsCoverage_cty()
+  sahieIns_cty_df <- cleanO_sahieInsured_cty()
+  saipePov_cty_df <- cleanX_saipePoverty_cty()
+  censusChPop_cty_df <- cleanX_censusChildPop_cty()  
+  cdcH3_df <- cleanX_cdcFluview_H3_region()
+  censusAdPop_cty_df <- cleanX_censusAdultPop_cty()
+  ahrfHosp_cty_df <- cleanX_ahrfHospitals_cty()
+  popDens_cty_df <- cleanX_popDensity_cty()
+  
+  # list of continental states
+  statesOnly <- read_csv(filepathList$path_abbr_st, col_types = "__c", col_names = c("stateID"), skip = 1) 
+  continentalOnly <- statesOnly %>% filter(!(stateID %in% c("02", "15"))) %>% unlist
+  
+  #### join data ####
+  dummy_df <- full_join(mod_cty_df, imsCov_cty_df, by = c("year", "fips"))
+  dummy_df2 <- full_join(dummy_df, sahieIns_cty_df, by = c("year", "fips")) %>%
+    full_join(saipePov_cty_df, by = c("year", "fips")) %>%
+    full_join(censusChPop_cty_df, by = c("year", "fips")) %>%
+    full_join(censusAdPop_cty_df, by = c("year", "fips")) %>%
+    full_join(ahrfHosp_cty_df, by = c("year", "fips")) %>%
+    full_join(popDens_cty_df, by = c("year", "fips")) %>%
+    mutate(fips_st = substring(fips, 1, 2)) %>% # region is linked by state fips code
+    full_join(cdcH3_df, by = c("season", "fips_st" = "fips")) %>%
+    rename(regionID = region)
+  
+  full_df <- dummy_df2 %>%
+    group_by(season) %>%
+    mutate(O_imscoverage = centerStandardize(adjProviderCoverage)) %>%
+    mutate(O_careseek = centerStandardize(visitsPerPop)) %>%
+    mutate(O_insured = centerStandardize(insured)) %>%
+    mutate(X_poverty = centerStandardize(poverty)) %>%
+    mutate(X_child = centerStandardize(child)) %>%
+    mutate(X_adult = centerStandardize(adult)) %>%
+    mutate(X_hospaccess = centerStandardize(hospitalAccess)) %>% 
+    mutate(X_popdensity = centerStandardize(popDensity)) %>%
+    ungroup %>%
+    filter(fips_st %in% continentalOnly) %>% # include data for continental states only
+    select(-stateID, -adjProviderCoverage, -visitsPerProvider, -visitsPerPop, -insured, -poverty, -child, -adult, -hospitalAccess, -popDensity, -H3) %>%
+    filter(season %in% 2:9) %>%
+    mutate(logE = log(E))
+  
+  return(full_df)
+}
+
+################################
+
 debug_export_summaryStats_hurdle_wHyperpar <- function(exportPath, modelOutput, rdmFxTxt, modCodeString, dbCodeString, season){
   # export summary statistics of INLA model output for hurdle model variables -- fixed and random effects in the same file
   print(match.call())

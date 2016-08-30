@@ -20,9 +20,9 @@ require(RColorBrewer); require(ggplot2) # export_inlaData_st dependencies
 
 
 #### set these! ################################
-stabbr <- "WV"
+stabbr <- "SC"
 dbCodeStr <- "_ilinDt_Octfit_span0.4_degree2"
-testDataOn <- 2
+testDataOn <- 3
 modCodeStr <- sprintf("6a_debug_v%s-1_%s", testDataOn, stabbr)
 seasons <- 2:9 
 rdmFx_RV <- "nu"
@@ -62,19 +62,24 @@ path_list <- list(path_abbr_st = path_abbr_st,
 #### test data module ####
 if (testDataOn == 1){
   modData <- debug_module1(path_list) # with driver & sampling effort variables
-  # testing module formula
   formula <- Y ~ -1 + 
     intercept_bin +  O_imscoverage_bin + O_careseek_bin + 
     intercept_nonzero + O_imscoverage_nonzero + O_careseek_nonzero + offset(logE_nonzero)
 } else if (testDataOn == 2){
-  modData <- debug_module2(path_list) # with driver & sampling effort variables
-  # testing module formula
+  modData <- debug_module2(path_list) 
   formula <- Y ~ -1 + 
     f(fips_bin, model = "iid") + 
     intercept_bin +  O_imscoverage_bin + O_careseek_bin + 
     f(fips_nonzero, model = "iid") + 
     intercept_nonzero + O_imscoverage_nonzero + O_careseek_nonzero + offset(logE_nonzero)
-} 
+} else if (testDataOn == 3){
+  modData <- debug_module3(path_list)
+  formula <- Y ~ -1 + 
+    f(fips_bin, model = "iid") + 
+    intercept_bin +  O_imscoverage_bin + O_careseek_bin + O_insured_bin + X_poverty_bin + X_child_bin + X_adult_bin + X_hospaccess_bin + X_popdensity_bin +
+    f(fips_nonzero, model = "iid") + 
+    intercept_nonzero + O_imscoverage_nonzero + O_careseek_nonzero +  O_insured_nonzero + X_poverty_nonzero + X_child_nonzero + X_adult_nonzero + X_hospaccess_nonzero + X_popdensity_nonzero + offset(logE_nonzero)
+}
 
 #### export formatting ####
 # diagnostic plot export directories
