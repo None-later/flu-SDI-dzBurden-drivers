@@ -146,7 +146,7 @@ plot_coefDistr_season <- function(plotDat, path_plotExport_coefDistr, plotFilena
   
   # plot formatting
   w <- 8; h <- 8; dp <- 250
-  
+
   # plot fixed effects
   plotOutput <- ggplot(plotDat, aes(x = season, y = q_5, group = RV)) +
     geom_pointrange(aes(ymin = q_025, ymax = q_975)) +

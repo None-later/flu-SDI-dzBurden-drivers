@@ -32,7 +32,7 @@ importPlot_coefDistr_season_hurdle <- function(path_csvExport, path_plotExport_c
   }
   
   # separate plots for data from each likelihood
-  likelihoods <- coefDf %>% distinct(likelihood) %>% unlist
+  likelihoods <- coefDf %>% filter(!is.na(likelihood)) %>% distinct(likelihood) %>% unlist
   for (lik in likelihoods){
     coefDf_lik <- coefDf %>% filter(likelihood == lik)
     
@@ -41,19 +41,25 @@ importPlot_coefDistr_season_hurdle <- function(path_csvExport, path_plotExport_c
     plot_coefDistr_season(fxDat, path_plotExport_coefDistr, sprintf('fixed_%sLikelihood.png', lik))
     
     # plot random effects
-    sampleLs <- coefDf_lik %>% filter(effectType == 'spatial') %>% select(RV) %>% sample_n(9) %>% unlist
-    rdmDat <- coefDf_lik %>% filter(effectType == 'spatial' & RV %in% sampleLs) 
-    plot_coefDistr_season(rdmDat, path_plotExport_coefDistr, sprintf('random_%sLikelihood.png', lik))
+    if (nrow(coefDf_lik %>% filter(effectType == 'spatial')) > 0){
+      sampleLs <- coefDf_lik %>% filter(effectType == 'spatial') %>% select(RV) %>% sample_n(9) %>% unlist
+      rdmDat <- coefDf_lik %>% filter(effectType == 'spatial' & RV %in% sampleLs) 
+      plot_coefDistr_season(rdmDat, path_plotExport_coefDistr, sprintf('random_%sLikelihood.png', lik))
+    }
     
     # plot effects of state ID
-    stIds <- coefDf_lik %>% filter(effectType == 'stID') %>% distinct(RV) %>% unlist 
-    stIdDat <- coefDf_lik %>% filter(effectType == 'stID') %>% mutate(RV = factor(RV, levels = stIds))
-    plot_coefDistr_season(stIdDat, path_plotExport_coefDistr, sprintf('stateID_%sLikelihood.png', lik))
+    if (nrow(coefDf_lik %>% filter(effectType == 'stID')) > 0){
+      stIds <- coefDf_lik %>% filter(effectType == 'stID') %>% distinct(RV) %>% unlist 
+      stIdDat <- coefDf_lik %>% filter(effectType == 'stID') %>% mutate(RV = factor(RV, levels = stIds))
+      plot_coefDistr_season(stIdDat, path_plotExport_coefDistr, sprintf('stateID_%sLikelihood.png', lik))
+    }
     
     # plot effects of state ID
-    regIds <- coefDf_lik %>% filter(effectType == 'regID') %>% distinct(RV) %>% unlist 
-    regIdDat <- coefDf_lik %>% filter(effectType == 'regID') %>% mutate(RV = factor(RV, levels = regIds))
-    plot_coefDistr_season(regIdDat, path_plotExport_coefDistr, sprintf('regionID_%sLikelihood.png', lik))
+    if (nrow(coefDf_lik %>% filter(effectType == 'regID')) > 0){
+      regIds <- coefDf_lik %>% filter(effectType == 'regID') %>% distinct(RV) %>% unlist 
+      regIdDat <- coefDf_lik %>% filter(effectType == 'regID') %>% mutate(RV = factor(RV, levels = regIds))
+      plot_coefDistr_season(regIdDat, path_plotExport_coefDistr, sprintf('regionID_%sLikelihood.png', lik))
+    }
   } 
 }
 ################################
