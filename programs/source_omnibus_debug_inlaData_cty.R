@@ -14,7 +14,7 @@ require(dplyr); require(tidyr); require(maptools); require(spdep)
 
 #### functions for model data aggregation  ################################
 
-testing_module1 <- function(filepathList){
+debug_module1 <- function(filepathList){
   # iliSum response, all sampling effort, and driver variables
   # y = response, E = expected response
   print(match.call())
@@ -49,7 +49,7 @@ testing_module1 <- function(filepathList){
 }
 ################################
 
-testing_module2 <- function(filepathList){
+debug_module2 <- function(filepathList){
   # iliSum response, all sampling effort, and driver variables
   # y = response, E = expected response
   print(match.call())
@@ -87,7 +87,7 @@ testing_module2 <- function(filepathList){
 }
 ################################
 
-testing_export_summaryStats_hurdle_wHyperpar <- function(exportPath, modelOutput, rdmFxTxt, modCodeString, dbCodeString, season){
+debug_export_summaryStats_hurdle_wHyperpar <- function(exportPath, modelOutput, rdmFxTxt, modCodeString, dbCodeString, season){
   # export summary statistics of INLA model output for hurdle model variables -- fixed and random effects in the same file
   print(match.call())
   
@@ -139,7 +139,7 @@ testing_export_summaryStats_hurdle_wHyperpar <- function(exportPath, modelOutput
 }
 ################################
 
-testing_export_summaryStats_hurdle <- function(exportPath, modelOutput, rdmFxTxt, modCodeString, dbCodeString, season){
+debug_export_summaryStats_hurdle <- function(exportPath, modelOutput, rdmFxTxt, modCodeString, dbCodeString, season){
   # export summary statistics of INLA model output for hurdle model variables -- fixed and random effects in the same file
   print(match.call())
   

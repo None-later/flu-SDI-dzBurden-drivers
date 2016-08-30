@@ -6,7 +6,6 @@
 ## Filenames: physicianCoverage_IMSHealth_state.csv, dbMetrics_periodicReg_ilinDt_Octfit_span0.4_degree2_analyzeDB_st.csv
 ## Data Source: IMS Health
 ## Notes: 
-## 8/30/16: testing module moved to source_prepare_testing_inlaData_cty.R
 ## 
 ## useful commands:
 ## install.packages("pkg", dependencies=TRUE, lib="/usr/local/lib/R/site-library") # in sudo R
@@ -62,13 +61,13 @@ path_list <- list(path_abbr_st = path_abbr_st,
 #### MAIN #################################
 #### test data module ####
 if (testDataOn == 1){
-  modData <- testing_module1(path_list) # with driver & sampling effort variables
+  modData <- debug_module1(path_list) # with driver & sampling effort variables
   # testing module formula
   formula <- Y ~ -1 + 
     intercept_bin +  O_imscoverage_bin + O_careseek_bin + 
     intercept_nonzero + O_imscoverage_nonzero + O_careseek_nonzero + offset(logE_nonzero)
 } else if (testDataOn == 2){
-  modData <- testing_module2(path_list) # with driver & sampling effort variables
+  modData <- debug_module2(path_list) # with driver & sampling effort variables
   # testing module formula
   formula <- Y ~ -1 + 
     f(fips_bin, model = "iid") + 
@@ -163,9 +162,9 @@ for (s in seasons){
   path_csvExport_summaryStats <- paste0(path_csvExport, sprintf("/summaryStats_%s_S%s.csv", modCodeStr, s))
   # write all summary statistics to file # 8/17/16 control flow to export summary statistics of hyperparameters
   if (is.null(mod$summary.hyperpar)){
-    testing_export_summaryStats_hurdle(path_csvExport_summaryStats, mod, rdmFx_RV, modCodeStr, dbCodeStr, s) # assuming fixed, spatial, state ID, and region ID exist
+    debug_export_summaryStats_hurdle(path_csvExport_summaryStats, mod, rdmFx_RV, modCodeStr, dbCodeStr, s) # assuming fixed, spatial, state ID, and region ID exist
   } else{
-    testing_export_summaryStats_hurdle_wHyperpar(path_csvExport_summaryStats, mod, rdmFx_RV, modCodeStr, dbCodeStr, s) # assuming hyperpar, fixed, spatial, state ID, and region ID exist
+    debug_export_summaryStats_hurdle_wHyperpar(path_csvExport_summaryStats, mod, rdmFx_RV, modCodeStr, dbCodeStr, s) # assuming hyperpar, fixed, spatial, state ID, and region ID exist
   }
   
   #### process fitted values for each model ################################
