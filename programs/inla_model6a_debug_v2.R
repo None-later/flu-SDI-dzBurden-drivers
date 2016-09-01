@@ -1,8 +1,8 @@
 
 ## Name: Elizabeth Lee
-## Date: 8/30/16/16
+## Date: 8/31/16
 ## Function: Model 6a, covariate & sampling effort hurdle model 
-## forked from v1-1, model by season, debug INLA issues by implementing models by state
+## forked from v1-1, model by season, debug INLA issues by implementing models by region
 ## Filenames: physicianCoverage_IMSHealth_state.csv, dbMetrics_periodicReg_ilinDt_Octfit_span0.4_degree2_analyzeDB_st.csv
 ## Data Source: IMS Health
 ## Notes: 
@@ -20,10 +20,10 @@ require(RColorBrewer); require(ggplot2) # export_inlaData_st dependencies
 
 
 #### set these! ################################
-stabbr <- "WV"
+regnum <- 1
 dbCodeStr <- "_ilinDt_Octfit_span0.4_degree2"
 testDataOn <- 4
-modCodeStr <- sprintf("6a_debug_v%s-1_%s", testDataOn, stabbr)
+modCodeStr <- sprintf("6a_debug_v%s-1_R%s", testDataOn, regnum)
 seasons <- 2:9 
 rdmFx_RV <- "nu"
 dig <- 4 # number of digits in the number of elements at this spatial scale (~3000 counties -> 4 digits)
@@ -86,6 +86,13 @@ if (testDataOn == 1){
     intercept_bin +  O_imscoverage_bin + O_careseek_bin + O_insured_bin + X_poverty_bin + X_child_bin + X_adult_bin + X_hospaccess_bin + X_popdensity_bin + X_commute_bin + X_flight_bin + X_humidity_bin +
     f(fips_nonzero, model = "iid") + 
     intercept_nonzero + O_imscoverage_nonzero + O_careseek_nonzero +  O_insured_nonzero + X_poverty_nonzero + X_child_nonzero + X_adult_nonzero + X_hospaccess_nonzero + X_popdensity_nonzero + X_commute_nonzero + X_flight_nonzero + X_humidity_nonzero + offset(logE_nonzero)
+} else if (testDataOn == 5){
+  modData <- debug_module2(path_list) 
+  formula <- Y ~ -1 + 
+    f(fips_bin, model = "iid") + f(fips_st_bin, model = "iid") +
+    intercept_bin +  O_imscoverage_bin + O_careseek_bin + 
+    f(fips_nonzero, model = "iid") + f(fips_st_nonzero, model = "iid") +
+    intercept_nonzero + O_imscoverage_nonzero + O_careseek_nonzero + offset(logE_nonzero)
 }
 
 
@@ -109,7 +116,7 @@ path_csvExport <- getwd()
 
 #### run models by season ################################
 for (s in seasons){
-  modData_full <- modData %>% filter(season == s & st == stabbr) %>% mutate(ID = seq_along(fips))
+  modData_full <- modData %>% filter(season == s & regionID == regnum) %>% mutate(ID = seq_along(fips))
   modData_hurdle <- convert_hurdleModel_separatePredictors(modData_full)
   
   starting1 <- inla(formula, 
