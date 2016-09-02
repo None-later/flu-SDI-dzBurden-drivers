@@ -22,7 +22,7 @@ require(RColorBrewer); require(ggplot2) # export_inlaData_st dependencies
 #### set these! ################################
 regnum <- c(4,5,6,7,8,9)
 dbCodeStr <- "_ilinDt_Octfit_span0.4_degree2"
-testDataOn <- 6
+testDataOn <- 8
 modCodeStr <- sprintf("6a_debug_v%s-1_R%s", testDataOn, paste(regnum, collapse = ""))
 seasons <- 2:9 
 rdmFx_RV <- "nu"
