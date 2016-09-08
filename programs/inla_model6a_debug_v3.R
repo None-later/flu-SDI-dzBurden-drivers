@@ -5,7 +5,7 @@
 ## forked from v1-1, model by season, debug INLA issues by implementing models for multiple regions
 ## Filenames: physicianCoverage_IMSHealth_state.csv, dbMetrics_periodicReg_ilinDt_Octfit_span0.4_degree2_analyzeDB_st.csv
 ## Data Source: IMS Health
-## Notes: 
+## Notes: V3: multi-region outputs
 ## 
 ## useful commands:
 ## install.packages("pkg", dependencies=TRUE, lib="/usr/local/lib/R/site-library") # in sudo R
@@ -20,9 +20,9 @@ require(RColorBrewer); require(ggplot2) # export_inlaData_st dependencies
 
 
 #### set these! ################################
-regnum <- c(4,5,6,7,8,9)
+regnum <- c(1,2,3,4,5,6,7,8,9,10)
 dbCodeStr <- "_ilinDt_Octfit_span0.4_degree2"
-testDataOn <- 8
+testDataOn <- 10
 modCodeStr <- sprintf("6a_debug_v%s-1_R%s", testDataOn, paste(regnum, collapse = ""))
 seasons <- 2:9 
 rdmFx_RV <- "nu"
@@ -114,6 +114,19 @@ if (testDataOn == 1){
     intercept_bin +  O_imscoverage_bin + O_careseek_bin + O_insured_bin + X_poverty_bin + X_child_bin + X_adult_bin + X_hospaccess_bin + X_popdensity_bin + X_commute_bin + X_flight_bin + X_humidity_bin +
     f(fips_nonzero, model = "iid") + f(fips_st_nonzero, model = "iid") + f(regionID_nonzero, model = "iid") +
     intercept_nonzero + O_imscoverage_nonzero + O_careseek_nonzero +  O_insured_nonzero + X_poverty_nonzero + X_child_nonzero + X_adult_nonzero + X_hospaccess_nonzero + X_popdensity_nonzero + X_commute_nonzero + X_flight_nonzero + X_humidity_nonzero + offset(logE_nonzero)
+} else if (testDataOn == 9){
+  modData <- debug_module5(path_list)
+  formula <- Y ~ -1 + 
+    f(fips_bin, model = "iid") + f(fips_st_bin, model = "iid") + f(regionID_bin, model = "iid") +
+    intercept_bin +  O_imscoverage_bin + O_careseek_bin + O_insured_bin + X_poverty_bin + X_child_bin + X_adult_bin + X_hospaccess_bin + X_popdensity_bin + X_commute_bin + X_flight_bin + X_vaxcovI_bin + X_vaxcovE_bin + X_humidity_bin + f(fips_nonzero, model = "iid") + f(fips_st_nonzero, model = "iid") + f(regionID_nonzero, model = "iid") +
+    intercept_nonzero + O_imscoverage_nonzero + O_careseek_nonzero +  O_insured_nonzero + X_poverty_nonzero + X_child_nonzero + X_adult_nonzero + X_hospaccess_nonzero + X_popdensity_nonzero + X_commute_nonzero + X_flight_nonzero + X_vaxcovI_nonzero + X_vaxcovE_nonzero + X_humidity_nonzero + offset(logE_nonzero)
+} else if (testDataOn == 10){
+  modData <- debug_module6(path_list)
+  formula <- Y ~ -1 + 
+    f(fips_bin, model = "iid") + f(fips_st_bin, model = "iid") + f(regionID_bin, model = "iid") +
+    intercept_bin +  O_imscoverage_bin + O_careseek_bin + O_insured_bin + X_poverty_bin + X_child_bin + X_adult_bin + X_hospaccess_bin + X_popdensity_bin + X_commute_bin + X_flight_bin + X_vaxcovI_bin + X_vaxcovE_bin + X_humidity_bin + X_H3_bin +
+    f(fips_nonzero, model = "iid") + f(fips_st_nonzero, model = "iid") + f(regionID_nonzero, model = "iid") +
+    intercept_nonzero + O_imscoverage_nonzero + O_careseek_nonzero +  O_insured_nonzero + X_poverty_nonzero + X_child_nonzero + X_adult_nonzero + X_hospaccess_nonzero + X_popdensity_nonzero + X_commute_nonzero + X_flight_nonzero + X_vaxcovI_nonzero + X_vaxcovE_nonzero + X_humidity_nonzero + X_H3_nonzero + offset(logE_nonzero)
 }
 
 
@@ -241,9 +254,9 @@ for (s in seasons){
 #   path_plotExport_fixedFxMarginals <- paste0(path_plotExport)
 #   plot_fixedFx_marginals(path_plotExport_fixedFxMarginals, mod$marginals.fixed, modCodeStr, s)
   
-  # choropleth: observations (y_i)  
-  path_plotExport_obsY <- paste0(path_plotExport, sprintf("/choro_obsY_%s_S%s.png", modCodeStr, s))
-  plot_countyChoro(path_plotExport_obsY, modData_full, "y", "tier", TRUE)
+#   # choropleth: observations (y_i)  
+#   path_plotExport_obsY <- paste0(path_plotExport, sprintf("/choro_obsY_%s_S%s.png", modCodeStr, s))
+#   plot_countyChoro(path_plotExport_obsY, modData_full, "y", "tier", TRUE)
 
 }
 

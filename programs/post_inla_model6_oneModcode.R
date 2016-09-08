@@ -21,7 +21,7 @@ source("source_export_inlaDiagnostics.R") # plot_diag_scatter_hurdle function
 source("source_clean_response_functions_cty.R") # cty response functions
 
 #### set these! ################################
-modCodeStr <- "6a_debug_v8-1_R456789"
+modCodeStr <- "6a_debug_v10-1_R12345678910"
 seasons <- c(2:9)
 likStrings <- c("binomial", "gamma")
 
