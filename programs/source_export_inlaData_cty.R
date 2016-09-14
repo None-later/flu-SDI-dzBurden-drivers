@@ -32,7 +32,12 @@ plot_countyChoro <- function(exportPath, pltDat, pltVarTxt, code, zeroes){
     intervals <- classIntervals(pltDat$pltVar[!is.na(pltDat$pltVar)], n = 5, style = "jenks")
     if (zeroes){
       # 0s have their own color
-      breaks <- sort(c(0, intervals$brks))
+      if (0 %in% intervals$brks){
+        breakList <- intervals$brks
+      } else {
+        breakList <- c(0, intervals$brks)
+      }
+      breaks <- sort(c(0, breakList))
     } else{
       breaks <- c(intervals$brks)
     }

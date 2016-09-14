@@ -57,19 +57,11 @@ plot_diag_scatter_hurdle <- function(path_csvExport, path_plotExport_predVsObs, 
   w <- 8; h <- 8; dp <- 250
   
   # scatterplot: predicted vs observed with errorbars
-  if (errorbar){
-    plotOutput <- ggplot(plotDat2, aes(x = xVar, y = pltVar, group = facetlabel)) +
-      geom_pointrange(aes(ymin = q_025, ymax = q_975)) +
-      facet_wrap(~facetlabel, scales = "free") +
-      scale_y_continuous(paste(yaxisVariable, "(95%CI)")) + # 8/17/16: rm limits; 8/16/16: added limits
-      xlab(xaxisVariable) 
-  } else{
-    plotOutput <- ggplot(plotDat2, aes(x = xVar, y = pltVar, group = facetlabel)) +
-      geom_point() +
-      facet_wrap(~facetlabel, scales = "free") +
-      ylab(yaxisVariable) +
-      xlab(xaxisVariable)
-  }
+  plotOutput <- ggplot(plotDat2, aes(x = xVar, y = pltVar, group = facetlabel)) +
+    geom_point() +
+    facet_wrap(~facetlabel, scales = "free") +
+    ylab(yaxisVariable) +
+    xlab(xaxisVariable)
   
   ggsave(path_plotExport_predVsObs, plotOutput, height = h, width = w, dpi = dp)
   

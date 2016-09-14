@@ -1,20 +1,10 @@
 
 ## Name: Elizabeth Lee
-## Date: 7/8/16
-## Function: Model 6a, v1-1 covariate & sampling effort hurdle model -- after variable selection
-## v1-1: One model per season, see variables selected in 'Drivers' spreadsheet
+## Date: 9/14/16
+## Function: Model 6b, iliPeak
 ## Filenames: physicianCoverage_IMSHealth_state.csv, dbMetrics_periodicReg_ilinDt_Octfit_span0.4_degree2_analyzeDB_st.csv
 ## Data Source: IMS Health
-## Notes: need to SSH into snow server
-## v1testing1 hurdle with sharedPredictors, no intercept
-## v1testing2 hurdle with separatePredictors, no intercept
-## v1testing3 hurdle w/separatePredictors, intercept
-## v1testing4 phat = prob(epidemic)
-## v1testing5 zip3->county before data processing (new db calculation)
-## v1-1 sharedPredictors
-## v1-2 separatePredictors
-## v1-3 corrected organization for separatePredictors
-## v1-4 newly implemented diagnostics, phat = prob(epidemic)
+## Notes: 
 ## 
 ## useful commands:
 ## install.packages("pkg", dependencies=TRUE, lib="/usr/local/lib/R/site-library") # in sudo R
@@ -30,8 +20,8 @@ require(RColorBrewer); require(ggplot2) # export_inlaData_st dependencies
 
 #### set these! ################################
 dbCodeStr <- "_ilinDt_Octfit_span0.4_degree2"
-modCodeStr <- "6a_iliSum_v1-13"; testDataOn <- FALSE
-seasons <- 5:9 
+modCodeStr <- "6b_iliPeak_v1-1"; testDataOn <- FALSE
+seasons <- 2:9 
 rdmFx_RV <- "nu"
 dig <- 4 # number of digits in the number of elements at this spatial scale (~3000 counties -> 4 digits)
 
@@ -65,7 +55,7 @@ path_list <- list(path_abbr_st = path_abbr_st,
 
 
 #### MAIN #################################
-#### test data module ####
+#### test data module (implemented only for iliSum) ####
 if (testDataOn){
   modData <- testing_module(path_list) # with driver & sampling effort variables
   # testing module formula
@@ -80,8 +70,8 @@ if (testDataOn){
     intercept_nonzero + O_imscoverage_nonzero + O_careseek_nonzero + X_poverty_nonzero + X_H3_nonzero + offset(logE_nonzero)
 } else{
 #### Import and process data ####
-  modData <- model6a_iliSum_v1(path_list) # with driver & sampling effort variables
-  #### Model 6a: County-level, after variable selection, one model per season, separate predictors for the 2 likelihoods ####
+  modData <- model6b_iliPeak_v1(path_list) # with driver & sampling effort variables
+  #### Model 6b: County-level, after variable selection, one model per season, separate predictors for the 2 likelihoods ####
   # , hyper=list(theta=list(prior="loggamma", fixed=TRUE))
   formula <- Y ~ -1 + 
     f(fips_bin, model = "iid") + 
