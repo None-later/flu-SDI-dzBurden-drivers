@@ -38,7 +38,8 @@ plot_diag_scatter_hurdle <- function(path_csvExport, path_plotExport_predVsObs, 
   # calculate yhat residuals for gamma model only
   if (likelihoodString == "gamma"){
     plotDat <- plotDat %>%
-      mutate(yhat_resid = (y-mean)/sd)
+      mutate(yhat_resid = (y-mean)/sd) %>%
+      mutate(yhat_rawresid = (y-mean))
   }
 
   # calculate spearman's rho correlations

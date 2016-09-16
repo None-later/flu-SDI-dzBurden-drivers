@@ -195,27 +195,23 @@ export_ids <- function(exportPath, modDataFullOutput){
 }
 ################################
 
-export_summaryStats_fitted <- function(exportPath, modelOutput, residualsDf, modCodeString, dbCodeString, season, digits){
+export_summaryStats_fitted <- function(exportPath, modelOutput, modDataFullOutput, modCodeString, dbCodeString, season){
   # export summary statistics of INLA fitted values
   print(match.call())
   
   # variable name output from INLA
-  names(modelOutput$summary.fitted.values) <- c("yhat_mn", "yhat_sd", "q_025", "q_5", "q_975", "yhat_mode")
-  # county scale: substr.Right by 4; state scale: substr.Right by 2
-  idvar <- paste0("yhat", as.character(as.numeric(substr.Right(rownames(modelOutput$summary.fitted.values), digits))))
-  
-  # clean summary statistics output for fitted values (yhat)
-  summaryFitted_save <- tbl_df(modelOutput$summary.fitted.values) %>%
-    mutate(modCodeStr = modCodeString, dbCodeStr = dbCodeString, season = season, exportDate = as.character(Sys.Date()), ID = idvar) %>%
-    select(modCodeStr, dbCodeStr, season, exportDate, ID, yhat_mn, yhat_sd, q_025, q_5, q_975, yhat_mode) %>%
-    mutate(y = residualsDf$y, yhat_resid = residualsDf$residVec) 
-  
-  summaryFitted_obj <- summaryFitted_save %>%
-    mutate(ID = as.numeric(substring(ID, 5, nchar(ID))))
-  
+  names(modelOutput$summary.fitted.values) <- c("mean", "sd", "q_025", "q_5", "q_975", "mode")
+  modOutput_fitted <- bind_cols(modDataFullOutput %>% select(fips, ID, y), modelOutput$summary.fitted.values) %>%
+    mutate(modCodeStr = modCodeString, dbCodeStr = dbCodeString, season = season, exportDate = as.character(Sys.Date())) %>%
+    select(modCodeStr, dbCodeStr, season, exportDate, fips, ID, mean, sd, q_025, q_5, q_975, mode, y)
+
   # export data to file
-  write_csv(summaryFitted_save, exportPath)
-  return(summaryFitted_obj)
+  write_csv(modOutput_fitted, exportPath)
+  # return modified output
+  modOutput_fitted2 <- modOutput_fitted %>%
+    select(-modCodeStr, -dbCodeStr, -exportDate)
+  
+  return(modOutput_fitted2)
 }
 # ################################ # 7/20/16 rm??
 # 
@@ -267,7 +263,7 @@ export_summaryStats <- function(exportPath, modelOutput, rdmFxTxt, modCodeString
   names(modelOutput$summary.random$fips) <- c("ID", names(modelOutput$summary.fixed))
   names(modelOutput$summary.random$fips_st) <- names(modelOutput$summary.random$fips)
   names(modelOutput$summary.random$regionID) <- names(modelOutput$summary.random$fips)
-  names(modelOutput$summary.hyperpar) <- names(modelOutput$summary.fixed) # 8/17/16 add hyperpar export
+  names(modelOutput$summary.hyperpar) <- names(modelOutput$summary.fixed)[1:6] # 8/17/16 add hyperpar export
   
   # clean fixed effects summary statistics output from INLA
   summaryFixed <- tbl_df(modelOutput$summary.fixed) %>%

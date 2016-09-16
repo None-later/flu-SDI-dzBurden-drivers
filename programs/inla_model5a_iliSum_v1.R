@@ -5,7 +5,8 @@
 ## v1-1: One model per season, see variables selected in 'Drivers' spreadsheet
 ## Filenames: physicianCoverage_IMSHealth_state.csv, dbMetrics_periodicReg_ilinDt_Octfit_span0.4_degree2_analyzeDB_st.csv
 ## Data Source: IMS Health
-## Notes: need to SSH into snow server
+## Notes: 
+# 9/15/16: try new inla settings after mod 6a debug and switch to time series downscaling procedure
 ## 
 ## useful commands:
 ## install.packages("pkg", dependencies=TRUE, lib="/usr/local/lib/R/site-library") # in sudo R
@@ -21,8 +22,8 @@ require(RColorBrewer); require(ggplot2) # export_inlaData_st dependencies
 
 #### set these! ################################
 dbCodeStr <- "_ilinDt_Octfit_span0.4_degree2"
-modCodeStr <- "5a_iliSum_v1-4"; testDataOn <- FALSE
-seasons <- 2:9
+modCodeStr <- "5a_iliSum_v1-5"; testDataOn <- FALSE
+seasons <- 3:9
 rdmFx_RV <- "nu"
 inverseLink <- function(x){exp(x)}
 dig <- 4 # number of digits in the number of elements at this spatial scale (~3000 counties -> 4 digits)
@@ -45,14 +46,14 @@ path_shape_cty <- paste0(getwd(), "/gz_2010_us_050_00_500k")
 path_adjMxExport_cty <- paste0(getwd(), "/US_county_adjacency.graph")
 
 setwd("../../R_export")
-path_response_zip3 <- paste0(getwd(), sprintf("/dbMetrics_periodicReg%s_analyzeDB.csv", dbCodeStr))
+path_response_cty <- paste0(getwd(), sprintf("/dbMetrics_periodicReg%s_analyzeDB_cty.csv", dbCodeStr))
 
 # put all paths in a list to pass them around in functions
 path_list <- list(path_abbr_st = path_abbr_st,
                   path_latlon_cty = path_latlon_cty,
                   path_shape_cty = path_shape_cty,
                   path_adjMxExport_cty = path_adjMxExport_cty,
-                  path_response_zip3 = path_response_zip3)
+                  path_response_cty = path_response_cty)
 
 
 #### MAIN #################################
@@ -60,12 +61,12 @@ path_list <- list(path_abbr_st = path_abbr_st,
 if (testDataOn){
   modData <- testing_module(path_list) # with driver & sampling effort variables
   # testing module formula
-  formula <- y ~ 1 + f(ID, model = "iid") + f(stateID, model = "iid") + f(regionID, model = "iid") + O_imscoverage + O_careseek + X_poverty + X_H3
+  formula <- y ~ 1 + f(ID, model = "iid") + f(stateID, model = "iid") + f(regionID, model = "iid") + O_imscoverage + O_careseek + X_poverty + X_H3 + offset(logE)
 } else{
 #### Import and process data ####
   modData <- model5a_iliSum_v1(path_list) # with driver & sampling effort variables
   #### Model 5a v1: County-level, after variable selection, one model per season ####
-  formula <- y ~ 1 + f(ID, model = "iid") + f(stateID, model = "iid") + f(regionID, model = "iid") + O_imscoverage + O_careseek + O_insured + X_poverty + X_child + X_adult + X_hospaccess + X_popdensity + X_commute + X_flight + X_vaxcovI + X_vaxcovE + X_H3 + X_humidity
+  formula <- y ~ 1 + f(fips, model = "iid") + f(fips_st, model = "iid") + f(regionID, model = "iid") + O_imscoverage + O_careseek + O_insured + X_poverty + X_child + X_adult + X_hospaccess + X_popdensity + X_commute + X_flight + X_vaxcovI + X_vaxcovE + X_H3 + X_humidity + offset(logE)
 }
 
 
@@ -88,98 +89,66 @@ path_csvExport <- getwd()
 
 #### run models by season ################################
 for (s in seasons){
-  modData_full <- combine_shapefile_modelData_cty(path_list, modData, s)
-  mod <- inla(formula, family = "gaussian", data = modData_full, 
+  modData_full <- modData %>% filter(season == s) %>% mutate(ID = seq_along(fips))
+  starting1 <- inla(formula, family = "gaussian", data = modData_full, 
               control.family = list(link = "log"),
-              control.fixed = list(mean = 1, prec = 1/100, mean.intercept = 0, prec.intercept = 1/100), # set prior parameters for regression coefficients and intercepts
+              control.fixed = list(mean = 0, prec = 1/100, mean.intercept = 0, prec.intercept = 1/100), # set prior parameters for regression coefficients and intercepts
               control.predictor = list(compute = TRUE), # compute summary statistics on fitted values
               control.compute = list(dic = TRUE, cpo = TRUE),
-              verbose = TRUE,
-              offset = logE) # offset (log link with Gaussian)
+              control.inla = list(correct = TRUE, correct.factor = 10, diagonal = 1000, strategy = "gaussian", int.strategy = "eb"),
+              verbose = TRUE)
+  mod <- inla(formula, family = "gaussian", data = modData_full, 
+                    control.family = list(link = "log"),
+                    control.fixed = list(mean = 0, prec = 1/100, mean.intercept = 0, prec.intercept = 1/100), # set prior parameters for regression coefficients and intercepts
+                    control.predictor = list(compute = TRUE), # compute summary statistics on fitted values
+                    control.compute = list(dic = TRUE, cpo = TRUE),
+                    control.inla = list(correct = TRUE, correct.factor = 10, diagonal = 0, tolerance = 1e-6),
+                    control.mode = list(result = starting1, restart = TRUE),
+                    verbose = TRUE,
+                    keep = TRUE, debug = TRUE)
 
-  #### assign seasonal paths ################################
-  path_plotExport_rdmFxSample <- paste0(path_plotExport, sprintf("/inla_%s_%s1-6_marg_S%s.png", modCodeStr, rdmFx_RV, s))
-  path_plotExport_fixedFxMarginals <- paste0(path_plotExport)
-  path_plotExport_diagnostics <- paste0(path_plotExport, sprintf("/diag_%s_S%s.png", modCodeStr, s))
-  path_plotExport_yhat <- paste0(path_plotExport, sprintf("/choro_fitY_%s_S%s.png", modCodeStr, s))
-  path_plotExport_obsY <- paste0(path_plotExport, sprintf("/choro_obsY_%s_S%s.png", modCodeStr, s))
-  path_plotExport_predDBRatio <- paste0(path_plotExport, sprintf("/choro_dbRatio_%s_S%s.png", modCodeStr, s))
-  path_plotExport_resid <- paste0(path_plotExport, sprintf("/choro_yResid_%s_S%s.png", modCodeStr, s))
+  #### model summary outputs ################################
+  # 9/15/16 reorganized like inla_model6a_iliSum_v1
   
-  path_csvExport_ids <- paste0(path_csvExport, sprintf("/ids_%s_S%s.csv", modCodeStr, s))
-  path_csvExport_summaryStats <- paste0(path_csvExport, sprintf("/summaryStats_%s_S%s.csv", modCodeStr, s))
-  path_csvExport_summaryStatsFitted <- paste0(path_csvExport, sprintf("/summaryStatsFitted_%s_S%s.csv", modCodeStr, s))
-  path_csvExport_dic <- paste0(path_csvExport, sprintf("/modFit_%s_S%s.csv", modCodeStr, s)) # renamed from dic_%s
-  
-  #### data processing ################################
-  #### save DIC and CPO values in separate tables by season ####
+  #### write DIC and CPO values in separate tables by season ####
+  # file path 
+  path_csvExport_dic <- paste0(path_csvExport, sprintf("/modFit_%s_S%s.csv", modCodeStr, s))
   # DIC & CPO file formatting
   dicData <- tbl_df(data.frame(modCodeStr = c(), season = c(), exportDate = c(), DIC = c(), CPO = c(), cpoFail = c()))
   dicData <- bind_rows(dicData, list(modCodeStr = modCodeStr, season = s, exportDate = as.character(Sys.Date()), DIC = mod$dic$dic, CPO = sum(log(mod$cpo$cpo), na.rm=TRUE), cpoFail = sum(mod$cpo$failure, na.rm=TRUE)))
+  # write DIC & CPO to file
+  export_DIC(path_csvExport_dic, dicData)
   
-  #### transform fixed and random effects back to natural scale ####
-  # fixed and random effect marginals
-  marg.fx.transf <- lapply(mod$marginals.fixed, function(x) inla.tmarginal(inverseLink, x))
-  names(marg.fx.transf) <- ifelse(names(marg.fx.transf) == '(Intercept)', 'Intercept', names(marg.fx.transf))
-  marg.rdm.ID.transf <- lapply(mod$marginals.random$ID, function(x) inla.tmarginal(inverseLink, x))
-  marg.rdm.stID.transf <- lapply(mod$marginals.random$stateID, function(x) inla.tmarginal(inverseLink, x))
-  marg.rdm.regID.transf <- lapply(mod$marginals.random$regionID, function(x) inla.tmarginal(inverseLink, x))
-  
-  # fixed and random effect summary statistics
-  summ.fx.transf <- matrix(unlist(lapply(marg.fx.transf, function(x) inla.zmarginal(x, silent = TRUE))), ncol = 7, byrow = TRUE)
-  summ.rdm.ID.transf <- matrix(unlist(lapply(marg.rdm.ID.transf, function(x) inla.zmarginal(x, silent = TRUE))), ncol = 7, byrow = TRUE)
-  summ.rdm.stID.transf <- matrix(unlist(lapply(marg.rdm.stID.transf, function(x) inla.zmarginal(x, silent = TRUE))), ncol = 7, byrow = TRUE)
-  summ.rdm.regID.transf <- matrix(unlist(lapply(marg.rdm.regID.transf, function(x) inla.zmarginal(x, silent = TRUE))), ncol = 7, byrow = TRUE)
-  
-  # combine to single list object
-  summ.stats <- list(summ.fx.transf = summ.fx.transf, summ.rdm.ID.transf = summ.rdm.ID.transf, summ.rdm.stID.transf = summ.rdm.stID.transf, summ.rdm.regID.transf = summ.rdm.regID.transf)
-  fxnames <- names(marg.fx.transf)
-  
-  #### calculate residuals ####
-  residDf <- data.frame(y = modData_full$y, residVec = (modData_full$y - mod$summary.fitted.values$mean)/mod$summary.fitted.values$sd)
-  
-  #### write summary statistics ################################
-  #### random and group effect identities ####
+  #### write random and group effect identities ####
+  # file path
+  path_csvExport_ids <- paste0(path_csvExport, sprintf("/ids_%s_S%s.csv", modCodeStr, s))
+  # write identity codes to file
   export_ids(path_csvExport_ids, modData_full)
   
-  #### fixed and random effects ####
-  export_summaryStats_transformed(path_csvExport_summaryStats, summ.stats, fxnames, rdmFx_RV, modCodeStr, dbCodeStr, s) # assuming fixed, spatial, state ID, and region ID exist
+  #### write fixed and random effects summary statistics ####
+  # file path
+  path_csvExport_summaryStats <- paste0(path_csvExport, sprintf("/summaryStats_%s_S%s.csv", modCodeStr, s))
+  # write all summary statistics to file 
+  # 8/17/16 control flow to export summary statistics of hyperparameters
+  # 9/15/16 no export_summaryStats version without hyperpar
+  export_summaryStats(path_csvExport_summaryStats, mod, rdmFx_RV, modCodeStr, dbCodeStr, s) # assuming hyperpar, fixed, spatial, state ID, and region ID exist
 
-  #### fitted values and residuals ####
-  fittedDat <- export_summaryStats_fitted(path_csvExport_summaryStatsFitted, mod, residDf, modCodeStr, dbCodeStr, s, dig)  %>%
-    select(-modCodeStr, -dbCodeStr, - season, -exportDate, -y)
+  #### process fitted values for each model ################################
+  path_csvExport_summaryStatsFitted <- paste0(path_csvExport, sprintf("/summaryStatsFitted_%s_S%s.csv", modCodeStr, s))
+  mod_fitted <- export_summaryStats_fitted(path_csvExport_summaryStatsFitted, mod, modData_full, modCodeStr, dbCodeStr, s)
   
-  #### dic ####
-  export_DIC(path_csvExport_dic, dicData) # dic & cpo exported by season
-
-  #### INLA diagnostic plots ################################
-  #### create full dataset for plotting ####
-  plotDat <- left_join(modData_full, fittedDat, by = "ID") %>%
-    mutate(dbRatio = yhat_mode/E) 
+  #### Diagnostic plots ################################
+  path_plotExport_rdmFxSample <- paste0(path_plotExport, sprintf("/inla_%s_%s1-6_marg_S%s.png", modCodeStr, rdmFx_RV, s))
+  plot_rdmFx_marginalsSample(path_plotExport_rdmFxSample, mod$marginals.random$fips, rdmFx_RV)
   
-  #### plot a sample of posterior outputs ####
-  # first 6 random effects (nu or phi) marginal posteriors (transformed)
-  plot_rdmFx_marginalsSample(path_plotExport_rdmFxSample, marg.rdm.ID.transf, rdmFx_RV)
-  
-  # fixed effects marginal posteriors
-  plot_fixedFx_marginals(path_plotExport_fixedFxMarginals, marg.fx.transf, modCodeStr, s)
-  
-  #### diagnostics ####
-  # 1) residuals v. fitted 2) PIT (should be uniform for good fit)
-  plot_fit_diagnostics(path_plotExport_diagnostics, fittedDat, mod)
-  
-  #### choropleths ####
-  # fitted values (yhat_i)
-  plot_countyChoro(path_plotExport_yhat, plotDat, "yhat_mode", "gradient")
+  #### figures (agnostic to likelihood) ####
+  # marginal posteriors: fixed effects
+  path_plotExport_fixedFxMarginals <- paste0(path_plotExport)
+  plot_fixedFx_marginals(path_plotExport_fixedFxMarginals, mod$marginals.fixed, modCodeStr, s)
   
   # observations (y_i)  
-  plot_countyChoro(path_plotExport_obsY, plotDat, "y", "tier")
-  
-  # burden ratio (yhat_i/E) 
-  plot_countyChoro(path_plotExport_predDBRatio, plotDat, "dbRatio", "tier")
-  
-  # residuals of logyhat_i
-  plot_countyChoro(path_plotExport_resid, plotDat, "yhat_resid", "tier")
+  path_plotExport_obsY <- paste0(path_plotExport, sprintf("/choro_obsY_%s_S%s.png", modCodeStr, s))
+  plot_countyChoro(path_plotExport_obsY, modData_full, "y", "tier", TRUE)
   
 }
 

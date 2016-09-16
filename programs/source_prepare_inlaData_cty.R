@@ -102,7 +102,7 @@ model5a_iliSum_v1 <- function(filepathList){
     full_join(narrSpecHum_cty_df, by = c("season", "fips")) %>%
     group_by(season) %>%
     mutate(O_imscoverage = centerStandardize(adjProviderCoverage)) %>%
-    mutate(O_careseek = centerStandardize(visitsPerProvider)) %>%
+    mutate(O_careseek = centerStandardize(visitsPerPop)) %>% # 9/15/16 changed from visitsPerProvider
     mutate(O_insured = centerStandardize(insured)) %>%
     mutate(X_poverty = centerStandardize(poverty)) %>%
     mutate(X_child = centerStandardize(child)) %>%
@@ -117,7 +117,7 @@ model5a_iliSum_v1 <- function(filepathList){
     mutate(X_humidity = centerStandardize(humidity)) %>%
     ungroup %>%
     filter(fips_st %in% continentalOnly) %>% # include data for continental states only
-    select(-stateID, -adjProviderCoverage, -visitsPerProvider, -insured, -poverty, -child, -adult, -hospitalAccess, -popDensity, -commutInflows_prep, -pass, -infantAnyVax, -elderlyAnyVax, -H3, -humidity) %>%
+    select(-stateID, -adjProviderCoverage, -visitsPerProvider, -visitsPerPop, -insured, -poverty, -child, -adult, -hospitalAccess, -popDensity, -commutInflows_prep, -pass, -infantAnyVax, -elderlyAnyVax, -H3, -humidity) %>%
     filter(season %in% 2:9) %>%
     mutate(logE = log(E)) # 7/18/16: for gamma likelihood offset
   
