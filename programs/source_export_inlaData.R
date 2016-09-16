@@ -77,12 +77,16 @@ importPlot_coefDistr_season <- function(path_csvExport, path_plotExport_coefDist
   # grab list of files names
   setwd(path_csvExport)
   readfile_list <- grep("summaryStats_", list.files(), value = TRUE)
-  coefDf <- tbl_df(data.frame(modCodeStr = c(), dbCodeStr = c(), season = c(), RV = c(), effectType = c(), mean = c(), sd = c(), q_025 = c(), q_5 = c(), q_975 = c()))
+  fullDf <- tbl_df(data.frame(modCodeStr = c(), dbCodeStr = c(), season = c(), RV = c(), effectType = c(), mean = c(), sd = c(), q_025 = c(), q_5 = c(), q_975 = c()))
   
   for (infile in readfile_list){
     seasFile <- read_csv(infile, col_types = "cci_ccddddd__")
-    coefDf <- bind_rows(coefDf, seasFile)
+    fullDf <- bind_rows(fullDf, seasFile)
   }
+  
+  coefDf <- fullDf %>%
+    mutate(LB = mean-(2*sd), UB = mean+(2*sd)) %>%
+    mutate(signif = ifelse(UB < 0 | LB > 0, TRUE, FALSE))
   
   # plot fixed effects
   fxDat <- coefDf %>% filter(effectType == 'fixed') 
@@ -116,7 +120,7 @@ importPlot_coefDistr_season_transformed <- function(path_csvExport, path_plotExp
 
   for (infile in readfile_list){
     seasFile <- read_csv(infile, col_types = "cci_ccddddddd")
-    fullDf <- bind_rows(coefDf, seasFile)
+    fullDf <- bind_rows(fullDf, seasFile)
   }
 
   coefDf <- fullDf %>%

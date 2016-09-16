@@ -58,11 +58,76 @@ plot_diag_scatter_hurdle <- function(path_csvExport, path_plotExport_predVsObs, 
   w <- 8; h <- 8; dp <- 250
   
   # scatterplot: predicted vs observed with errorbars
-  plotOutput <- ggplot(plotDat2, aes(x = xVar, y = pltVar, group = facetlabel)) +
-    geom_point() +
-    facet_wrap(~facetlabel, scales = "free") +
-    ylab(yaxisVariable) +
-    xlab(xaxisVariable)
+  if (errorbar){
+    plotOutput <- ggplot(plotDat2, aes(x = xVar, y = pltVar, group = facetlabel)) +
+      geom_pointrange(aes(ymin = q_025, ymax = q_975)) +
+      facet_wrap(~facetlabel, scales = "free") +
+      scale_y_continuous(paste(yaxisVariable, "(95%CI)")) +
+      xlab(xaxisVariable)
+  } else{
+    plotOutput <- ggplot(plotDat2, aes(x = xVar, y = pltVar, group = facetlabel)) +
+      geom_point() +
+      facet_wrap(~facetlabel, scales = "free") +
+      ylab(yaxisVariable) +
+      xlab(xaxisVariable)
+  }
+  
+  ggsave(path_plotExport_predVsObs, plotOutput, height = h, width = w, dpi = dp)
+  
+}
+################################
+
+plot_diag_scatter <- function(path_csvExport, path_plotExport_predVsObs, xaxisVariable, yaxisVariable, errorbar){
+  # plot scatterplot & calculate corr coef for each season
+  print(match.call())
+  
+  # grab list of files names
+  setwd(path_csvExport)
+  readfile_list <- grep("summaryStatsFitted_", list.files(), value = TRUE)
+  plotDat <- tbl_df(data.frame())
+
+  # import yhat and y data
+  for (infile in readfile_list){
+    seasFile <- read_csv(infile, col_types = "cci_ccddddddd")
+    plotDat <- bind_rows(plotDat, seasFile)
+  }
+  # rename columns
+  names(plotDat) <- c("modCodeStr", "dbCodeStr", "season", "fips", "ID", "mean", "sd", "q_025", "q_5", "q_975", "mode", "y")
+  
+  # calculate yhat residuals 
+  plotDat <- plotDat %>%
+    mutate(yhat_resid = (y-mean)/sd) %>%
+    mutate(yhat_rawresid = (y-mean))
+
+  # calculate spearman's rho correlations
+  corrDat <- plotDat %>% 
+    rename_(pltVar = yaxisVariable, xVar = xaxisVariable) %>%
+    group_by(season) %>%
+    summarise(rho = cor(xVar, pltVar, method = "spearman", use = 'complete.obs')) %>%
+    mutate(facetlabel = paste(sprintf("S%s rho", season), round(rho, 3))) %>%
+    select(season, facetlabel)
+  
+  # create new dataset with corr coef in label
+  plotDat2 <- left_join(plotDat, corrDat, by = 'season') %>% 
+    rename_(pltVar = yaxisVariable, xVar = xaxisVariable)
+
+  # plot formatting
+  w <- 8; h <- 8; dp <- 250
+  
+  # scatterplot: predicted vs observed with errorbars
+  if (errorbar){
+    plotOutput <- ggplot(plotDat2, aes(x = xVar, y = pltVar, group = facetlabel)) +
+      geom_pointrange(aes(ymin = q_025, ymax = q_975)) +
+      facet_wrap(~facetlabel, scales = "free") +
+      scale_y_continuous(paste(yaxisVariable, "(95%CI)")) +
+      xlab(xaxisVariable)
+  } else{
+    plotOutput <- ggplot(plotDat2, aes(x = xVar, y = pltVar, group = facetlabel)) +
+      geom_point() +
+      facet_wrap(~facetlabel, scales = "free") +
+      ylab(yaxisVariable) +
+      xlab(xaxisVariable)
+  }
   
   ggsave(path_plotExport_predVsObs, plotOutput, height = h, width = w, dpi = dp)
   
@@ -157,25 +222,17 @@ importPlot_diag_predVsRaw <- function(path_csvExport, path_plotExport_predVsRaw,
   setwd(path_csvExport)
   readfile_list <- grep("summaryStatsFitted_", list.files(), value = TRUE)
   readfile_list2 <- grep("ids_", list.files(), value = TRUE)
-  yhatDat <- tbl_df(data.frame(modCodeStr = c(), dbCodeStr = c(), season = c(), ID = c(), q_025 = c(), q_5 = c(), q_975 = c()))
-  idDat <- tbl_df(data.frame(season = c(), fips = c(), ID = c()))
-  
+  yhatDat <- tbl_df(data.frame(modCodeStr = c(), dbCodeStr = c(), season = c(), fips = c(), ID = c(), mean = c(), sd = c(), y = c()))
+
   # import yhat data
   for (infile in readfile_list){
-    seasFile <- read_csv(infile, col_types = "cci_c__ddd___")
+    seasFile <- read_csv(infile, col_types = "cci_cidd____d")
     yhatDat <- bind_rows(yhatDat, seasFile)
   }
   
-  # import crosswalk between yhat IDs and fips
-  for (infile in readfile_list2){
-    seasFile <- read_csv(infile, col_types = "ic_i__")
-    idDat <- bind_rows(idDat, seasFile)
-  }
-  
-  # clean yhat data & merge IDs
+  # clean yhat data 
   yhatDat2 <- yhatDat %>%
-    mutate(ID = as.numeric(substring(ID, 5, nchar(ID)))) %>%
-    left_join(idDat, by = c("season", "ID"))
+    mutate(LB = mean-(sd*2), UB = mean+(sd*2))
   
   # import county ili case data & create ili rate
   plotDat <- clean_rawILI_cty(filepathList) %>%
@@ -235,7 +292,7 @@ plot_diag_predVsRaw <- function(plotDat, path_plotExport_predVsRaw, var){
   corrDat <- plotDat %>% 
     rename_(varInterest = eval(var)) %>%
     group_by(season) %>%
-    summarise(rho = cor(varInterest, q_5, method = "spearman", use = 'complete.obs')) %>%
+    summarise(rho = cor(varInterest, mean, method = "spearman", use = 'complete.obs')) %>%
     mutate(facetlabel = paste(sprintf("S%s rho", season), round(rho, 3))) %>%
     select(season, facetlabel)
   
@@ -247,10 +304,10 @@ plot_diag_predVsRaw <- function(plotDat, path_plotExport_predVsRaw, var){
   w <- 8; h <- 8; dp <- 250
   
   # scatterplot: predicted vs ILI counts (covnerted to county)
-  plotOutput <- ggplot(plotDat2, aes(x = varInterest, y = q_5, group = facetlabel)) +
-    geom_pointrange(aes(ymin = q_025, ymax = q_975)) +
+  plotOutput <- ggplot(plotDat2, aes(x = varInterest, y = mean, group = facetlabel)) +
+    geom_pointrange(aes(ymin = LB, ymax = UB)) +
     facet_wrap(~facetlabel, scales = "free") +
-    ylab("yhatMedian (95%CI)") +
+    ylab("yhatMean (95%CI)") +
     xlab(var) 
   ggsave(paste0(path_plotExport_predVsRaw, var, ".png"), plotOutput, height = h, width = w, dpi = dp)
   
