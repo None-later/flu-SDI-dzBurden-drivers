@@ -112,12 +112,16 @@ importPlot_coefDistr_season_transformed <- function(path_csvExport, path_plotExp
   # grab list of files names
   setwd(path_csvExport)
   readfile_list <- grep("summaryStats_", list.files(), value = TRUE)
-  coefDf <- tbl_df(data.frame(modCodeStr = c(), dbCodeStr = c(), season = c(), RV = c(), effectType = c(), mean = c(), sd = c(), q_025 = c(), q_25 = c(), q_5 = c(), q_75 = c(), q_975 = c()))
+  fullDf <- tbl_df(data.frame(modCodeStr = c(), dbCodeStr = c(), season = c(), RV = c(), effectType = c(), mean = c(), sd = c(), q_025 = c(), q_25 = c(), q_5 = c(), q_75 = c(), q_975 = c()))
 
   for (infile in readfile_list){
     seasFile <- read_csv(infile, col_types = "cci_ccddddddd")
-    coefDf <- bind_rows(coefDf, seasFile)
+    fullDf <- bind_rows(coefDf, seasFile)
   }
+
+  coefDf <- fullDf %>%
+  mutate(LB = mean-(2*sd), UB = mean+(2*sd)) %>%
+    mutate(signif = ifelse(UB < 0 | LB > 0, TRUE, FALSE))
 
   # plot fixed effects
   fxDat <- coefDf %>% filter(effectType == 'fixed') 
@@ -141,19 +145,21 @@ importPlot_coefDistr_season_transformed <- function(path_csvExport, path_plotExp
 ################################
 
 plot_coefDistr_season <- function(plotDat, path_plotExport_coefDistr, plotFilename){
-  # plot all coef median, Q.025 - Q0.975 over time
+  # plot all coef mean & 95%CI over time
   print(match.call())
   
   # plot formatting
   w <- 8; h <- 8; dp <- 250
 
   # plot fixed effects
-  plotOutput <- ggplot(plotDat, aes(x = season, y = q_5, group = RV)) +
-    geom_pointrange(aes(ymin = q_025, ymax = q_975)) +
+  plotOutput <- ggplot(plotDat, aes(x = season, y = mean, group = RV)) +
+    geom_pointrange(aes(ymin = LB, ymax = UB, colour = signif)) +
     geom_hline(yintercept = 0) +
     facet_wrap(~RV, scales = "free_y") +
-    scale_y_continuous("coefMedian (95%CI)") +
-    xlim(c(1, 10)) 
+    scale_y_continuous("coefMean (95%CI)") +
+    xlim(c(1, 10)) +
+    guides(colour = FALSE) +
+    theme_bw()
   ggsave(paste0(path_plotExport_coefDistr, plotFilename), plotOutput, height = h, width = w, dpi = dp)
   
 }

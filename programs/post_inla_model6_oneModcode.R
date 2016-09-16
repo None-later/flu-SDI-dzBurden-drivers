@@ -21,7 +21,7 @@ source("source_export_inlaDiagnostics.R") # plot_diag_scatter_hurdle function
 source("source_clean_response_functions_cty.R") # cty response functions
 
 #### set these! ################################
-modCodeStr <- "6b_iliPeak_v1-1"
+modCodeStr <- "6a_iliSum_v1-13"
 seasons <- c(2:9)
 likStrings <- c("binomial", "gamma")
 
@@ -61,9 +61,13 @@ for (i in 1:length(likStrings)){
 
 ### model fit ###
 if ("gamma" %in% likStrings){
-  # scatter: residuals vs. fitted (yhat - gamma model only)
-  path_plotExport_residVsYhat <- paste0(path_plotExport, sprintf("/diag_residVsYhat_%s_%s.png", likStrings[i], modCodeStr))
+  # scatter: standardized residuals vs. fitted (yhat - gamma model only)
+  path_plotExport_residVsYhat <- paste0(path_plotExport, sprintf("/diag_residVsYhat_%s_%s.png", "gamma", modCodeStr))
   plot_diag_scatter_hurdle(path_csvExport, path_plotExport_residVsYhat, "gamma", "mean", "yhat_resid", FALSE)
+  
+  # scatter: standardized residuals vs. fitted (yhat - gamma model only)
+  path_plotExport_residVsYhat2 <- paste0(path_plotExport, sprintf("/diag_rawresidVsYhat_%s_%s.png", "gamma", modCodeStr))
+  plot_diag_scatter_hurdle(path_csvExport, path_plotExport_residVsYhat2, "gamma", "mean", "yhat_rawresid", FALSE)
 }
 
 #### diagnostics by season #################################
@@ -103,7 +107,7 @@ for (s in seasons){
   if ("gamma" %in% likStrings){
     path_csvImport_fittedGamma <- paste0(path_csvExport, sprintf("/summaryStatsFitted_gamma_%s_S%s.csv", modCodeStr, s))
     mod_gam_fitted <- read_csv(path_csvImport_fittedGamma, col_types = c("fips" = col_character(), "ID" = col_character())) %>% 
-      mutate(yhat_resid = (y-mean)/sd) # create residual data (y-yhat_mean)/yhat_sd
+      mutate(yhat_resid = (y-mean)/sd)  # create residual data (y-yhat_mean)/yhat_sd
     
     # choropleth: fitted values (yhat_i) - Magnitude of non-zero epidemic
     path_plotExport_yhat_gam <- paste0(path_plotExport, sprintf("/choro_yHat_%s_S%s.png", modCodeStr, s))
@@ -113,8 +117,11 @@ for (s in seasons){
     path_plotExport_yhatSD_gam <- paste0(path_plotExport, sprintf("/choro_yHatSD_%s_S%s.png", modCodeStr, s))
     plot_countyChoro(path_plotExport_yhatSD_gam, mod_gam_fitted, "sd", "gradient", FALSE)
     
-    # choropleth: residuals 
+    # choropleth: standardized residuals 
     path_plotExport_resid_gam <- paste0(path_plotExport, sprintf("/choro_yResid_%s_S%s.png", modCodeStr, s))
+    plot_countyChoro(path_plotExport_resid_gam, mod_gam_fitted, "yhat_resid", "tier", TRUE)
+    # choropleth: raw residuals 
+    path_plotExport_resid_gam2 <- paste0(path_plotExport, sprintf("/choro_yResid_%s_S%s.png", modCodeStr, s))
     plot_countyChoro(path_plotExport_resid_gam, mod_gam_fitted, "yhat_resid", "tier", TRUE)
   }
   
