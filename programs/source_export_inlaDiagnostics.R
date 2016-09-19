@@ -97,7 +97,8 @@ plot_diag_scatter <- function(path_csvExport, path_plotExport_predVsObs, xaxisVa
   # calculate yhat residuals 
   plotDat <- plotDat %>%
     mutate(yhat_resid = (y-mean)/sd) %>%
-    mutate(yhat_rawresid = (y-mean))
+    mutate(yhat_rawresid = (y-mean)) %>%
+    mutate(LB = mean-(sd*2), UB = mean+(sd*2))
 
   # calculate spearman's rho correlations
   corrDat <- plotDat %>% 
@@ -117,7 +118,7 @@ plot_diag_scatter <- function(path_csvExport, path_plotExport_predVsObs, xaxisVa
   # scatterplot: predicted vs observed with errorbars
   if (errorbar){
     plotOutput <- ggplot(plotDat2, aes(x = xVar, y = pltVar, group = facetlabel)) +
-      geom_pointrange(aes(ymin = q_025, ymax = q_975)) +
+      geom_pointrange(aes(ymin = LB, ymax = UB)) +
       facet_wrap(~facetlabel, scales = "free") +
       scale_y_continuous(paste(yaxisVariable, "(95%CI)")) +
       xlab(xaxisVariable)
