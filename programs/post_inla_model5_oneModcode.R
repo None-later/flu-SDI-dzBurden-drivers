@@ -20,7 +20,7 @@ source("source_clean_response_functions_cty.R") # cty response functions
 source("source_export_inlaData_cty.R") # plot_countyChoro
 
 #### set these! ################################
-modCodeStr <- "5a_iliSum_v1-5"
+modCodeStr <- "5a_iliSum_v1-6"
 seasons <- c(2:9)
 
 #### IMPORT FILEPATHS #################################

@@ -22,8 +22,8 @@ require(RColorBrewer); require(ggplot2) # export_inlaData_st dependencies
 
 #### set these! ################################
 dbCodeStr <- "_ilinDt_Octfit_span0.4_degree2"
-modCodeStr <- "5a_iliSum_v1-5"; testDataOn <- FALSE
-seasons <- 3:9
+modCodeStr <- "5a_iliSum_v1-6"; testDataOn <- FALSE
+seasons <- 2:9
 rdmFx_RV <- "nu"
 inverseLink <- function(x){exp(x)}
 dig <- 4 # number of digits in the number of elements at this spatial scale (~3000 counties -> 4 digits)
@@ -92,14 +92,14 @@ for (s in seasons){
   modData_full <- modData %>% filter(season == s) %>% mutate(ID = seq_along(fips))
   starting1 <- inla(formula, family = "gaussian", data = modData_full, 
               control.family = list(link = "log"),
-              control.fixed = list(mean = 0, prec = 1/100, mean.intercept = 0, prec.intercept = 1/100), # set prior parameters for regression coefficients and intercepts
+              control.fixed = list(mean = 0, prec = 1, mean.intercept = 0, prec.intercept = 1), # set prior parameters for regression coefficients and intercepts
               control.predictor = list(compute = TRUE), # compute summary statistics on fitted values
               control.compute = list(dic = TRUE, cpo = TRUE),
               control.inla = list(correct = TRUE, correct.factor = 10, diagonal = 1000, strategy = "gaussian", int.strategy = "eb"),
               verbose = TRUE)
   mod <- inla(formula, family = "gaussian", data = modData_full, 
                     control.family = list(link = "log"),
-                    control.fixed = list(mean = 0, prec = 1/100, mean.intercept = 0, prec.intercept = 1/100), # set prior parameters for regression coefficients and intercepts
+                    control.fixed = list(mean = 0, prec = 1, mean.intercept = 0, prec.intercept = 1), # set prior parameters for regression coefficients and intercepts
                     control.predictor = list(compute = TRUE), # compute summary statistics on fitted values
                     control.compute = list(dic = TRUE, cpo = TRUE),
                     control.inla = list(correct = TRUE, correct.factor = 10, diagonal = 0, tolerance = 1e-6),
