@@ -31,7 +31,7 @@ require(RColorBrewer); require(ggplot2) # export_inlaData_st dependencies
 #### set these! ################################
 dbCodeStr <- "_ilinDt_Octfit_span0.4_degree2"
 modCodeStr <- "6a_iliSum_v1-15"; testDataOn <- FALSE
-seasons <- 4:5 
+seasons <- c(2:3,5:9) 
 rdmFx_RV <- "nu"
 dig <- 4 # number of digits in the number of elements at this spatial scale (~3000 counties -> 4 digits)
 
@@ -122,7 +122,7 @@ for (s in seasons){
                    control.family = list(list(link="logit"),
                                          list(link="log")), 
                    Ntrials = 1, # binomial likelihood params
-                   control.fixed = list(mean = 0, prec = 1/100), # set prior parameters for regression coefficients
+                   control.fixed = list(mean = 0, prec = 1), # set prior parameters for regression coefficients
                    control.predictor = list(compute = TRUE, link = c(rep(1, nrow(modData_full)), rep(2, nrow(modData_full)))), # compute summary statistics on fitted values, link designates that NA responses are calculated according to the first likelihood for the first (nrow(modData_full)) rows & the second likelihood for the second (nrow(modData_full)) rows
                    # control.compute = list(dic = TRUE, cpo = TRUE),
                    control.inla = list(correct = TRUE, correct.factor = 10, diagonal = 1000, strategy = "gaussian", int.strategy = "eb"), # http://www.r-inla.org/events/newfeaturesinr-inlaapril2015; http://www.r-inla.org/?place=msg%2Fr-inla-discussion-group%2Fuf2ZGh4jmWc%2FA0rdPE5W7uMJ
@@ -134,7 +134,7 @@ for (s in seasons){
                     control.family = list(list(link="logit"),
                                           list(link="log")), 
                     Ntrials = 1, # binomial likelihood params
-                    control.fixed = list(mean = 0, prec = 1/100), # set prior parameters for regression coefficients
+                    control.fixed = list(mean = 0, prec = 1), # set prior parameters for regression coefficients
                     control.predictor = list(compute = TRUE, link = c(rep(1, nrow(modData_full)), rep(2, nrow(modData_full)))), # compute summary statistics on fitted values, link designates that NA responses are calculated according to the first likelihood for the first (nrow(modData_full)) rows & the second likelihood for the second (nrow(modData_full)) rows
                     # control.compute = list(dic = TRUE, cpo = TRUE),
                     control.inla = list(correct = TRUE, correct.factor = 10, diagonal = 100, strategy = "gaussian", int.strategy = "eb"), # http://www.r-inla.org/events/newfeaturesinr-inlaapril2015; http://www.r-inla.org/?place=msg%2Fr-inla-discussion-group%2Fuf2ZGh4jmWc%2FA0rdPE5W7uMJ
@@ -147,7 +147,7 @@ for (s in seasons){
                     control.family = list(list(link="logit"),
                                           list(link="log")), 
                     Ntrials = 1, # binomial likelihood params
-                    control.fixed = list(mean = 0, prec = 1/100), # set prior parameters for regression coefficients
+                    control.fixed = list(mean = 0, prec = 1), # set prior parameters for regression coefficients
                     control.predictor = list(compute = TRUE, link = c(rep(1, nrow(modData_full)), rep(2, nrow(modData_full)))), # compute summary statistics on fitted values, link designates that NA responses are calculated according to the first likelihood for the first (nrow(modData_full)) rows & the second likelihood for the second (nrow(modData_full)) rows
                     # control.compute = list(dic = TRUE, cpo = TRUE),
                     control.inla = list(correct = TRUE, correct.factor = 10, diagonal = 10, strategy = "gaussian", int.strategy = "eb"), # http://www.r-inla.org/events/newfeaturesinr-inlaapril2015; http://www.r-inla.org/?place=msg%2Fr-inla-discussion-group%2Fuf2ZGh4jmWc%2FA0rdPE5W7uMJ
@@ -160,7 +160,7 @@ for (s in seasons){
                     control.family = list(list(link="logit"),
                                           list(link="log")), 
                     Ntrials = 1, # binomial likelihood params
-                    control.fixed = list(mean = 0, prec = 1/100), # set prior parameters for regression coefficients
+                    control.fixed = list(mean = 0, prec = 1), # set prior parameters for regression coefficients
                     control.predictor = list(compute = TRUE, link = c(rep(1, nrow(modData_full)), rep(2, nrow(modData_full)))), # compute summary statistics on fitted values, link designates that NA responses are calculated according to the first likelihood for the first (nrow(modData_full)) rows & the second likelihood for the second (nrow(modData_full)) rows
                     # control.compute = list(dic = TRUE, cpo = TRUE),
                     control.inla = list(correct = TRUE, correct.factor = 10, diagonal = 1, strategy = "gaussian", int.strategy = "eb"), # http://www.r-inla.org/events/newfeaturesinr-inlaapril2015; http://www.r-inla.org/?place=msg%2Fr-inla-discussion-group%2Fuf2ZGh4jmWc%2FA0rdPE5W7uMJ
@@ -173,7 +173,7 @@ for (s in seasons){
               control.family = list(list(link="logit"),
                                     list(link="log")), 
               Ntrials = 1, # binomial likelihood params
-              control.fixed = list(mean = 0, prec = 1/100), # set prior parameters for regression coefficients
+              control.fixed = list(mean = 0, prec = 1), # set prior parameters for regression coefficients
               control.predictor = list(compute = TRUE, link = c(rep(1, nrow(modData_full)), rep(2, nrow(modData_full)))), # compute summary statistics on fitted values, link designates that NA responses are calculated according to the first likelihood for the first (nrow(modData_full)) rows & the second likelihood for the second (nrow(modData_full)) rows
               control.compute = list(dic = TRUE, cpo = TRUE),
               control.inla = list(diagonal = 0, correct = TRUE, correct.factor = 10, tolerance = 1e-6), # http://www.r-inla.org/events/newfeaturesinr-inlaapril2015

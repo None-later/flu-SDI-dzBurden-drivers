@@ -1,12 +1,9 @@
-require(readr)
-require(tidyr)
-require(dplyr)
-
+require(dplyr); require(tidyr); require(readr); require(DBI); require(RMySQL)
 
 #### set these! ################################
 dbCodeStr <- "_ilinDt_Octfit_span0.4_degree2"
-modCodeStr <- "6a_iliSum_v1dicExplore1"; testDataOn <- TRUE
-seasons <- 3:3 
+modCodeStr <- "6a_iliSum_v1-14"; testDataOn <- FALSE
+s <- 4 
 rdmFx_RV <- "nu"
 dig <- 4 # number of digits in the number of elements at this spatial scale (~3000 counties -> 4 digits)
 
@@ -41,18 +38,34 @@ path_list <- list(path_abbr_st = path_abbr_st,
 
 #### MAIN #################################
 #### import model data ################################
-modData <- testing_module(path_list)
-modData_full <- modData %>% filter(season == 3) %>% mutate(ID = seq_along(fips))
-modData_hurdle <- convert_hurdleModel_separatePredictors(modData_full)
-
+if (testDataOn){
+  modData <- testing_module(path_list)
+} else{
+  modData <- model6a_iliSum_v1(path_list)
+}
 
 #### import fitted data ################################
 setwd(dirname(sys.frame(1)$ofile))
-setwd("../R_export/inlaModelData_export/6a_iliSum_v1dicExplore1")
-binDat <- read_csv("summaryStatsFitted_binomial_6a_iliSum_v1dicExplore1_S3.csv")
-gamDat <- read_csv("summaryStatsFitted_gamma_6a_iliSum_v1dicExplore1_S3.csv")
+setwd(sprintf("../R_export/inlaModelData_export/%s", modCodeStr))
+binDat <- read_csv(sprintf("summaryStatsFitted_binomial_%s_S%s.csv", modCodeStr, s))
+gamDat <- read_csv(sprintf("summaryStatsFitted_gamma_%s_S%s.csv", modCodeStr, s))
 
-naFips <- c("13265", "21201", "32009", "37095", "41055", "48235", "48261", "48301", "48311", "48425", "48431")
+# naFips <- c("13265", "21201", "32009", "37095", "41055", "48235", "48261", "48301", "48311", "48425", "48431")
 
-#### examine original data with NA fitted modes ################################
-naModData <- modData_full %>% filter(fips %in% naFips)
+#### identify NA in fitted binomial likelihood modes ################################
+binNA_df <- binDat %>% filter(is.na(mode)) %>% select(-modCodeStr, -dbCodeStr, -exportDate)
+binNAs <- binNA_df %>% select(fips) %>% unlist
+gamDat_binNAs <- gamDat %>% filter(fips %in% binNAs) %>% select(-modCodeStr, -dbCodeStr, -exportDate)
+
+#### check locations where sd > mean ################################
+binDat_largeSD <- binDat %>% select(-modCodeStr, -dbCodeStr, -exportDate) %>% filter(sd > mean) # no entries
+gamDat_largeSD <- gamDat %>% select(-modCodeStr, -dbCodeStr, -exportDate) %>% filter(sd > mean)
+gamchecks <- gamDat_largeSD %>% select(fips) %>% unlist
+
+#### look at modData for binNAs ####
+modDat_check1 <- modData %>% filter(fips %in% binNAs) %>% select(-lat, -lon, -year, -fips_st)
+modDat_check1_S4 <- modDat_check1 %>% filter(season == 4)
+modDat_check1_S5 <- modDat_check1 %>% filter(season == 5)
+
+#### look at modData for gamchecks ####
+modDat_check2 <- modData %>% filter(fips %in% gamchecks) %>% select(-lat, -lon, -year, -fips_st)
