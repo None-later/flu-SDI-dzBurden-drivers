@@ -14,6 +14,19 @@
 require(dplyr); require(tidyr); require(maptools); require(spdep)
 
 #### functions for model data aggregation  ################################
+
+remove_case_exceptions <- function(full_df){
+  #   https://www.cdc.gov/nchs/data/nvss/bridged_race/county_geography_changes.pdf
+  #   Broomfield County, Colorado (FIPS code=08014) was created effective November 15, 2001 from parts of four Colorado counties: Adams, Boulder, Jefferson, and Weld. There are estimates for this county on some, but not all, of the bridged-race files. Note that data for Broomfield County do not appear on NCHS birth or mortality files until data year 2003. 
+  print(match.call())
+  
+  full_df2 <- full_df %>%
+    filter(!(fips == "08014" & season %in% 2:5))
+  
+  return(full_df2)
+}
+
+################################
 testing_module <- function(filepathList){
   # iliSum response, all sampling effort, and driver variables
   # y = response, E = expected response
@@ -463,6 +476,7 @@ convert_hurdleModel_separatePredictors <- function(modData_seas){
     select(-y) 
   
   Y <- bind_rows(Y_bin, Y_gam) %>% data.matrix
+  View(Y)
   
   # covariate matrix for binomial lik: response, predictors, random effects
   Mx_bin <- modData_seas %>%
@@ -514,7 +528,7 @@ convert_hurdleModel_binomial <- function(modData_seas){
     select(contains("X_"), contains("O_"), fips, fips_st, regionID) %>%
     mutate(intercept = 1) 
   colnames(Mx_bin) <- paste0(colnames(Mx_bin), "_bin")
-  
+
   # convert matrix information to a list of lists/matrixes
   modData_seas_lists <- list()
   for (column in colnames(Mx_bin)){
