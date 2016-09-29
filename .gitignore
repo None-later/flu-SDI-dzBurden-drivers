@@ -11,7 +11,7 @@ graph_outputs/
 inc_*.py
 reference_data/
 archive_Drivers of Influenza Disease Burden Table*
-programs/.Rhistory
+programs/.R*
 covariate_data/
 sample_code/
 *.Rhistory
@@ -19,3 +19,5 @@ INLA_resources/
 testmethod_inla/
 create_FluDrivers_local.sql
 SB_downscaling_checks/
+AA_modeloutput_checks/
+DIC_INLA_troubleshooting_082216
