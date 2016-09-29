@@ -172,7 +172,6 @@ plot_coefDistr_season <- function(plotDat, path_plotExport_coefDistr, plotFilena
 
 
 #### functions for data export  ################################
-
 ################################
 export_DIC <- function(exportPath, dicDataframe){
   # 6/7/16: export DIC & CPO values for one season (instead of all seasons)
