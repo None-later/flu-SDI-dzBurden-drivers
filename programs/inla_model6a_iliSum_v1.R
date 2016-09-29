@@ -30,8 +30,8 @@ require(RColorBrewer); require(ggplot2) # export_inlaData_st dependencies
 
 #### set these! ################################
 dbCodeStr <- "_ilinDt_Octfit_span0.4_degree2"
-modCodeStr <- "6a_iliSum_v1-15"; testDataOn <- FALSE
-seasons <- c(2:3,5:9) 
+modCodeStr <- "6a_iliSum_modCheck"; testDataOn <- TRUE
+seasons <- 4:4 
 rdmFx_RV <- "nu"
 dig <- 4 # number of digits in the number of elements at this spatial scale (~3000 counties -> 4 digits)
 
