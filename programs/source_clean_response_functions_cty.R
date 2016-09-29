@@ -164,10 +164,11 @@ cleanO_imsCoverage_cty <- function(){
     summarise(zOverlaps = length(zip3), adjProviderCoverage = weighted.mean(adjProviderCoverage, proportion, na.rm = TRUE), sampViz = weighted.mean(sampViz, proportion, na.rm = TRUE), sampProv = weighted.mean(sampProv, proportion, na.rm = TRUE)) %>% 
     ungroup %>%
     filter(!is.na(fips)) %>% 
-    mutate(visitsPerProvider = sampViz/sampProv) %>%
+    mutate(adjProviderCoverage = ifelse(is.na(adjProviderCoverage), 0, adjProviderCoverage)) %>% # 9/27/16 for glm: 0 if NA
+    mutate(visitsPerProvider = ifelse(is.na(sampViz), 0, sampViz/sampProv)) %>% # 9/27/16 for glm: 0 if NA
     left_join(popDat, by = c("fips", "year")) %>%
-    mutate(visitsPerPop = sampViz/pop) %>%
-    select(fips, year, adjProviderCoverage, visitsPerProvider, visitsPerPop) %>%
+    mutate(visitsPerPop = ifelse(is.na(sampViz), 0, sampViz/pop)) %>% # 9/27/16 for glm: 0 if NA
+    select(fips, year, adjProviderCoverage, visitsPerProvider, visitsPerPop) %>% 
     arrange(fips, year)
   return(covDat)
 }
