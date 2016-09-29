@@ -938,8 +938,13 @@ cleanX_nisInfantAnyVaxCov_st <- function(){
   
   origDat <- tbl_df(dummy) %>%
     select(season, st, coverage) %>%
-    rename(infantAnyVax = coverage)
-  
+    mutate(season = paste0("S", season)) %>%
+    spread(season, coverage) %>% 
+    mutate(S5 = ifelse(st == "UT", (S4+S6)/2, S5)) %>% # 9/27/16 decisions to average adjacent season for missing S5 UT data
+    mutate(S6 = ifelse(st == "DE", (S5+S7)/2, S6)) %>% # 9/27/16 decisions to average adjacent season for missing S6 DE data
+    gather(season, infantAnyVax, S3:S9) %>%
+    mutate(season = as.numeric(substring(season, 2, 2)))
+
   # 6/7/16: duplicate season 3 data to fill in for missing season 2 data
   dupDat <- origDat %>% 
     filter(season == 3) %>%
