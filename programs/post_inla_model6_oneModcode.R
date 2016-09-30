@@ -66,12 +66,12 @@ if ("gamma" %in% likStrings){
   plot_diag_scatter_hurdle(path_csvExport, path_plotExport_predVsObs, "gamma", "y_nonzero", "mean", TRUE)
   
   # scatter: standardized residuals vs. fitted (yhat - gamma model only)
-  path_plotExport_residVsYhat <- paste0(path_plotExport, sprintf("/diag_residVsYhat_%s_%s.png", "gamma", modCodeStr))
-  plot_diag_scatter_hurdle(path_csvExport, path_plotExport_residVsYhat, "gamma", "mean", "yhat_resid", FALSE)
+  path_plotExport_residVsPred <- paste0(path_plotExport, sprintf("/diag_residVsPred_%s_%s.png", "gamma", modCodeStr))
+  plot_diag_scatter_hurdle(path_csvExport, path_plotExport_residVsPred, "gamma", "mean", "yhat_resid", FALSE)
   
   # scatter: raw residuals vs. fitted (yhat - gamma model only)
-  path_plotExport_residVsYhat2 <- paste0(path_plotExport, sprintf("/diag_rawresidVsYhat_%s_%s.png", "gamma", modCodeStr))
-  plot_diag_scatter_hurdle(path_csvExport, path_plotExport_residVsYhat2, "gamma", "mean", "yhat_rawresid", FALSE)
+  path_plotExport_residVsPred2 <- paste0(path_plotExport, sprintf("/diag_rawresidVsPred_%s_%s.png", "gamma", modCodeStr))
+  plot_diag_scatter_hurdle(path_csvExport, path_plotExport_residVsPred2, "gamma", "mean", "yhat_rawresid", FALSE)
   
   # scatter: standardized residuals vs. observed y_nonzero (yhat - gamma model only)
   path_plotExport_residVsObs <- paste0(path_plotExport, sprintf("/diag_residVsObs_%s_%s.png", "gamma", modCodeStr))
