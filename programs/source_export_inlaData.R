@@ -93,7 +93,7 @@ importPlot_coefDistr_season <- function(path_csvExport, path_plotExport_coefDist
   plot_coefDistr_season(fxDat, path_plotExport_coefDistr, 'fixed.png')
   
   # plot random effects
-  sampleLs <- coefDf %>% filter(effectType == 'spatial') %>% select(RV) %>% sample_n(9) %>% unlist
+  sampleLs <- coefDf %>% filter(effectType == 'spatial') %>% select(RV) %>% sample_n(50) %>% unlist
   rdmDat <- coefDf %>% filter(effectType == 'spatial' & RV %in% sampleLs) 
   plot_coefDistr_season(rdmDat, path_plotExport_coefDistr, 'random.png')
   
