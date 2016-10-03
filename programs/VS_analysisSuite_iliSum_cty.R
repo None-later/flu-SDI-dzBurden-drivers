@@ -19,7 +19,7 @@ require(RColorBrewer); require(ggplot2)
 dbCodeStr <- "_ilinDt_Octfit_span0.4_degree2"
 rCode <- "iliSum"
 seasons <- 2:9
-analysesOn <- c('loadData', 'pairwise') 
+analysesOn <- c('loadData', 'dataQuality', 'pairwise', 'singleVarWrite', 'singleVarPlot') 
 # 'loadData', 'dataQuality', 'pairwise', 'singleVarWrite', 'singleVarPlot'
 
 
@@ -29,6 +29,7 @@ source("source_clean_response_functions_cty.R") # functions to clean response an
 source("source_clean_data_functions.R") # functions to clean covariate data
 source("source_variableSelection_cty.R") # functions for variable selection analyses specific to county scale
 source("source_variableSelection.R") # functions for variable selection, generally
+source("source_prepare_inlaData_cty.R") # import prepared inla data
 
 #### FILEPATHS #################################
 setwd('../reference_data')
@@ -36,7 +37,7 @@ path_latlon_cty <- paste0(getwd(), "/cty_pop_latlon.csv")
 path_abbr_st <- paste0(getwd(), "/state_abbreviations_FIPS.csv")
 
 setwd("../R_export")
-path_response_zip3 <- paste0(getwd(), sprintf("/dbMetrics_periodicReg%s_analyzeDB.csv", dbCodeStr))
+path_response_cty <- paste0(getwd(), sprintf("/dbMetrics_periodicReg%s_analyzeDB_cty.csv", dbCodeStr))
 fname_coefDat <- sprintf("/VS_coefDat_%s_cty", rCode)
 path_coefDat <- paste0(getwd(), fname_coefDat)
 path_tempDatQuality <- paste0(getwd(), sprintf("/VS_tempDatQuality_%s_cty.csv", rCode))
@@ -44,7 +45,7 @@ path_tempDatQuality <- paste0(getwd(), sprintf("/VS_tempDatQuality_%s_cty.csv", 
 # put all paths in a list to pass them around in functions
 path_list <- list(path_abbr_st = path_abbr_st,
                   path_latlon_cty = path_latlon_cty,
-                  path_response_zip3 = path_response_zip3)
+                  path_response_cty = path_response_cty)
 
 setwd(dirname(sys.frame(1)$ofile))
 setwd("../graph_outputs")
@@ -61,7 +62,9 @@ setwd(path_pltExport)
 if("loadData" %in% analysesOn){
   
   # load data frame with all available cleaned variables
-  allDat <- prepare_allCov_iliSum_cty(path_list) 
+  # allDat <- prepare_allCov_iliSum_cty(path_list) 
+  importDat <- model6a_iliSum_v1(path_list)
+  allDat <- remove_case_exceptions(importDat)
   summary(allDat)
   
 } # end loadData

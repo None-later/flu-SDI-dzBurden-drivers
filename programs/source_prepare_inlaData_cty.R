@@ -16,12 +16,13 @@ require(dplyr); require(tidyr); require(maptools); require(spdep)
 #### functions for model data aggregation  ################################
 
 remove_case_exceptions <- function(full_df){
-  #   https://www.cdc.gov/nchs/data/nvss/bridged_race/county_geography_changes.pdf
-  #   Broomfield County, Colorado (FIPS code=08014) was created effective November 15, 2001 from parts of four Colorado counties: Adams, Boulder, Jefferson, and Weld. There are estimates for this county on some, but not all, of the bridged-race files. Note that data for Broomfield County do not appear on NCHS birth or mortality files until data year 2003. 
+  # 1) https://www.cdc.gov/nchs/data/nvss/bridged_race/county_geography_changes.pdf: Broomfield County, Colorado (FIPS code=08014) was created effective November 15, 2001 from parts of four Colorado counties: Adams, Boulder, Jefferson, and Weld. There are estimates for this county on some, but not all, of the bridged-race files. Note that data for Broomfield County do not appear on NCHS birth or mortality files until data year 2003
+  # 2) fips 48301 (Loving Cty, TX) is an outlier in all seasons
   print(match.call())
   
   full_df2 <- full_df %>%
-    filter(!(fips == "08014" & season %in% 2:5))
+    filter(!(fips == "08014" & season %in% 2:5)) %>% # 1
+    filter(!(fips == "48301")) # 2
   
   return(full_df2)
 }
