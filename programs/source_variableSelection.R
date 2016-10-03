@@ -69,14 +69,14 @@ model_singleVariable_inla <- function(mod_df, respCode, s, covariate){
               control.predictor = list(compute = TRUE), # compute summary statistics on fitted values
               control.compute = list(dic = TRUE),
               control.inla = list(correct = TRUE, correct.factor = 10, diagonal = 1000, strategy = "gaussian", int.strategy = "eb"),
-              offset = log(E)) # offset of expected cases
+              offset = logE) # offset of expected cases
   mod <- inla(formula, family = "gamma", data = mod_df2, 
                 control.family = list(link = 'log'),
                 control.predictor = list(compute = TRUE), # compute summary statistics on fitted values
                 control.compute = list(dic = TRUE),
                 control.inla = list(correct = TRUE, correct.factor = 10, diagonal = 0,  tolerance = 1e-6),
                 control.mode = list(result = starting1, restart = TRUE),
-                offset = log(E)) # offset of expected cases
+                offset = logE) # offset of expected cases
   
   names(mod$summary.fixed) <- c("mean", "sd", "q_025", "q_5", "q_975", "mode", "kld")
   modOutput <- tbl_df(mod$summary.fixed) %>%
@@ -97,7 +97,7 @@ plot_singleVarCoef_time <- function(coefDat){
   print(match.call())
   
   figure <- ggplot(coefDat, aes(x = season, y = coefMean, group = singleCov)) +
-    geom_pointrange(aes(ymin = LB, ymax = UB)) +
+    geom_pointrange(aes(ymin = coefLB, ymax = coefUB)) +
     geom_hline(yintercept = 0) +
     facet_wrap(~singleCov, scales = "free_y") +
     ylab("coefMean (95%CI)")

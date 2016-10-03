@@ -19,7 +19,7 @@ require(RColorBrewer); require(ggplot2)
 dbCodeStr <- "_ilinDt_Octfit_span0.4_degree2"
 rCode <- "iliSum"
 seasons <- 2:9
-analysesOn <- c('loadData', 'dataQuality', 'pairwise', 'singleVarWrite', 'singleVarPlot') 
+analysesOn <- c('loadData', 'dataQuality', 'pairwise') 
 # 'loadData', 'dataQuality', 'pairwise', 'singleVarWrite', 'singleVarPlot'
 
 
@@ -63,7 +63,7 @@ if("loadData" %in% analysesOn){
   
   # load data frame with all available cleaned variables
   # allDat <- prepare_allCov_iliSum_cty(path_list) 
-  importDat <- model6a_iliSum_v1(path_list)
+  importDat <- model6a_iliSum_v2(path_list)
   allDat <- remove_case_exceptions(importDat)
   summary(allDat)
   
