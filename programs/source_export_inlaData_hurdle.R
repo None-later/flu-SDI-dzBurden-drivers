@@ -46,7 +46,7 @@ importPlot_coefDistr_season_hurdle <- function(path_csvExport, path_plotExport_c
     
     # plot random effects
     if (nrow(coefDf_lik %>% filter(effectType == 'spatial')) > 0){
-      sampleLs <- coefDf_lik %>% filter(effectType == 'spatial') %>% select(RV) %>% sample_n(9) %>% unlist
+      sampleLs <- coefDf_lik %>% filter(effectType == 'spatial') %>% select(RV) %>% sample_n(50) %>% unlist
       rdmDat <- coefDf_lik %>% filter(effectType == 'spatial' & RV %in% sampleLs) 
       plot_coefDistr_season(rdmDat, path_plotExport_coefDistr, sprintf('random_%sLikelihood.png', lik))
     }
