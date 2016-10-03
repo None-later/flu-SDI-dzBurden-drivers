@@ -49,7 +49,7 @@ subset_singleVariable_data <- function(full_df, s, covariate){
     filter(season == s & !is.na(lat) & !is.na(lon)) %>%
 #     mutate(logy = centerStandardize(logy)) %>%
     rename_(varInterest = covariate) %>%
-    select(fips, fips_st, season, y, logE, varInterest) %>%
+    select(fips, fips_st, regionID, season, y, logE, varInterest) %>%
     mutate(ID = seq_along(fips))
   
   return(mod_df)
