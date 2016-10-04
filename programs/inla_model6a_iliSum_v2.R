@@ -25,7 +25,7 @@ require(RColorBrewer); require(ggplot2) # export_inlaData_st dependencies
 
 #### set these! ################################
 dbCodeStr <- "_ilinDt_Octfit_span0.4_degree2"
-modCodeStr <- "6a_iliSum_v2-4"; testDataOn <- FALSE
+modCodeStr <- "6a_iliSum_v2-6"; testDataOn <- FALSE
 seasons <- 2:9
 rdmFx_RV <- "nu"
 dig <- 4 # number of digits in the number of elements at this spatial scale (~3000 counties -> 4 digits)
@@ -70,13 +70,13 @@ if (testDataOn){
     intercept_bin +  O_imscoverage_bin + O_careseek_bin + X_poverty_bin + X_H3_bin
 } else{
 #### Import and process data ####
-  dummy <- model6a_iliSum_v1(path_list) # with driver & sampling effort variables
+  dummy <- model6a_iliSum_v2(path_list) # with driver & sampling effort variables
   modData <- remove_case_exceptions(dummy)
   formula <- Y ~ -1 + 
-    # f(fips_bin, model = "iid") + 
+    f(fips_bin, model = "iid") + 
     f(fips_st_bin, model = "iid") + 
     f(regionID_bin, model = "iid") + 
-    intercept_bin + O_imscoverage_bin + O_careseek_bin + O_insured_bin + X_poverty_bin + X_child_bin + X_adult_bin + X_hospaccess_bin + X_popdensity_bin + X_commute_bin + X_flight_bin + X_vaxcovI_bin + X_vaxcovE_bin + X_H3_bin + X_humidity_bin 
+    intercept_bin + O_imscoverage_bin + O_careseek_bin + O_insured_bin + X_poverty_bin + X_child_bin + X_adult_bin + X_hospaccess_bin + X_popdensity_bin + X_housdensity_bin + X_flight_bin + X_vaxcovI_bin + X_vaxcovE_bin + X_H3_bin + X_humidity_bin 
 }
 
 #### export formatting ####

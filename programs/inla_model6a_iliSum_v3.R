@@ -25,7 +25,7 @@ require(RColorBrewer); require(ggplot2) # export_inlaData_st dependencies
 
 #### set these! ################################
 dbCodeStr <- "_ilinDt_Octfit_span0.4_degree2"
-modCodeStr <- "6a_iliSum_v3-5"; testDataOn <- FALSE
+modCodeStr <- "6a_iliSum_v3-9"; testDataOn <- FALSE
 seasons <- 2:9
 rdmFx_RV <- "nu"
 dig <- 4 # number of digits in the number of elements at this spatial scale (~3000 counties -> 4 digits)
@@ -74,10 +74,10 @@ if (testDataOn){
   dummy <- model6a_iliSum_v2(path_list) # with driver & sampling effort variables
   modData <- remove_case_exceptions(dummy)
   formula <- Y ~ -1 + 
-    # f(fips_nonzero, model = "iid") + 
+    f(fips_nonzero, model = "iid") + 
     f(fips_st_nonzero, model = "iid") + 
     f(regionID_nonzero, model = "iid") + 
-    intercept_nonzero + O_imscoverage_nonzero + O_careseek_nonzero + O_insured_nonzero + X_poverty_nonzero + X_child_nonzero + X_adult_nonzero + X_hospaccess_nonzero + X_popdensity_nonzero + X_housdensity_nonzero + X_flight_nonzero + X_vaxcovI_nonzero + X_vaxcovE_nonzero + X_H3_nonzero + X_humidity_nonzero + offset(logE_nonzero)
+    intercept_nonzero + O_imscoverage_nonzero + O_careseek_nonzero + O_insured_nonzero + X_poverty_nonzero + X_child_nonzero + X_adult_nonzero + X_hospaccess_nonzero + X_popdensity_nonzero + X_housdensity_nonzero + X_flight_nonzero + X_vaxcovI_nonzero + X_vaxcovE_nonzero + X_H3_nonzero + X_humidity_nonzero + offset(E_nonzero)
 }
 
 #### export formatting ####
@@ -113,6 +113,8 @@ for (i in 1:length(seasons)){
                     control.fixed = list(mean = 0, prec = 1), # set prior parameters for regression coefficients
                     control.predictor = list(compute = TRUE, link = rep(1, nrow(modData_full))), 
                     control.inla = list(correct = TRUE, correct.factor = 10, diagonal = 1000, strategy = "gaussian", int.strategy = "eb"), # http://www.r-inla.org/events/newfeaturesinr-inlaapril2015; http://www.r-inla.org/?place=msg%2Fr-inla-discussion-group%2Fuf2ZGh4jmWc%2FA0rdPE5W7uMJ
+                    # E = E_nonzero,
+                    # offset = log(E_nonzero),
                     verbose = TRUE)
   
   starting2 <- inla(formula, 
@@ -123,6 +125,8 @@ for (i in 1:length(seasons)){
                     control.predictor = list(compute = TRUE, link = rep(1, nrow(modData_full))), 
                     control.inla = list(correct = TRUE, correct.factor = 10, diagonal = 100, strategy = "gaussian", int.strategy = "eb"), # http://www.r-inla.org/events/newfeaturesinr-inlaapril2015; http://www.r-inla.org/?place=msg%2Fr-inla-discussion-group%2Fuf2ZGh4jmWc%2FA0rdPE5W7uMJ
                     control.mode = list(result = starting1, restart = TRUE),
+                    # E = E_nonzero,
+                    # offset = log(E_nonzero),
                     verbose = TRUE)
   
   starting3 <- inla(formula, 
@@ -133,6 +137,8 @@ for (i in 1:length(seasons)){
                     control.predictor = list(compute = TRUE, link = rep(1, nrow(modData_full))), 
                     control.inla = list(correct = TRUE, correct.factor = 10, diagonal = 10, strategy = "gaussian", int.strategy = "eb"), # http://www.r-inla.org/events/newfeaturesinr-inlaapril2015; http://www.r-inla.org/?place=msg%2Fr-inla-discussion-group%2Fuf2ZGh4jmWc%2FA0rdPE5W7uMJ
                     control.mode = list(result = starting2, restart = TRUE),
+                    E = E_nonzero,
+                    # offset = log(E_nonzero),
                     verbose = TRUE)
   
   starting4 <- inla(formula, 
@@ -144,6 +150,8 @@ for (i in 1:length(seasons)){
                     # control.compute = list(dic = TRUE, cpo = TRUE),
                     control.inla = list(correct = TRUE, correct.factor = 10, diagonal = 1, strategy = "gaussian", int.strategy = "eb"), # http://www.r-inla.org/events/newfeaturesinr-inlaapril2015; http://www.r-inla.org/?place=msg%2Fr-inla-discussion-group%2Fuf2ZGh4jmWc%2FA0rdPE5W7uMJ
                     control.mode = list(result = starting3, restart = TRUE),
+                    # E = E_nonzero,
+                    # offset = log(E_nonzero),
                     verbose = TRUE)
   
   mod <- inla(formula, 
@@ -155,6 +163,8 @@ for (i in 1:length(seasons)){
               control.compute = list(dic = TRUE, cpo = TRUE),
               control.inla = list(correct = TRUE, correct.factor = 10, diagonal = 0, tolerance = 1e-6),
               control.mode = list(result = starting4, restart = TRUE),
+              # E = E_nonzero,
+              # offset = log(E_nonzero),
               verbose = TRUE,
               keep = TRUE, debug = TRUE) 
   
