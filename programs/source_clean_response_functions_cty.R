@@ -33,8 +33,9 @@ cleanR_iliSum_cty <- function(filepathList){
   # merge final data
   return_data <- full_join(iliSum_data, pop_data, by = c("season", "fips")) %>%
     select(fips, county, st, stateID, lat, lon, season, year, pop, y, has.epi, incl.analysis) %>%
+    mutate(y1 = ifelse(y>0, y, NA)) %>% # 10/3/16
     group_by(season) %>%
-    mutate(E = weighted.mean(y, pop, na.rm = TRUE)) %>%
+    mutate(E = weighted.mean(y1, pop, na.rm = TRUE)) %>%
     ungroup %>%
     filter(season != 1)
 
@@ -62,8 +63,9 @@ cleanR_iliPeak_cty <- function(filepathList){
   # merge final data
   return_data <- full_join(iliSum_data, pop_data, by = c("season", "fips")) %>%
     select(fips, county, st, stateID, lat, lon, season, year, pop, y, has.epi, incl.analysis) %>%
+    mutate(y1 = ifelse(y>0, y, NA)) %>% # 10/3/16
     group_by(season) %>%
-    mutate(E = weighted.mean(y, pop, na.rm = TRUE)) %>%
+    mutate(E = weighted.mean(y1, pop, na.rm = TRUE)) %>%
     ungroup %>%
     filter(season != 1)
   
