@@ -19,7 +19,9 @@ pairs_scatterplotMatrix <- function(full_df){
   print(match.call())
   
   datOnly <- full_df %>%
-    select(y, logE, contains("_")) 
+    mutate(logy = log(y)) %>%
+    select(y, logy, logE, contains("_")) %>%
+    filter(y > 0)
   
   pairPlt <- ggpairs(datOnly) +
     theme(axis.text.x = element_blank(), axis.text.y = element_blank(), axis.ticks = element_blank())
@@ -33,7 +35,9 @@ pairs_corrMatrix <- function(full_df){
   print(match.call())
   
   datOnly <- full_df %>% 
-    select(y, logE, contains("_"))
+    mutate(logy = log(y)) %>%
+    select(y, logy, logE, contains("_")) %>%
+    filter(y > 0)
   
   return(ggcorr(datOnly, method = c("pairwise", "spearman"), label = TRUE))
 }
