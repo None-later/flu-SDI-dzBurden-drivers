@@ -25,7 +25,7 @@ require(RColorBrewer); require(ggplot2) # export_inlaData_st dependencies
 
 #### set these! ################################
 dbCodeStr <- "_ilinDt_Octfit_span0.4_degree2"
-modCodeStr <- "6a_iliSum_v2-6"; testDataOn <- FALSE
+modCodeStr <- "6a_iliSum_v2-7"; testDataOn <- FALSE
 seasons <- 2:9
 rdmFx_RV <- "nu"
 dig <- 4 # number of digits in the number of elements at this spatial scale (~3000 counties -> 4 digits)
@@ -156,7 +156,7 @@ for (i in 1:length(seasons)){
               control.fixed = list(mean = 0, prec = 1), # set prior parameters for regression coefficients
               control.predictor = list(compute = TRUE, link = rep(1, nrow(modData_full))), 
               control.compute = list(dic = TRUE, cpo = TRUE),
-              control.inla = list(correct = TRUE, correct.factor = 10, diagonal = 0, tolerance = 1e-6),
+              control.inla = list(correct = TRUE, correct.factor = 10, diagonal = 0, tolerance = 1e-8),
               control.mode = list(result = starting4, restart = TRUE),
               verbose = TRUE,
               keep = TRUE, debug = TRUE) 
