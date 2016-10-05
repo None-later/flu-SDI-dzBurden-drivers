@@ -632,7 +632,7 @@ convert_hurdleModel_gamma <- function(modData_seas){
   
   # covariate matrix for gamma lik: response, predictors, random effects & offset
   Mx_gam <- modData_seas %>%
-    select(contains("X_"), contains("O_"), fips, fips_st, regionID, E) %>%
+    select(contains("X_"), contains("O_"), fips, fips_st, regionID, logE) %>%
     mutate(intercept = 1) 
   colnames(Mx_gam) <- paste0(colnames(Mx_gam), "_nonzero")
   
