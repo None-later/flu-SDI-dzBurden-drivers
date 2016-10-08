@@ -22,19 +22,32 @@ plot_diag_scatter_hurdle <- function(path_csvExport, path_plotExport_predVsObs, 
   # plot scatterplot with errorbars & calculate corr coef for each season
   print(match.call())
   
-  # grab list of files names
+  #### import fitted values ####
   setwd(path_csvExport)
   readfile_list <- grep(sprintf("summaryStatsFitted_%s", likelihoodString), list.files(), value = TRUE)
-  plotDat <- tbl_df(data.frame())
+  fitDat <- tbl_df(data.frame())
 
-  # import yhat and y data
   for (infile in readfile_list){
     seasFile <- read_csv(infile, col_types = "cci_ccddddddd")
-    plotDat <- bind_rows(plotDat, seasFile)
+    fitDat <- bind_rows(fitDat, seasFile)
   }
-  # rename columns
-  names(plotDat) <- c("modCodeStr", "dbCodeStr", "season", "fips", "ID", "mean", "sd", "q_025", "q_5", "q_975", "mode", "y")
+  names(fitDat) <- c("modCodeStr", "dbCodeStr", "season", "fips", "ID", "mean", "sd", "q_025", "q_5", "q_975", "mode", "y")
   
+  #### import id crosswalk ####
+  readfile_list2 <- grep("ids_", list.files(), value = TRUE)
+  idDat <- tbl_df(data.frame())
+  
+  for (infile2 in readfile_list2){
+    seasFile2 <- read_csv(infile2, col_types = "dc__cd")
+    idDat <- bind_rows(idDat, seasFile2)
+  }
+  
+  #### merge data ####
+  plotDat <- left_join(fitDat, idDat, by = c("season", "fips")) %>%
+    mutate(season = as.integer(season)) %>%
+    mutate(regionID = as.factor(as.integer(regionID)))
+
+  #### clean data ####
   # calculate yhat residuals for gamma model only
   if (likelihoodString == "gamma"){
     plotDat <- plotDat %>%
@@ -62,16 +75,18 @@ plot_diag_scatter_hurdle <- function(path_csvExport, path_plotExport_predVsObs, 
   # scatterplot: predicted vs observed with errorbars
   if (errorbar){
     plotOutput <- ggplot(plotDat2, aes(x = xVar, y = pltVar, group = facetlabel)) +
-      geom_pointrange(aes(ymin = q_025, ymax = q_975)) +
+      geom_pointrange(aes(ymin = q_025, ymax = q_975, colour = regionID), alpha = 0.3) +
       facet_wrap(~facetlabel, scales = "free") +
       scale_y_continuous(paste(yaxisVariable, "(95%CI)")) +
-      xlab(xaxisVariable)
+      xlab(xaxisVariable) +
+      theme(legend.position = "bottom")
   } else{
     plotOutput <- ggplot(plotDat2, aes(x = xVar, y = pltVar, group = facetlabel)) +
-      geom_point() +
+      geom_point(aes(colour = regionID), alpha = 0.3) +
       facet_wrap(~facetlabel, scales = "free") +
       ylab(yaxisVariable) +
-      xlab(xaxisVariable)
+      xlab(xaxisVariable) +
+      theme(legend.position = "bottom")
   }
   
   ggsave(path_plotExport_predVsObs, plotOutput, height = h, width = w, dpi = dp)
