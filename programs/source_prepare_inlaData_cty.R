@@ -590,6 +590,36 @@ convert_hurdleModel_separatePredictors <- function(modData_seas){
 }
 ################################
 
+convert_hurdleModel_gamma_spatiotemporal <- function(modData_seas){
+  # 10/11/16: prepare data seasonal model data for gamma model component
+  print(match.call())
+  
+  # bottom half response matrix with NA (binomial lik) and non-zeros/NA (gamma lik)
+  Y_gam <- modData_seas %>% 
+    select(y) %>%
+    mutate(y1 = ifelse(y > 0, y, NA)) %>%
+    select(y1) %>%
+    unlist
+  
+  # covariate matrix for gamma lik: response, predictors, random effects & offset
+  Mx_gam <- modData_seas %>%
+    select(contains("X_"), contains("O_"), fips, fips_st, regionID, logE, season) %>%
+    mutate(intercept = 1) 
+  colnames(Mx_gam) <- paste0(colnames(Mx_gam), "_nonzero")
+  
+  # convert matrix information to a list of lists/matrixes
+  modData_seas_lists <- list()
+  for (column in colnames(Mx_gam)){
+    modData_seas_lists[[column]] <- Mx_gam[[column]]
+  }
+  # add Y response vector as a list
+  modData_seas_lists[['Y']] <- Y_gam
+  
+  return(modData_seas_lists)
+}
+
+################################
+
 convert_hurdleModel_binomial <- function(modData_seas){
   # 7/22/16: prepare data seasonal model data with 2 stage (hurdle) model structure, but only for binomial model component
   print(match.call())

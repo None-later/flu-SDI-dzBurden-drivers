@@ -169,6 +169,25 @@ plot_coefDistr_season <- function(plotDat, path_plotExport_coefDistr, plotFilena
 }
 ################################
 
+plot_coefDistr_RV <- function(plotDat, path_plotExport_coefDistr, plotFilename){
+  # plot all coef mean & 95%CI over RV
+  print(match.call())
+  
+  # plot formatting
+  w <- 8; h <- 4; dp <- 250
+
+  # plot fixed effects
+  plotOutput <- ggplot(plotDat, aes(x = RV, y = mean)) +
+    geom_pointrange(aes(ymin = LB, ymax = UB, colour = signif)) +
+    geom_hline(yintercept = 0) +
+    scale_y_continuous("coefMean (95%CI)") +
+    guides(colour = FALSE) +
+    theme_bw() + 
+    theme(axis.title.x=element_blank(), axis.text.x=element_text(angle=45, vjust=1, hjust=1), axis.text=element_text(size=12))
+  ggsave(paste0(path_plotExport_coefDistr, plotFilename), plotOutput, height = h, width = w, dpi = dp)
+  
+}
+################################
 
 
 #### functions for data export  ################################

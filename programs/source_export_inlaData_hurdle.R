@@ -291,6 +291,14 @@ export_summaryStats_hurdle_gamma <- function(exportPath, modelOutput, rdmFxTxt, 
       select(RV, effectType, likelihood, mean, sd, q_025, q_5, q_975, mode, kld)
     summaryComplete <- bind_rows(summaryComplete, summaryRandomReg)
   }
+  if (!is.null(modelOutput$summary.random$season_nonzero)){
+    names(modelOutput$summary.random$season_nonzero) <- c("RV", names(modelOutput$summary.fixed))
+    summaryRandomSeas <- modelOutput$summary.random$season_nonzero %>% mutate(likelihood = "gamma") %>%
+      mutate(RV = paste0("S", RV)) %>%
+      mutate(effectType = "season") %>%
+      select(RV, effectType, likelihood, mean, sd, q_025, q_5, q_975, mode, kld)
+    summaryComplete <- bind_rows(summaryComplete, summaryRandomSeas)
+  }
  
   # bind data together
   summaryStats <- summaryComplete %>%
@@ -308,8 +316,8 @@ export_summaryStats_fitted_hurdle <- function(exportPath, oneLik_fits, modDataFu
   print(match.call())
   
   names(oneLik_fits) <- c("mean", "sd", "q_025", "q_5", "q_975", "mode")
-  modOutput_fitted <- bind_cols(modDataFullOutput %>% select(fips, ID, y), oneLik_fits) %>% 
-      mutate(modCodeStr = modCodeString, dbCodeStr = dbCodeString, season = season, exportDate = as.character(Sys.Date())) %>%
+  modOutput_fitted <- bind_cols(modDataFullOutput %>% select(fips, ID, y, season), oneLik_fits) %>% 
+      mutate(modCodeStr = modCodeString, dbCodeStr = dbCodeString, exportDate = as.character(Sys.Date())) %>% # 10/11/16: grab season from modDataFullOutput instead of function argument
       select(modCodeStr, dbCodeStr, season, exportDate, fips, ID, mean, sd, q_025, q_5, q_975, mode, y)
   
   # export data to file
