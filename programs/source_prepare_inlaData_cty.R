@@ -362,6 +362,83 @@ model6a_iliSum_v2 <- function(filepathList){
 }
 ################################
 
+model6a_iliSum_v2_raw <- function(filepathList){
+  # iliSum response, all sampling effort, and driver variables - before centerStandardize
+  # 10/11/16: v2 includes housDensity (pop per housing unit)
+  # y = response, E = expected response
+  print(match.call())
+  print(filepathList)
+  
+  #### import data ####
+  # IMS Health based tables
+  mod_cty_df <- cleanR_iliSum_cty(filepathList)
+  imsCov_cty_df <- cleanO_imsCoverage_cty()
+  # all county tables
+  sahieIns_cty_df <- cleanO_sahieInsured_cty()
+  saipePov_cty_df <- cleanX_saipePoverty_cty()
+  censusChPop_cty_df <- cleanX_censusChildPop_cty()
+  censusAdPop_cty_df <- cleanX_censusAdultPop_cty()
+  ahrfHosp_cty_df <- cleanX_ahrfHospitals_cty()
+  popDens_cty_df <- cleanX_popDensity_cty()
+  housDens_cty_df <- cleanX_housDensity_cty()
+  acsCommutInflows_cty_df <- cleanX_acsCommutInflows_cty()
+  btsPass_cty_df <- cleanX_btsPassInflows_cty()
+  narrSpecHum_cty_df <- cleanX_noaanarrSpecHum_cty()
+  # all state tables 
+  infantAnyVax_st_df <- cleanX_nisInfantAnyVaxCov_st() 
+  elderlyAnyVax_st_df <- cleanX_brfssElderlyAnyVaxCov_st() 
+  # all region tables
+  cdcH3_df <- cleanX_cdcFluview_H3_region()
+  
+  # list of continental states
+  statesOnly <- read_csv(filepathList$path_abbr_st, col_types = "__c", col_names = c("stateID"), skip = 1) 
+  continentalOnly <- statesOnly %>% filter(!(stateID %in% c("02", "15"))) %>% unlist
+  
+  #### join data ####
+  dummy_df <- full_join(mod_cty_df, imsCov_cty_df, by = c("year", "fips"))
+  dummy_df2 <- full_join(dummy_df, sahieIns_cty_df, by = c("year", "fips"))
+  
+  full_df <- full_join(dummy_df2, saipePov_cty_df, by = c("year", "fips")) %>%
+    full_join(censusChPop_cty_df, by = c("year", "fips")) %>%
+    full_join(censusAdPop_cty_df, by = c("year", "fips")) %>%
+    full_join(ahrfHosp_cty_df, by = c("year", "fips")) %>%
+    full_join(popDens_cty_df, by = c("year", "fips")) %>%
+    full_join(housDens_cty_df, by = c("year", "fips")) %>%
+    full_join(acsCommutInflows_cty_df, by = c("year", "fips" = "fips_wrk")) %>%
+    full_join(btsPass_cty_df, by = c("season", "fips" = "fips_dest")) %>%
+    mutate(pass = ifelse(is.na(pass), 0, pass)) %>% # counties with NA from merge had 0 passengers entering
+    full_join(infantAnyVax_st_df, by = c("season", "st")) %>%
+    full_join(elderlyAnyVax_st_df, by = c("season", "st")) %>%
+    mutate(fips_st = substring(fips, 1, 2)) %>% # region is linked by state fips code
+    full_join(cdcH3_df, by = c("season", "fips_st" = "fips")) %>%
+    rename(regionID = region) %>%
+    full_join(narrSpecHum_cty_df, by = c("season", "fips")) %>%
+    group_by(season) %>%
+    mutate(rO_imscoverage = adjProviderCoverage) %>%
+    mutate(rO_careseek = visitsPerPop) %>% # 8/10/16 changed from visitsPerProvider
+    mutate(rO_insured = insured) %>%
+    mutate(rX_poverty = poverty) %>%
+    mutate(rX_child = child) %>%
+    mutate(rX_adult = adult) %>%
+    mutate(rX_hospaccess = hospitalAccess) %>% 
+    mutate(rX_popdensity = popDensity) %>%
+    mutate(rX_housdensity = housDensity) %>%
+    mutate(rX_commute = commutInflows_prep) %>% 
+    mutate(rX_flight = pass) %>%
+    mutate(rX_vaxcovI = infantAnyVax) %>%
+    mutate(rX_vaxcovE = elderlyAnyVax) %>%
+    mutate(rX_H3 = H3) %>%
+    mutate(rX_humidity = humidity) %>%
+    ungroup %>%
+    filter(fips_st %in% continentalOnly) %>% # include data for continental states only
+    select(-stateID, -adjProviderCoverage, -visitsPerProvider, -visitsPerPop, -insured, -poverty, -child, -adult, -hospitalAccess, -popDensity, - housDensity, -commutInflows_prep, -pass, -infantAnyVax, -elderlyAnyVax, -H3, -humidity) %>%
+    filter(season %in% 2:9) %>%
+    mutate(logE = log(E)) # 7/18/16: for gamma likelihood offset
+  
+  return(full_df)
+}
+################################
+
 model6b_iliPeak_v1 <- function(filepathList){
   # iliPeak response, all sampling effort, and driver variables
   # y = response, E = expected response
