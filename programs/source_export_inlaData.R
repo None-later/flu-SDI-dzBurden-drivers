@@ -161,6 +161,7 @@ plot_coefDistr_season <- function(plotDat, path_plotExport_coefDistr, plotFilena
     geom_hline(yintercept = 0) +
     facet_wrap(~RV, scales = "free_y") +
     scale_y_continuous("coefMean (95%CI)") +
+    scale_colour_manual(limits = c(TRUE, FALSE), values = c("red", "#000080")) +
     xlim(c(1, 10)) +
     guides(colour = FALSE) +
     theme_bw()
@@ -181,6 +182,7 @@ plot_coefDistr_RV <- function(plotDat, path_plotExport_coefDistr, plotFilename){
     geom_pointrange(aes(ymin = LB, ymax = UB, colour = signif)) +
     geom_hline(yintercept = 0) +
     scale_y_continuous("coefMean (95%CI)") +
+    scale_colour_manual(limits = c(TRUE, FALSE), values = c("red", "#000080")) +
     guides(colour = FALSE) +
     theme_bw() + 
     theme(axis.title.x=element_blank(), axis.text.x=element_text(angle=45, vjust=1, hjust=1), axis.text=element_text(size=12))

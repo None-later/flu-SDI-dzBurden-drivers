@@ -17,7 +17,7 @@ setwd(dirname(sys.frame(1)$ofile))
 source("source_export_inlaData.R") # plot_coefDistr_season function within importPlot_coefDistr...
 source("source_export_inlaData_cty.R") # plot_countyChoro function
 source("source_export_inlaData_hurdle.R") # importPlot_coefDistr_season_hurdle function
-source("source_export_inlaDiagnostics.R") # plot_diag_scatter_hurdle function
+source("source_export_inlaDiagnostics.R") # plot_diag_scatter_hurdle function, calculate_residuals
 source("source_clean_response_functions_cty.R") # cty response functions
 
 #### set these! ################################
@@ -117,11 +117,9 @@ for (s in seasons){
   #### gamma model figures ####
   if ("gamma" %in% likStrings){
     path_csvImport_fittedGamma <- paste0(path_csvExport, sprintf("/summaryStatsFitted_gamma_%s.csv", modCodeStr))
-    mod_gam_fitted <- read_csv(path_csvImport_fittedGamma, col_types = c("fips" = col_character(), "ID" = col_character())) %>% 
-      filter(season == s) %>%
-      mutate(y_nonzero = ifelse(y > 0, y, NA)) %>%
-      mutate(yhat_resid = (y_nonzero-mean)/sd) %>%
-      mutate(yhat_rawresid = (y_nonzero-mean)) 
+    mod_gam_import <- read_csv(path_csvImport_fittedGamma, col_types = c("fips" = col_character(), "ID" = col_character())) %>% 
+      filter(season == s) 
+    mod_gam_fitted <- calculate_residuals(mod_gam_import, TRUE) # 2nd arg: nonzeronOnly
     
     # choropleth: fitted values (yhat_i) - Magnitude of non-zero epidemic
     path_plotExport_yhat_gam <- paste0(path_plotExport, sprintf("/choro_yHat_%s_S%s.png", modCodeStr, s))

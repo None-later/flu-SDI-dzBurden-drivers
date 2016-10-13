@@ -50,11 +50,7 @@ plot_diag_scatter_hurdle <- function(path_csvExport, path_plotExport_scatter, li
   #### clean data ####
   # calculate yhat residuals for gamma model only
   if (likelihoodString == "gamma"){
-    plotDat <- plotDat %>%
-      mutate(y_nonzero = ifelse(y > 0, y, NA)) %>%
-      mutate(yhat_resid = (y_nonzero-mean)/sd) %>%
-      mutate(yhat_rawresid = (y_nonzero-mean)) %>%
-      mutate(LB = mean-(sd*2), UB = mean+(sd*2))
+    plotDat <- calculate_residuals(plotDat, TRUE)
   }
 
   # calculate spearman's rho correlations
@@ -127,11 +123,7 @@ plot_diag_scatter_hurdle_spatiotemporal <- function(path_csvExport, path_plotExp
   #### clean data ####
   # calculate yhat residuals for gamma model only
   if (likelihoodString == "gamma"){
-    plotDat <- plotDat %>%
-      mutate(y_nonzero = ifelse(y > 0, y, NA)) %>%
-      mutate(yhat_resid = (y_nonzero-mean)/sd) %>%
-      mutate(yhat_rawresid = (y_nonzero-mean)) %>%
-      mutate(LB = mean-(sd*2), UB = mean+(sd*2))
+    plotDat <- calculate_residuals(plotDat, TRUE)
   }
 
   # calculate spearman's rho correlations
@@ -190,10 +182,7 @@ plot_diag_scatter <- function(path_csvExport, path_plotExport_predVsObs, xaxisVa
   names(plotDat) <- c("modCodeStr", "dbCodeStr", "season", "fips", "ID", "mean", "sd", "q_025", "q_5", "q_975", "mode", "y")
   
   # calculate yhat residuals 
-  plotDat <- plotDat %>%
-    mutate(yhat_resid = (y-mean)/sd) %>%
-    mutate(yhat_rawresid = (y-mean)) %>%
-    mutate(LB = mean-(sd*2), UB = mean+(sd*2))
+  plotDat <- calculate_residuals(plotDat, FALSE)
 
   # calculate spearman's rho correlations
   corrDat <- plotDat %>% 
@@ -420,53 +409,57 @@ importPlot_coefDistr_RV_spatiotemporal <- function(path_csvExport, path_plotExpo
   fullDf <- tbl_df(data.frame(modCodeStr = c(), dbCodeStr = c(), season = c(), RV = c(), effectType = c(), likelihood = c(), mean = c(), sd = c(), q_025 = c(), q_5 = c(), q_975 = c()))
   
   for (infile in readfile_list){
-    seasFile <- read_csv(infile, col_types = "cci_cccddddd__")
+    seasFile <- read_csv(infile, col_types = "ccd_cccddddd__")
     fullDf <- bind_rows(fullDf, seasFile)
   }
   
   coefDf <- fullDf %>%
     mutate(LB = mean-(2*sd), UB = mean+(2*sd)) %>%
     mutate(signif = ifelse(UB < 0 | LB > 0, TRUE, FALSE)) %>%
-    filter(!grepl("intercept", RV)) %>%
-    mutate(RV = gsub("_nonzero", "", RV)) %>%
-    mutate(RV = gsub("_bin", "", RV)) %>%
-    mutate(RV = gsub("X_", "", RV)) %>%
-    mutate(RV = gsub("O_", "", RV))
+    filter(!grepl("intercept", RV)) 
   
   # separate plots for data from each likelihood
   likelihoods <- coefDf %>% filter(!is.na(likelihood)) %>% distinct(likelihood) %>% unlist
   for (lik in likelihoods){
     coefDf_lik <- coefDf %>% filter(likelihood == lik)
-    
+
     # plot fixed effects
-    fxDat <- coefDf_lik %>% filter(effectType == 'fixed') 
+    fxDat <- coefDf_lik %>% filter(effectType == 'fixed') %>% clean_RVnames(.)
     plot_coefDistr_RV(fxDat, path_plotExport_coefDistr, sprintf('fixed_%sLikelihood.png', lik))
+    
+    # plot fixed effects (surveillance)
+    ODat <- coefDf_lik %>% filter(effectType == 'fixed' & grepl("O_", RV)) %>% clean_RVnames(.)
+    plot_coefDistr_RV(ODat, path_plotExport_coefDistr, sprintf('fixedSurveil_%sLikelihood.png', lik))
+    
+    # plot fixed effects (ecological)
+    XDat <- coefDf_lik %>% filter(effectType == 'fixed' & grepl("X_", RV)) %>% clean_RVnames(.)
+    plot_coefDistr_RV(XDat, path_plotExport_coefDistr, sprintf('fixedEcol_%sLikelihood.png', lik))
     
     # plot random effects
     if (nrow(coefDf_lik %>% filter(effectType == 'spatial')) > 0){
       sampleLs <- coefDf_lik %>% filter(effectType == 'spatial') %>% select(RV) %>% sample_n(56) %>% unlist
-      rdmDat <- coefDf_lik %>% filter(effectType == 'spatial' & RV %in% sampleLs) 
+      rdmDat <- coefDf_lik %>% filter(effectType == 'spatial' & RV %in% sampleLs) %>% clean_RVnames(.)
       plot_coefDistr_RV(rdmDat, path_plotExport_coefDistr, sprintf('random_%sLikelihood.png', lik))
     }
     
     # plot effects of state ID
     if (nrow(coefDf_lik %>% filter(effectType == 'stID')) > 0){
       stIds <- coefDf_lik %>% filter(effectType == 'stID') %>% distinct(RV) %>% unlist 
-      stIdDat <- coefDf_lik %>% filter(effectType == 'stID') %>% mutate(RV = factor(RV, levels = stIds))
+      stIdDat <- coefDf_lik %>% filter(effectType == 'stID') %>% clean_RVnames(.) %>% mutate(RV = factor(RV, levels = stIds)) 
       plot_coefDistr_RV(stIdDat, path_plotExport_coefDistr, sprintf('stateID_%sLikelihood.png', lik))
     }
     
     # plot effects of region ID
     if (nrow(coefDf_lik %>% filter(effectType == 'regID')) > 0){
       regIds <- coefDf_lik %>% filter(effectType == 'regID') %>% distinct(RV) %>% unlist 
-      regIdDat <- coefDf_lik %>% filter(effectType == 'regID') %>% mutate(RV = factor(RV, levels = regIds))
+      regIdDat <- coefDf_lik %>% filter(effectType == 'regID') %>% clean_RVnames(.) %>% mutate(RV = factor(RV, levels = regIds))
       plot_coefDistr_RV(regIdDat, path_plotExport_coefDistr, sprintf('regionID_%sLikelihood.png', lik))
     }
 
     # plot effects of season
     if (nrow(coefDf_lik %>% filter(effectType == 'season')) > 0){
       seasIds <- coefDf_lik %>% filter(effectType == 'season') %>% distinct(RV) %>% unlist 
-      seasDat <- coefDf_lik %>% filter(effectType == 'season') %>% mutate(RV = factor(RV, levels = seasIds))
+      seasDat <- coefDf_lik %>% filter(effectType == 'season') %>% clean_RVnames(.) %>% mutate(RV = factor(RV, levels = seasIds))
       plot_coefDistr_RV(seasDat, path_plotExport_coefDistr, sprintf('season_%sLikelihood.png', lik))
     }
   } 
@@ -525,3 +518,39 @@ clean_rawILI_cty <- function(filepathList){
   return(return_data)
   
 }
+################################
+
+calculate_residuals <- function(fitDat, nonzeroOnly){
+  # calculations that depend on fitted values for non-zero values: raw residuals, std residuals, 95% CI for fitted values
+  print(match.call())
+
+  if(nonzeroOnly){
+    returnDat <- fitDat %>%
+    mutate(y_nonzero = ifelse(y > 0, y, NA)) %>%
+    mutate(yhat_resid = (y_nonzero-mean)/sd) %>%
+    mutate(yhat_rawresid = (y_nonzero-mean)) %>%
+    mutate(LB = mean-(sd*2), UB = mean+(sd*2))
+    } 
+  else{
+    returnDat <- fitDat %>%
+    mutate(yhat_resid = (y-mean)/sd) %>%
+    mutate(yhat_rawresid = (y-mean)) %>%
+    mutate(LB = mean-(sd*2), UB = mean+(sd*2))
+    }
+  
+  return(returnDat)
+}
+################################
+
+clean_RVnames <- function(dat){
+  # remove RV addenda for plotting
+  print(match.call())
+  
+  return(dat %>% 
+           mutate(RV = gsub("_nonzero", "", RV)) %>%
+           mutate(RV = gsub("_bin", "", RV)) %>%
+           mutate(RV = gsub("X_", "", RV)) %>%
+           mutate(RV = gsub("O_", "", RV))
+         )
+}
+

@@ -38,11 +38,23 @@ importPlot_coefDistr_season_hurdle <- function(path_csvExport, path_plotExport_c
   # separate plots for data from each likelihood
   likelihoods <- coefDf %>% filter(!is.na(likelihood)) %>% distinct(likelihood) %>% unlist
   for (lik in likelihoods){
-    coefDf_lik <- coefDf %>% filter(likelihood == lik)
+    coefDf_lik <- coefDf %>% filter(likelihood == lik) %>%
+      mutate(RV = gsub("_nonzero", "", RV)) %>%
+      mutate(RV = gsub("_bin", "", RV))
     
     # plot fixed effects
     fxDat <- coefDf_lik %>% filter(effectType == 'fixed') 
     plot_coefDistr_season(fxDat, path_plotExport_coefDistr, sprintf('fixed_%sLikelihood.png', lik))
+    
+    # plot fixed effects (surveillance)
+    ODat <- coefDf_lik %>% filter(effectType == 'fixed' & grepl("O_", RV)) %>%
+      mutate(RV = gsub("O_", "", RV))
+    plot_coefDistr_season(ODat, path_plotExport_coefDistr, sprintf('fixedSurveil_%sLikelihood.png', lik))
+    
+    # plot fixed effects (ecological)
+    XDat <- coefDf_lik %>% filter(effectType == 'fixed' & grepl("X_", RV)) %>%
+      mutate(RV = gsub("X_", "", RV))
+    plot_coefDistr_season(XDat, path_plotExport_coefDistr, sprintf('fixedEcol_%sLikelihood.png', lik))
     
     # plot random effects
     if (nrow(coefDf_lik %>% filter(effectType == 'spatial')) > 0){
