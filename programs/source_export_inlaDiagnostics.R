@@ -103,7 +103,6 @@ plot_diag_scatter_hurdle_spatiotemporal <- function(path_csvExport, path_plotExp
     seasFile <- read_csv(infile, col_types = "ccd_ccddddddd")
     fitDat <- bind_rows(fitDat, seasFile)
   }
-  View(fitDat)
   names(fitDat) <- c("modCodeStr", "dbCodeStr", "season", "fips", "ID", "mean", "sd", "q_025", "q_5", "q_975", "mode", "y")
   
   #### import id crosswalk ####
@@ -162,6 +161,90 @@ plot_diag_scatter_hurdle_spatiotemporal <- function(path_csvExport, path_plotExp
   ggsave(path_plotExport_scatter, plotOutput, height = h, width = w, dpi = dp)
   
 }
+################################
+
+importPlot_diag_scatter_predictors_spatiotemporal <- function(path_csvExport, path_plotExport_scatter, likelihoodString, yaxisVariable, modelDat){
+  # import data and call scatterplot with fitted values/residuals vs. predictors
+  print(match.call())
+  
+  #### import fitted values ####
+  setwd(path_csvExport)
+  readfile_list <- grep(sprintf("summaryStatsFitted_%s", likelihoodString), list.files(), value = TRUE)
+  fitDat <- tbl_df(data.frame())
+  
+  for (infile in readfile_list){
+    seasFile <- read_csv(infile, col_types = "ccd_ccddddddd")
+    fitDat <- bind_rows(fitDat, seasFile)
+  }
+  names(fitDat) <- c("modCodeStr", "dbCodeStr", "season", "fips", "ID", "mean", "sd", "q_025", "q_5", "q_975", "mode", "y")
+  
+  #### import id crosswalk ####
+  readfile_list2 <- grep("ids_", list.files(), value = TRUE)
+  idDat <- tbl_df(data.frame())
+  
+  for (infile2 in readfile_list2){
+    seasFile2 <- read_csv(infile2, col_types = "dc__cd")
+    idDat <- bind_rows(idDat, seasFile2)
+  }
+  
+  #### grab only predictor data ####
+  modDat_clean <- modelDat %>%
+    select(fips, season, matches("[XO]_"))
+  
+  #### merge data ####
+  plotDat <- left_join(fitDat, idDat, by = c("season", "fips")) %>%
+    left_join(modDat_clean, by = c("season", "fips")) %>%
+    mutate(season = as.factor(as.integer(season))) %>%
+    mutate(regionID = as.factor(as.integer(regionID)))
+  
+  #### clean data ####
+  # calculate yhat residuals for gamma model only
+  if (grepl("gamma", likelihoodString)){
+    plotDat <- calculate_residuals(plotDat, TRUE)
+  }
+  # list of varnames
+  varnames <- grep("[XO]_", names(plotDat), value = TRUE)
+
+  for (i in 1:length(varnames)){
+    var <- gsub("r?[XO]_", "", varnames[i])
+    path_plotExport_predictor <- paste0(path_plotExport_scatter, var, "_", likelihoodString, ".png")
+    plot_diag_scatter_predictors_spatiotemporal(plotDat, varnames[i], yaxisVariable, path_plotExport_predictor)
+    print(paste("exported", path_plotExport_predictor))
+  }
+
+}
+
+################################
+plot_diag_scatter_predictors_spatiotemporal <- function(plotDat, xaxisVariable, yaxisVariable, path_plotExport_predictor){
+  
+  # formatting for scatterplot with fitted values/residuals vs. predictors
+  print(match.call())
+  
+  # calculate spearman's rho correlations
+  corrLab <- plotDat %>% 
+    rename_(yVar = yaxisVariable, xVar = xaxisVariable) %>%
+    summarise(rho = cor(xVar, yVar, method = "spearman", use = 'complete.obs')) %>%
+    mutate(facetlabel = paste("spearman rho", round(rho, 3))) %>%
+    select(facetlabel) 
+
+  # create new dataset with new varnames
+  plotDat2 <- plotDat %>% 
+    rename_(yVar = yaxisVariable, xVar = xaxisVariable)
+  
+  # plot formatting
+  w <- 6; h <- 6; dp <- 250
+  
+  # scatterplot: fitted/residual vs predictor data 
+  plotOutput <- ggplot(plotDat2, aes(x = xVar, y = yVar)) +
+    geom_point() +
+    ylab(yaxisVariable) +
+    xlab(xaxisVariable) +
+    facet_wrap(~season) +
+    theme_bw() +
+    ggtitle(as.character(corrLab$facetlabel))
+  ggsave(path_plotExport_predictor, plotOutput, height = h, width = w, dpi = dp)
+
+  }
 ################################
 
 plot_diag_scatter <- function(path_csvExport, path_plotExport_predVsObs, xaxisVariable, yaxisVariable, errorbar){

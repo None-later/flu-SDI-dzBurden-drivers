@@ -11,7 +11,7 @@
 ## update.packages(lib.loc = "/usr/local/lib/R/site-library")
 
 require(dplyr); require(tidyr)
-
+source("source_clean_data_functions.R")
 
 #### functions for data aggregation  ################################
 
@@ -104,7 +104,94 @@ prepare_allCov_iliSum_cty <- function(filepathList){
 }
 ################################
 
-
+prepare_allCov_iliSum_cty_raw <- function(filepathList){
+  # iliSum response, all sampling effort, and driver variables
+  # y = response, E = expected response
+  print(match.call())
+  print(filepathList)
+  
+  #### import data ####
+  # IMS Health based tables
+  mod_cty_df <- cleanR_iliSum_cty(filepathList)
+  imsCov_cty_df <- cleanO_imsCoverage_cty()
+  # all county tables
+  sahieIns_cty_df <- cleanO_sahieInsured_cty()
+  saipePov_cty_df <- cleanX_saipePoverty_cty()
+  saipeInc_cty_df <- cleanX_saipeIncome_cty()
+  ahrfMcaid_cty_df <- cleanX_ahrfMedicaidEligibles_cty()
+  ahrfMcare_cty_df <- cleanX_ahrfMedicareEligibles_cty()
+  censusInfTodPop_cty_df <- cleanX_censusInfantToddlerPop_cty()
+  censusChPop_cty_df <- cleanX_censusChildPop_cty()
+  censusAdPop_cty_df <- cleanX_censusAdultPop_cty()
+  censusEldPop_cty_df <- cleanX_censusElderlyPop_cty()
+  ahrfHosp_cty_df <- cleanX_ahrfHospitals_cty()
+  ahrfPhys_cty_df <- cleanX_ahrfPhysicians_cty()
+  popDens_cty_df <- cleanX_popDensity_cty()
+  housDens_cty_df <- cleanX_housDensity_cty()
+  acsCommutInflows_cty_df <- cleanX_acsCommutInflows_cty()
+  btsPass_cty_df <- cleanX_btsPassInflows_cty()
+  narrSpecHum_cty_df <- cleanX_noaanarrSpecHum_cty()
+  narrSfcTemp_cty_df <- cleanX_noaanarrSfcTemp_cty()
+  # all state tables 
+  infantAnyVax_df <- cleanX_nisInfantAnyVaxCov_st()
+  infantFullVax_df <- cleanX_nisInfantFullVaxCov_st()
+  # all region tables
+  cdcFluPos_df <- cleanX_cdcFluview_fluPos_region()
+  cdcH3_df <- cleanX_cdcFluview_H3_region() %>% select(-region)
+  
+  #### join data ####
+  dummy_df <- full_join(mod_cty_df, imsCov_cty_df, by = c("year", "fips"))
+  dummy_df2 <- full_join(dummy_df, sahieIns_cty_df, by = c("year", "fips"))
+  
+  full_df <- full_join(dummy_df2, saipePov_cty_df, by = c("year", "fips")) %>%
+    full_join(saipeInc_cty_df, by = c("year", "fips")) %>%
+    full_join(ahrfMcaid_cty_df, by = c("year", "fips")) %>%
+    full_join(ahrfMcare_cty_df, by = c("year", "fips")) %>%
+    full_join(censusInfTodPop_cty_df, by = c("year", "fips")) %>%
+    full_join(censusChPop_cty_df, by = c("year", "fips")) %>%
+    full_join(censusAdPop_cty_df, by = c("year", "fips")) %>%
+    full_join(censusEldPop_cty_df, by = c("year", "fips")) %>%
+    full_join(ahrfHosp_cty_df, by = c("year", "fips")) %>%
+    full_join(ahrfPhys_cty_df, by = c("year", "fips")) %>%
+    full_join(popDens_cty_df, by = c("year", "fips")) %>%
+    full_join(housDens_cty_df, by = c("year", "fips")) %>%
+    full_join(acsCommutInflows_cty_df, by = c("year", "fips" = "fips_wrk")) %>%
+    full_join(btsPass_cty_df, by = c("season", "fips" = "fips_dest")) %>%
+    mutate(pass = ifelse(is.na(pass), 0, pass)) %>% # counties with NA from merge had 0 passengers entering
+    mutate(fips_st = substring(fips, 1, 2)) %>% # region is linked by state fips code
+    full_join(cdcFluPos_df, by = c("season", "fips_st" = "fips")) %>%
+    full_join(cdcH3_df, by = c("season", "fips_st" = "fips")) %>%
+    full_join(narrSpecHum_cty_df, by = c("season", "fips")) %>%
+    full_join(narrSfcTemp_cty_df, by = c("season", "fips")) %>%
+    group_by(season) %>%
+    mutate(rO_imscoverage = adjProviderCoverage) %>%
+    mutate(rO_careseek = visitsPerProvider) %>%
+    mutate(rO_insured = insured) %>%
+    mutate(rX_poverty = poverty) %>%
+    mutate(rX_income = income) %>%
+    mutate(rX_mcaid = mcaidElig) %>%
+    mutate(rX_mcare = mcareElig) %>%
+    mutate(rX_infantToddler = infantToddler) %>%
+    mutate(rX_child = child) %>%
+    mutate(rX_adult = adult) %>%
+    mutate(rX_elderly = elderly) %>%
+    mutate(rX_hospaccess = hospitalAccess) %>% 
+    mutate(rX_physaccess = physicianAccess) %>%
+    mutate(rX_popdensity = popDensity) %>%
+    mutate(rX_housdensity = housDensity) %>%
+    mutate(rX_commute = commutInflows_prep) %>% # commutInflows_prep/pop and commutInflows_prep raw look similar in EDA choropleths
+    mutate(rX_flight = pass) %>%
+    mutate(rX_fluPos = fluPos) %>%
+    mutate(rX_H3 = H3) %>%
+    mutate(rX_humidity = humidity) %>%
+    mutate(rX_temperature = temperature) %>%
+    ungroup %>%
+    select(-fips_st, -adjProviderCoverage, -visitsPerProvider, -insured, -poverty, -income, -mcaidElig, -mcareElig, -infantToddler, -child, -adult, -elderly, -hospitalAccess, -physicianAccess, -popDensity, -housDensity, -commutInflows_prep, -pass, -fluPos, -H3, -humidity, -temperature) %>%
+    filter(season %in% 2:9)
+  
+  return(full_df)
+}
+################################
 
 #### test the functions here  ################################
 
