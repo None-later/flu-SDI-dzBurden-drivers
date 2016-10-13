@@ -11,7 +11,7 @@
 ## update.packages(lib.loc = "/usr/local/lib/R/site-library")
 
 require(RColorBrewer); require(ggplot2)
-
+source("source_export_inlaDiagnostics.R")
 
 #### functions for results plots by modcode  ################################
 
@@ -38,42 +38,38 @@ importPlot_coefDistr_season_hurdle <- function(path_csvExport, path_plotExport_c
   # separate plots for data from each likelihood
   likelihoods <- coefDf %>% filter(!is.na(likelihood)) %>% distinct(likelihood) %>% unlist
   for (lik in likelihoods){
-    coefDf_lik <- coefDf %>% filter(likelihood == lik) %>%
-      mutate(RV = gsub("_nonzero", "", RV)) %>%
-      mutate(RV = gsub("_bin", "", RV))
+    coefDf_lik <- coefDf %>% filter(likelihood == lik)
     
     # plot fixed effects
-    fxDat <- coefDf_lik %>% filter(effectType == 'fixed') 
+    fxDat <- coefDf_lik %>% filter(effectType == 'fixed') %>% clean_RVnames(.)
     plot_coefDistr_season(fxDat, path_plotExport_coefDistr, sprintf('fixed_%sLikelihood.png', lik))
     
     # plot fixed effects (surveillance)
-    ODat <- coefDf_lik %>% filter(effectType == 'fixed' & grepl("O_", RV)) %>%
-      mutate(RV = gsub("O_", "", RV))
+    ODat <- coefDf_lik %>% filter(effectType == 'fixed' & grepl("O_", RV)) %>% clean_RVnames(.)
     plot_coefDistr_season(ODat, path_plotExport_coefDistr, sprintf('fixedSurveil_%sLikelihood.png', lik))
     
     # plot fixed effects (ecological)
-    XDat <- coefDf_lik %>% filter(effectType == 'fixed' & grepl("X_", RV)) %>%
-      mutate(RV = gsub("X_", "", RV))
+    XDat <- coefDf_lik %>% filter(effectType == 'fixed' & grepl("X_", RV)) %>% clean_RVnames(.)
     plot_coefDistr_season(XDat, path_plotExport_coefDistr, sprintf('fixedEcol_%sLikelihood.png', lik))
     
     # plot random effects
     if (nrow(coefDf_lik %>% filter(effectType == 'spatial')) > 0){
       sampleLs <- coefDf_lik %>% filter(effectType == 'spatial') %>% select(RV) %>% sample_n(56) %>% unlist
-      rdmDat <- coefDf_lik %>% filter(effectType == 'spatial' & RV %in% sampleLs) 
+      rdmDat <- coefDf_lik %>% filter(effectType == 'spatial' & RV %in% sampleLs) %>% clean_RVnames(.)
       plot_coefDistr_season(rdmDat, path_plotExport_coefDistr, sprintf('random_%sLikelihood.png', lik))
     }
     
     # plot effects of state ID
     if (nrow(coefDf_lik %>% filter(effectType == 'stID')) > 0){
       stIds <- coefDf_lik %>% filter(effectType == 'stID') %>% distinct(RV) %>% unlist 
-      stIdDat <- coefDf_lik %>% filter(effectType == 'stID') %>% mutate(RV = factor(RV, levels = stIds))
+      stIdDat <- coefDf_lik %>% filter(effectType == 'stID') %>% clean_RVnames(.) %>% mutate(RV = factor(RV, levels = stIds))
       plot_coefDistr_season(stIdDat, path_plotExport_coefDistr, sprintf('stateID_%sLikelihood.png', lik))
     }
     
     # plot effects of state ID
     if (nrow(coefDf_lik %>% filter(effectType == 'regID')) > 0){
       regIds <- coefDf_lik %>% filter(effectType == 'regID') %>% distinct(RV) %>% unlist 
-      regIdDat <- coefDf_lik %>% filter(effectType == 'regID') %>% mutate(RV = factor(RV, levels = regIds))
+      regIdDat <- coefDf_lik %>% filter(effectType == 'regID') %>% clean_RVnames(.) %>% mutate(RV = factor(RV, levels = regIds))
       plot_coefDistr_season(regIdDat, path_plotExport_coefDistr, sprintf('regionID_%sLikelihood.png', lik))
     }
   } 
