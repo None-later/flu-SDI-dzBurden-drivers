@@ -44,8 +44,8 @@ prepare_allCov_iliSum_cty <- function(filepathList){
   narrSpecHum_cty_df <- cleanX_noaanarrSpecHum_cty()
   narrSfcTemp_cty_df <- cleanX_noaanarrSfcTemp_cty()
   # all state tables 
-  infantAnyVax_df <- cleanX_nisInfantAnyVaxCov_st()
-  infantFullVax_df <- cleanX_nisInfantFullVaxCov_st()
+  infantAnyVax_st_df <- cleanX_nisInfantAnyVaxCov_st()
+  elderlyAnyVax_st_df <- cleanX_brfssElderlyAnyVaxCov_st() 
   # all region tables
   cdcFluPos_df <- cleanX_cdcFluview_fluPos_region()
   cdcH3_df <- cleanX_cdcFluview_H3_region() %>% select(-region)
@@ -69,6 +69,8 @@ prepare_allCov_iliSum_cty <- function(filepathList){
     full_join(acsCommutInflows_cty_prep, by = c("year", "fips" = "fips_wrk")) %>%
     full_join(btsPass_cty_df, by = c("season", "fips" = "fips_dest")) %>%
     mutate(pass = ifelse(is.na(pass), 0, pass)) %>% # counties with NA from merge had 0 passengers entering
+    full_join(infantAnyVax_st_df, by = c("season", "st")) %>%
+    full_join(elderlyAnyVax_st_df, by = c("season", "st")) %>%
     mutate(fips_st = substring(fips, 1, 2)) %>% # region is linked by state fips code
     full_join(cdcFluPos_df, by = c("season", "fips_st" = "fips")) %>%
     full_join(cdcH3_df, by = c("season", "fips_st" = "fips")) %>%
@@ -92,6 +94,8 @@ prepare_allCov_iliSum_cty <- function(filepathList){
     mutate(X_housdensity = centerStandardize(housDensity)) %>%
     mutate(X_commute = centerStandardize(commutInflows_prep)) %>% # commutInflows_prep/pop and commutInflows_prep raw look similar in EDA choropleths
     mutate(X_flight = centerStandardize(pass)) %>%
+    mutate(X_vaxcovI = centerStandardize(infantAnyVax)) %>%
+    mutate(X_vaxcovE = centerStandardize(elderlyAnyVax)) %>%
     mutate(X_fluPos = centerStandardize(fluPos)) %>%
     mutate(X_H3 = centerStandardize(H3)) %>%
     mutate(X_humidity = centerStandardize(humidity)) %>%
@@ -133,8 +137,8 @@ prepare_allCov_iliSum_cty_raw <- function(filepathList){
   narrSpecHum_cty_df <- cleanX_noaanarrSpecHum_cty()
   narrSfcTemp_cty_df <- cleanX_noaanarrSfcTemp_cty()
   # all state tables 
-  infantAnyVax_df <- cleanX_nisInfantAnyVaxCov_st()
-  infantFullVax_df <- cleanX_nisInfantFullVaxCov_st()
+  infantAnyVax_st_df <- cleanX_nisInfantAnyVaxCov_st()
+  elderlyAnyVax_st_df <- cleanX_brfssElderlyAnyVaxCov_st() 
   # all region tables
   cdcFluPos_df <- cleanX_cdcFluview_fluPos_region()
   cdcH3_df <- cleanX_cdcFluview_H3_region() %>% select(-region)
@@ -158,6 +162,8 @@ prepare_allCov_iliSum_cty_raw <- function(filepathList){
     full_join(acsCommutInflows_cty_df, by = c("year", "fips" = "fips_wrk")) %>%
     full_join(btsPass_cty_df, by = c("season", "fips" = "fips_dest")) %>%
     mutate(pass = ifelse(is.na(pass), 0, pass)) %>% # counties with NA from merge had 0 passengers entering
+    full_join(infantAnyVax_st_df, by = c("season", "st")) %>%
+    full_join(elderlyAnyVax_st_df, by = c("season", "st")) %>%
     mutate(fips_st = substring(fips, 1, 2)) %>% # region is linked by state fips code
     full_join(cdcFluPos_df, by = c("season", "fips_st" = "fips")) %>%
     full_join(cdcH3_df, by = c("season", "fips_st" = "fips")) %>%
@@ -181,6 +187,8 @@ prepare_allCov_iliSum_cty_raw <- function(filepathList){
     mutate(rX_housdensity = housDensity) %>%
     mutate(rX_commute = commutInflows_prep) %>% # commutInflows_prep/pop and commutInflows_prep raw look similar in EDA choropleths
     mutate(rX_flight = pass) %>%
+    mutate(rX_vaxcovI = infantAnyVax) %>%
+    mutate(rX_vaxcovE = elderlyAnyVax) %>%
     mutate(rX_fluPos = fluPos) %>%
     mutate(rX_H3 = H3) %>%
     mutate(rX_humidity = humidity) %>%
