@@ -54,6 +54,7 @@ dir.create("./diag_predictors", showWarnings = FALSE)
 setwd("./diag_predictors")
 path_plotExport <- getwd()
 
+#### Residuals vs. predictors #################################
 # csv file export directories
 setwd(dirname(sys.frame(1)$ofile))
 setwd(sprintf("../R_export/inlaModelData_export/%s", modCodeStr))
@@ -74,4 +75,10 @@ importPlot_diag_scatter_predictors_spatiotemporal(path_csvExport, path_plotExpor
 #### std residuals vs std data ####
 path_plotExport_scatter_ss <- paste0(path_plotExport, "/diag_resid_")
 importPlot_diag_scatter_predictors_spatiotemporal(path_csvExport, path_plotExport_scatter_ss, paste0("gamma_", modCodeStr), "yhat_resid", modData)
+
+#### Distribution of response, residuals and all predictors #################################
+
+path_plotExport_distr <- paste0(path_plotExport, "/diag_distr_")
+importPlot_diag_data_distribution(path_csvExport, path_plotExport_distr, paste0("gamma_", modCodeStr), modData)
+
 

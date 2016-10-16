@@ -247,6 +247,72 @@ plot_diag_scatter_predictors_spatiotemporal <- function(plotDat, xaxisVariable, 
   }
 ################################
 
+importPlot_diag_data_distribution <- function(path_csvExport, path_plotExport_distribution, likelihoodString, modelDat){
+  # import data and call histogram of distributions of fitted values, residuals, and predictors
+  print(match.call())
+  
+  #### import fitted values ####
+  setwd(path_csvExport)
+  readfile_list <- grep(sprintf("summaryStatsFitted_%s", likelihoodString), list.files(), value = TRUE)
+  fitDat <- tbl_df(data.frame())
+  
+  for (infile in readfile_list){
+    seasFile <- read_csv(infile, col_types = "ccd_ccddddddd")
+    fitDat <- bind_rows(fitDat, seasFile)
+  }
+  names(fitDat) <- c("modCodeStr", "dbCodeStr", "season", "fips", "ID", "mean", "sd", "q_025", "q_5", "q_975", "mode", "y")
+  
+  #### grab only predictor data ####
+  modDat_clean <- modelDat %>%
+    select(fips, season, matches("[XO]_"))
+  
+  #### merge data ####
+  plotDat <- left_join(fitDat, modDat_clean, by = c("season", "fips")) %>%
+    mutate(season = as.factor(as.integer(season))) 
+  
+  #### clean data ####
+  # calculate yhat residuals for gamma model only
+  if (grepl("gamma", likelihoodString)){
+    plotDat <- calculate_residuals(plotDat, TRUE)
+  }
+  # list of varnames
+  varnames <- grep("[XO]_", names(plotDat), value = TRUE)
+  resnames <- c("y_nonzero", "yhat_resid", "yhat_rawresid")
+  allnames <- c(varnames, resnames)
+  
+  for (i in 1:length(allnames)){
+    var <- gsub("r?[XO]_", "", allnames[i])
+    path_plotExport_distribution_full <- paste0(path_plotExport_distribution, var, "_", likelihoodString, ".png")
+    plot_diag_data_distribution(plotDat, allnames[i], path_plotExport_distribution_full)
+    print(paste("exported", path_plotExport_distribution_full))
+  }
+  
+}
+
+################################
+
+plot_diag_data_distribution <- function(plotDat, xaxisVariable, path_plotExport_distribution){
+  
+  # formatting for data distributions
+  print(match.call())
+  
+  # create new dataset with new varnames
+  plotDat2 <- plotDat %>% 
+    rename_(xVar = xaxisVariable)
+  
+  # plot formatting
+  w <- 4; h <- 4; dp <- 250
+  
+  # scatterplot: fitted/residual vs predictor data 
+  plotOutput <- ggplot(plotDat2, aes(x = xVar)) +
+    geom_histogram(bins=nrow(plotDat2)/10) +
+    xlab(xaxisVariable) +
+    theme_bw() 
+  ggsave(path_plotExport_distribution, plotOutput, height = h, width = w, dpi = dp)
+  
+}
+################################
+
 plot_diag_scatter <- function(path_csvExport, path_plotExport_predVsObs, xaxisVariable, yaxisVariable, errorbar){
   # plot scatterplot & calculate corr coef for each season
   print(match.call())
