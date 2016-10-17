@@ -131,12 +131,10 @@ plot_diag_scatter_hurdle_spatiotemporal <- function(path_csvExport, path_plotExp
     summarise(rho = cor(xVar, pltVar, method = "spearman", use = 'complete.obs')) %>%
     mutate(facetlabel = paste("spatiotemporal rho", round(rho, 3))) %>%
     select(facetlabel) 
-  print(as.character(corrLab$facetlabel))
 
   # create new dataset with new varnames
   plotDat2 <- plotDat %>% 
     rename_(pltVar = yaxisVariable, xVar = xaxisVariable)
-  View(plotDat2)
 
   # plot formatting
   w <- 6; h <- 4; dp <- 250

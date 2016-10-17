@@ -21,7 +21,7 @@ source("source_export_inlaDiagnostics.R") # plot_diag_scatter_hurdle function, c
 source("source_clean_response_functions_cty.R") # cty response functions
 
 #### set these! ################################
-modCodeStr <- "7a_iliSum_v3-1"
+modCodeStr <- "7a_iliSum_v3-2"
 seasons <- c(2:9)
 likStrings <- c("gamma")
 
@@ -84,7 +84,7 @@ if ("gamma" %in% likStrings){
   ## map county random effect error terms - check for spatial clustering ##
   path_csvImport_estimates <- paste0(path_csvExport, sprintf("/summaryStats_%s.csv", modCodeStr))
   mod_est <- read_csv(path_csvImport_estimates, col_types = c("RV" = col_character())) %>%
-    filter(likelihood == likStrings[i]) 
+    filter(likelihood == "gamma") 
   
   path_plotExport_ctyEffects <- paste0(path_plotExport, sprintf("/choro_spatialEffect_%s.png", modCodeStr))
   mod_est_ctyEffects <- mod_est %>% 
