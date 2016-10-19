@@ -20,7 +20,7 @@ source("source_variableSelection_cty.R") # prepare_allCov_iliSum_cty/_raw
 
 #### set these! ################################
 dbCodeStr <- "_ilinDt_Octfit_span0.4_degree2"
-modCodeStr <- "7a_iliSum_v3-1"
+modCodeStr <- "7a_debug_v3-6"
 seasons <- c(2:9)
 
 #### IMPORT FILEPATHS #################################
@@ -42,10 +42,6 @@ path_list <- list(path_abbr_st = path_abbr_st,
                   path_adjMxExport_cty = path_adjMxExport_cty,
                   path_response_cty = path_response_cty)
 
-#### IMPORT MODEL DATA #################################
-modData <- prepare_allCov_iliSum_cty(path_list)
-rmodData <- prepare_allCov_iliSum_cty_raw(path_list)
-
 #### EXPORT FILEPATHS #################################
 # diagnostic plot export directories
 setwd(dirname(sys.frame(1)$ofile))
@@ -53,6 +49,17 @@ setwd(sprintf("../graph_outputs/inlaModelDiagnostics/%s", modCodeStr))
 dir.create("./diag_predictors", showWarnings = FALSE)
 setwd("./diag_predictors")
 path_plotExport <- getwd()
+dir.create("./rawresid_rawpredictors", showWarnings = FALSE)
+dir.create("./rawresid_stdpredictors", showWarnings = FALSE)
+dir.create("./stdresid_rawpredictors", showWarnings = FALSE)
+dir.create("./stdresid_stdpredictors", showWarnings = FALSE)
+
+# diagnostic plot export directories
+setwd(dirname(sys.frame(1)$ofile))
+setwd(sprintf("../graph_outputs/inlaModelDiagnostics/%s", modCodeStr))
+dir.create("./diag_errors", showWarnings = FALSE)
+setwd("./diag_errors")
+path_plotExport2 <- getwd()
 
 #### Residuals vs. predictors #################################
 # csv file export directories
@@ -60,20 +67,24 @@ setwd(dirname(sys.frame(1)$ofile))
 setwd(sprintf("../R_export/inlaModelData_export/%s", modCodeStr))
 path_csvExport <- getwd()
 
-#### raw residuals vs raw data ####
-path_plotExport_scatter_rr <- paste0(path_plotExport, "/diag_rawresid_raw")
+# #### IMPORT MODEL DATA #################################
+modData <- prepare_allCov_iliSum_cty(path_list)
+rmodData <- prepare_allCov_iliSum_cty_raw(path_list)
+
+### raw residuals vs raw data ####
+path_plotExport_scatter_rr <- paste0(path_plotExport, "/rawresid_rawpredictors/diag_rawresid_raw")
 importPlot_diag_scatter_predictors_spatiotemporal(path_csvExport, path_plotExport_scatter_rr, paste0("gamma_", modCodeStr), "yhat_rawresid", rmodData)
 
 #### raw residuals vs std data ####
-path_plotExport_scatter_rs <- paste0(path_plotExport, "/diag_rawresid_")
+path_plotExport_scatter_rs <- paste0(path_plotExport, "/rawresid_stdpredictors/diag_rawresid_")
 importPlot_diag_scatter_predictors_spatiotemporal(path_csvExport, path_plotExport_scatter_rs, paste0("gamma_", modCodeStr), "yhat_rawresid", modData)
 
 #### std residuals vs raw data ####
-path_plotExport_scatter_sr <- paste0(path_plotExport, "/diag_resid_raw")
+path_plotExport_scatter_sr <- paste0(path_plotExport, "/stdresid_rawpredictors/diag_resid_raw")
 importPlot_diag_scatter_predictors_spatiotemporal(path_csvExport, path_plotExport_scatter_sr, paste0("gamma_", modCodeStr), "yhat_resid", rmodData)
 
 #### std residuals vs std data ####
-path_plotExport_scatter_ss <- paste0(path_plotExport, "/diag_resid_")
+path_plotExport_scatter_ss <- paste0(path_plotExport, "/stdresid_stdpredictors/diag_resid_")
 importPlot_diag_scatter_predictors_spatiotemporal(path_csvExport, path_plotExport_scatter_ss, paste0("gamma_", modCodeStr), "yhat_resid", modData)
 
 #### Distribution of response, residuals and all predictors #################################
@@ -81,4 +92,7 @@ importPlot_diag_scatter_predictors_spatiotemporal(path_csvExport, path_plotExpor
 path_plotExport_distr <- paste0(path_plotExport, "/diag_distr_")
 importPlot_diag_data_distribution(path_csvExport, path_plotExport_distr, paste0("gamma_", modCodeStr), modData)
 
+#### vs. county iid error terms #################################
 
+path_plotExport_error <- paste0(path_plotExport2, "/diag_")
+importPlot_diag_scatter_errors_spatiotemporal(path_csvExport, path_plotExport_error, "gamma")
