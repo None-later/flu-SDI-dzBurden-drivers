@@ -12,6 +12,7 @@
 
 require(RColorBrewer); require(ggplot2); require(dplyr); require(tidyr)
 require(DBI); require(RMySQL) # read tables from mysql database
+require(ggthemes)
 
 
 #### functions for diagnostic plots by modcode  ################################
@@ -385,6 +386,138 @@ plot_diag_scatter_errors_spatiotemporal <- function(plotDat, xaxisVariable, colo
   ggsave(path_plotExport_errors, plotOutput, height = h, width = w, dpi = dp)
   
 }
+################################
+
+importPlot_diag_index_spatiotemporal <- function(path_csvExport, path_plotExport_scatter, likelihoodString){
+  # import data and call scatterplot with fitted values/residuals vs. predictors
+  print(match.call())
+  
+  #### import fitted values ####
+  setwd(path_csvExport)
+  fitfile_list <- grep(sprintf("summaryStatsFitted_%s", likelihoodString), list.files(), value = TRUE)
+  fitDat <- tbl_df(data.frame())
+  
+  for (infile in fitfile_list){
+    seasFile <- read_csv(infile, col_types = "ccd_ccddddddd")
+    fitDat <- bind_rows(fitDat, seasFile)
+  }
+  names(fitDat) <- c("modCodeStr", "dbCodeStr", "season", "fips", "ID", "mean", "sd", "q_025", "q_5", "q_975", "mode", "y")
+  
+  #### import error values ####
+  coeffile_list <- grep("summaryStats_", list.files(), value = TRUE)
+  coefDf <- tbl_df(data.frame(modCodeStr = c(), dbCodeStr = c(), season = c(), RV = c(), effectType = c(), likelihood = c(), mean = c(), sd = c(), q_025 = c(), q_5 = c(), q_975 = c()))
+  
+  for (infile in coeffile_list){
+    seasFile <- read_csv(infile, col_types = "ccd_cccddddd__")
+    coefDf <- bind_rows(coefDf, seasFile)
+  }
+  
+  #### import id crosswalk ####
+  readfile_list2 <- grep("ids_", list.files(), value = TRUE)
+  idDat <- tbl_df(data.frame())
+  
+  for (infile2 in readfile_list2){
+    seasFile2 <- read_csv(infile2, col_types = "dc__cd")
+    idDat <- bind_rows(idDat, seasFile2)
+  }
+  
+  #### clean fitted data ####
+  fitDat2 <- calculate_residuals(fitDat, TRUE)
+  fitDat_clean <- fitDat2 %>%
+    rename(fit_mn = mean, fit_sd = sd, fit_LB = LB, fit_UB = UB) %>%
+    select(season, fips, fit_mn, fit_sd, fit_LB, fit_UB, y, y_nonzero, yhat_resid, yhat_rawresid)
+  
+  #### clean coefficient data ####
+  coefDf_clean <- coefDf %>%
+    filter(likelihood == likelihoodString & effectType == "spatial") %>%
+    rename(fips = RV, error_mn = mean, error_sd = sd) %>%
+    select(fips, error_mn, error_sd) %>%
+    mutate(error_LB = error_mn - (2*error_sd), error_UB = error_mn + (2*error_sd))
+  
+  #### merge data ####
+  plotDat <- left_join(fitDat_clean, coefDf_clean, by = "fips") %>%
+    left_join(idDat, by = c("season", "fips")) %>%
+    mutate(season = as.factor(as.integer(season))) %>%
+    mutate(regionID = as.factor(as.integer(regionID)))
+  
+  modCodeStr <- coefDf$modCodeStr[1]
+  #### plot data ####
+  
+  # county error term vs. index, color by region
+  path_plotExport_error <- paste0(path_plotExport_scatter, "errorVsIndex_reg", "_", likelihoodString, "_", modCodeStr, ".png")
+  plot_diag_index_spatiotemporal(plotDat, "error_mn", "regionID", c(TRUE, "error_LB", "error_UB"), FALSE, path_plotExport_error)
+  print(paste("exported", path_plotExport_error))
+  # county error term vs. index, color by region -- randomize order
+  path_plotExport_errorR <- paste0(path_plotExport_scatter, "errorVsIndex_rdm", "_", likelihoodString, "_", modCodeStr, ".png")
+  plot_diag_index_spatiotemporal(plotDat, "error_mn", "regionID", c(TRUE, "error_LB", "error_UB"), TRUE, path_plotExport_errorR)
+  print(paste("exported", path_plotExport_errorR))
+  
+  # raw resid vs. index, color by region
+  path_plotExport_rawresid <- paste0(path_plotExport_scatter, "rawresidVsIndex_reg", "_", likelihoodString, "_", modCodeStr, ".png")
+  plot_diag_index_spatiotemporal(plotDat, "yhat_rawresid", "regionID", c(FALSE), FALSE, path_plotExport_rawresid)
+  print(paste("exported", path_plotExport_rawresid))
+  # raw resid vs. index, color by region -- randomize order
+  path_plotExport_rawresidR <- paste0(path_plotExport_scatter, "rawresidVsIndex_rdm", "_", likelihoodString, "_", modCodeStr, ".png")
+  plot_diag_index_spatiotemporal(plotDat, "yhat_rawresid", "regionID", c(FALSE), TRUE, path_plotExport_rawresidR)
+  print(paste("exported", path_plotExport_rawresidR))
+  
+  # std resid vs. index, color by region
+  path_plotExport_resid2 <- paste0(path_plotExport_scatter, "residVsIndex_reg", "_", likelihoodString, "_", modCodeStr, ".png")
+  plot_diag_index_spatiotemporal(plotDat, "yhat_resid", "regionID", c(FALSE), FALSE, path_plotExport_resid2)
+  print(paste("exported", path_plotExport_resid2))
+  # std resid vs. index, color by region -- randomize order
+  path_plotExport_resid2R <- paste0(path_plotExport_scatter, "residVsIndex_rdm", "_", likelihoodString, "_", modCodeStr, ".png")
+  plot_diag_index_spatiotemporal(plotDat, "yhat_resid", "regionID", c(FALSE), TRUE, path_plotExport_resid2R)
+  print(paste("exported", path_plotExport_resid2R))
+  
+}
+################################
+
+plot_diag_index_spatiotemporal <- function(plotDat, yaxisVariable, colorVariable, yErrorbar, randomOrder, path_plotExport_index){
+  
+  # formatting for scatterplot with fitted values/residuals vs. error terms
+  print(match.call())
+  
+  # plot formatting
+  w <- 9; h <- 4; dp <- 250
+  
+  # randomize order
+  if(randomOrder==TRUE){
+    plotDat <- plotDat %>% mutate(fips = as.factor(runif(nrow(plotDat))))
+  }
+  
+  # scatterplot: fitted/residual vs index to see if there are structures
+  if (yErrorbar[1]==TRUE){
+    # create new dataset with new varnames
+    plotDat2 <- plotDat %>% 
+      rename_(yVar = yaxisVariable, cVar = colorVariable, yLB = yErrorbar[2], yUB = yErrorbar[3])
+    # plot
+    plotOutput <- ggplot(plotDat2, aes(x = fips, y = yVar)) +
+      geom_point(aes(colour = cVar), alpha = 0.3) +
+      geom_errorbar(aes(ymin = yLB, ymax = yUB, colour = cVar), alpha = 0.3) +
+      xlab("county") +
+      ylab(yaxisVariable) +
+      scale_colour_tableau() +
+      theme_bw() +
+      theme(axis.text.x = element_blank(), axis.ticks.x = element_blank(), legend.position = "bottom")
+  } else{
+    # create new dataset with new varnames
+    plotDat2 <- plotDat %>% 
+      rename_(yVar = yaxisVariable, cVar = colorVariable)
+    # plot
+    plotOutput <- ggplot(plotDat2, aes(x = fips, y = yVar)) +
+      geom_point(aes(colour = cVar), alpha = 0.3) +
+      xlab("county") +
+      ylab(yaxisVariable) +
+      scale_colour_tableau() +
+      theme_bw() +
+      theme(axis.text.x = element_blank(), axis.ticks.x = element_blank(), legend.position = "bottom")
+  }
+  
+  ggsave(path_plotExport_index, plotOutput, height = h, width = w, dpi = dp)
+  
+}
+
 ################################
 
 importPlot_diag_data_distribution <- function(path_csvExport, path_plotExport_distribution, likelihoodString, modelDat){

@@ -20,7 +20,7 @@ source("source_variableSelection_cty.R") # prepare_allCov_iliSum_cty/_raw
 
 #### set these! ################################
 dbCodeStr <- "_ilinDt_Octfit_span0.4_degree2"
-modCodeStr <- "7a_debug_v3-6"
+modCodeStr <- "7a_iliSum_v3-3"
 seasons <- c(2:9)
 
 #### IMPORT FILEPATHS #################################
@@ -43,7 +43,7 @@ path_list <- list(path_abbr_st = path_abbr_st,
                   path_response_cty = path_response_cty)
 
 #### EXPORT FILEPATHS #################################
-# diagnostic plot export directories
+# predictor plot export directories
 setwd(dirname(sys.frame(1)$ofile))
 setwd(sprintf("../graph_outputs/inlaModelDiagnostics/%s", modCodeStr))
 dir.create("./diag_predictors", showWarnings = FALSE)
@@ -54,12 +54,19 @@ dir.create("./rawresid_stdpredictors", showWarnings = FALSE)
 dir.create("./stdresid_rawpredictors", showWarnings = FALSE)
 dir.create("./stdresid_stdpredictors", showWarnings = FALSE)
 
-# diagnostic plot export directories
+# error plot export directories
 setwd(dirname(sys.frame(1)$ofile))
 setwd(sprintf("../graph_outputs/inlaModelDiagnostics/%s", modCodeStr))
 dir.create("./diag_errors", showWarnings = FALSE)
 setwd("./diag_errors")
 path_plotExport2 <- getwd()
+
+# index plot export directories
+setwd(dirname(sys.frame(1)$ofile))
+setwd(sprintf("../graph_outputs/inlaModelDiagnostics/%s", modCodeStr))
+dir.create("./diag_index", showWarnings = FALSE)
+setwd("./diag_index")
+path_plotExport3 <- getwd()
 
 #### Residuals vs. predictors #################################
 # csv file export directories
@@ -96,3 +103,9 @@ importPlot_diag_data_distribution(path_csvExport, path_plotExport_distr, paste0(
 
 path_plotExport_error <- paste0(path_plotExport2, "/diag_")
 importPlot_diag_scatter_errors_spatiotemporal(path_csvExport, path_plotExport_error, "gamma")
+
+#### vs. index #################################
+path_plotExport_index <- paste0(path_plotExport3, "/diag_")
+importPlot_diag_index_spatiotemporal(path_csvExport, path_plotExport_index, "gamma")
+
+
