@@ -2,7 +2,7 @@ require(dplyr); require(tidyr); require(readr); require(DBI); require(RMySQL)
 
 #### set these! ################################
 dbCodeStr <- "_ilinDt_Octfit_span0.4_degree2"
-modCodeStr <- "6a_iliSum_v1-15"; testDataOn <- FALSE
+modCodeStr <- "7a_iliSum_v3-2"; testDataOn <- FALSE
 s <- 4 
 rdmFx_RV <- "nu"
 dig <- 4 # number of digits in the number of elements at this spatial scale (~3000 counties -> 4 digits)
@@ -37,12 +37,12 @@ path_list <- list(path_abbr_st = path_abbr_st,
 
 
 #### MAIN #################################
-# #### import model data ################################
-# if (testDataOn){
-#   modData <- testing_module(path_list)
-# } else{
-#   modData <- model6a_iliSum_v1(path_list)
-# }
+#### import model data ################################
+if (testDataOn){
+  modData <- testing_module(path_list)
+} else{
+  modData <- model6a_iliSum_v2(path_list)
+}
 
 #### import fitted data & calculate gamma residuals ################################
 setwd(dirname(sys.frame(1)$ofile))
@@ -74,12 +74,12 @@ View(residCoef)
 residBin <- binFit %>% filter(fips %in% fipsResid) %>% select(-modCodeStr, -dbCodeStr, -exportDate)
 View(residBin)
 
-# #### check large fitted values ################################
-# largeFit <- gamFit %>% filter(mean > 100) %>% select(-modCodeStr, -dbCodeStr, -exportDate)
-# View(largeFit)
-# 
-# fipsLarge <- largeFit %>% distinct(fips) %>% unlist
-# largeCoef <- gamCoef %>% filter(effectType == "spatial") %>% filter(RV %in% fipsLarge)
-# View(largeCoef)
+#### check large fitted values ################################
+largeFit <- gamFit %>% filter(mean > 100) %>% select(-modCodeStr, -dbCodeStr, -exportDate)
+View(largeFit)
+
+fipsLarge <- largeFit %>% distinct(fips) %>% unlist
+largeCoef <- gamCoef %>% filter(effectType == "spatial") %>% filter(RV %in% fipsLarge)
+View(largeCoef)
 
 
