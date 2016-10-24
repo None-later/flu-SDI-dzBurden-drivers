@@ -138,7 +138,7 @@ plot_diag_scatter_hurdle_spatiotemporal <- function(path_csvExport, path_plotExp
     rename_(pltVar = yaxisVariable, xVar = xaxisVariable)
 
   # plot formatting
-  w <- 6; h <- 4; dp <- 250
+  w <- 7; h <- 5; dp <- 250
   
   # scatterplot: predicted vs observed with errorbars
   if (errorbar){
@@ -147,6 +147,7 @@ plot_diag_scatter_hurdle_spatiotemporal <- function(path_csvExport, path_plotExp
       scale_y_continuous(paste(yaxisVariable, "(95%CI)")) +
       xlab(xaxisVariable) +
       theme(legend.position = "bottom") +
+      facet_wrap(~season, nrow = 2, scales = "free") +
       ggtitle(as.character(corrLab$facetlabel))
   } else{
     plotOutput <- ggplot(plotDat2, aes(x = xVar, y = pltVar)) +
@@ -154,6 +155,7 @@ plot_diag_scatter_hurdle_spatiotemporal <- function(path_csvExport, path_plotExp
       ylab(yaxisVariable) +
       xlab(xaxisVariable) +
       theme(legend.position = "bottom") +
+      facet_wrap(~season, nrow = 2, scales = "free") +
       ggtitle(as.character(corrLab$facetlabel))
   }
   
