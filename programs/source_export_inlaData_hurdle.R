@@ -294,7 +294,7 @@ export_summaryStats_hurdle_gamma <- function(exportPath, modelOutput, rdmFxTxt, 
   if (!is.null(modelOutput$summary.random$regionID_nonzero)){
     names(modelOutput$summary.random$regionID_nonzero) <- c("RV", names(modelOutput$summary.fixed))
     summaryRandomReg <- modelOutput$summary.random$regionID_nonzero %>% mutate(likelihood = "gamma") %>%
-      mutate(RV = as.character(RV)) %>%
+      mutate(RV = as.character(paste0("R", RV))) %>% ## 10/26/16: paste "R"
       mutate(effectType = "regID") %>%
       select(RV, effectType, likelihood, mean, sd, q_025, q_5, q_975, mode, kld)
     summaryComplete <- bind_rows(summaryComplete, summaryRandomReg)
@@ -306,6 +306,15 @@ export_summaryStats_hurdle_gamma <- function(exportPath, modelOutput, rdmFxTxt, 
       mutate(effectType = "season") %>%
       select(RV, effectType, likelihood, mean, sd, q_025, q_5, q_975, mode, kld)
     summaryComplete <- bind_rows(summaryComplete, summaryRandomSeas)
+  }
+  # 10/26/16: added error term for each observation
+  if (!is.null(modelOutput$summary.random$ID_nonzero)){
+    names(modelOutput$summary.random$ID_nonzero) <- c("RV", names(modelOutput$summary.fixed))
+    summaryRandomErr <- modelOutput$summary.random$ID_nonzero %>% mutate(likelihood = "gamma") %>%
+      mutate(RV = as.character(RV)) %>%
+      mutate(effectType = "error") %>%
+      select(RV, effectType, likelihood, mean, sd, q_025, q_5, q_975, mode, kld)
+    summaryComplete <- bind_rows(summaryComplete, summaryRandomErr)
   }
  
   # bind data together
