@@ -529,6 +529,7 @@ importPlot_diag_index_spatiotemporal <- function(path_csvExport, path_plotExport
   #### clean coefficient data ####
   coefDf_clean <- coefDf %>%
     filter(likelihood == likelihoodString & effectType == "error") %>%
+    select(-season) %>%
     rename(ID = RV) %>%
     left_join(idDat, by = c("ID")) %>%
     mutate(error_mn = exp(mean), error_sd = exp(sd)) %>%

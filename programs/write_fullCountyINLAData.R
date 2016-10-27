@@ -18,7 +18,7 @@ source("source_export_inlaDiagnostics.R") # plot_diag_scatter_hurdle function, c
 
 #### set these! ################################
 dbCodeStr <- "_ilinDt_Octfit_span0.4_degree2"
-modCodeStr <- "7a_iliSum_v3-2"
+modCodeStr <- "7a_iliSum_v4-1"
 seasons <- c(2:9)
 lik <- "gamma"
 
@@ -59,7 +59,7 @@ cleanData <- function(path_csvExport, likelihoodString){
   idDat <- tbl_df(data.frame())
   
   for (infile2 in readfile_list2){
-    seasFile2 <- read_csv(infile2, col_types = "dc__cd")
+    seasFile2 <- read_csv(infile2, col_types = "dc_ccd")
     idDat <- bind_rows(idDat, seasFile2)
   }
   
@@ -69,16 +69,26 @@ cleanData <- function(path_csvExport, likelihoodString){
     rename(fit_mn = mean, fit_sd = sd, fit_LB = LB, fit_UB = UB) %>%
     select(season, fips, fit_mn, fit_sd, fit_LB, fit_UB, y, y_nonzero, yhat_resid, yhat_rawresid)
   
-  #### clean coefficient data ####
+  #### clean coefficient data for county iid terms ####
   coefDf_clean <- coefDf %>%
     filter(likelihood == likelihoodString & effectType == "spatial") %>%
-    rename(fips = RV, error_mn = mean, error_sd = sd) %>%
-    select(fips, error_mn, error_sd) %>%
-    mutate(error_LB = error_mn - (2*error_sd), error_UB = error_mn + (2*error_sd))
+    rename(fips = RV, ctyerror_mn = mean, ctyerror_sd = sd) %>%
+    select(fips, ctyerror_mn, ctyerror_sd) %>%
+    mutate(ctyerror_LB = ctyerror_mn - (2*ctyerror_sd), ctyerror_UB = ctyerror_mn + (2*ctyerror_sd))
+  
+  #### clean coefficient data for observation iid terms ####
+  coefDf_clean2 <- coefDf %>%
+    filter(likelihood == likelihoodString & effectType == "error") %>%
+    rename(ID = RV) %>%
+    select(-season) %>%
+    left_join(idDat, by = c("ID")) %>%
+    mutate(obserror_mn = mean, obserror_sd = sd) %>%
+    select(fips, season, st, regionID, obserror_mn, obserror_sd) %>%
+    mutate(obserror_LB = obserror_mn - (2*obserror_sd), obserror_UB = obserror_mn + (2*obserror_sd))
   
   #### merge data ####
   fullDat <- left_join(fitDat_clean, coefDf_clean, by = "fips") %>%
-    left_join(idDat, by = c("season", "fips")) %>%
+    left_join(coefDf_clean2, by = c("season", "fips")) %>%
     mutate(season = as.factor(as.integer(season))) %>%
     mutate(regionID = as.factor(as.integer(regionID)))
   
@@ -87,7 +97,7 @@ cleanData <- function(path_csvExport, likelihoodString){
     select(-contains("_LB"), -contains("_UB")) %>%
     rename(state = st, region = regionID) %>%
     rename(std_resid = yhat_resid, raw_resid = yhat_rawresid) %>%
-    select(season, fips, state, region, y, y_nonzero, fit_mn, fit_sd, raw_resid, std_resid, error_mn, error_sd)
+    select(season, fips, state, region, y, y_nonzero, fit_mn, fit_sd, raw_resid, std_resid, ctyerror_mn, ctyerror_sd, obserror_mn, obserror_sd)
   
   return(exportDat)
 }

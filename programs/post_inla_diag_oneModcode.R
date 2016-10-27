@@ -20,7 +20,7 @@ source("source_variableSelection_cty.R") # prepare_allCov_iliSum_cty/_raw
 
 #### set these! ################################
 dbCodeStr <- "_ilinDt_Octfit_span0.4_degree2"
-modCodeStr <- "7d_iliExcessThresh_v3-1"
+modCodeStr <- "7a_iliSum_v4-1"
 seasons <- c(2:9)
 
 #### IMPORT FILEPATHS #################################
@@ -74,7 +74,7 @@ setwd(dirname(sys.frame(1)$ofile))
 setwd(sprintf("../R_export/inlaModelData_export/%s", modCodeStr))
 path_csvExport <- getwd()
 
-# #### IMPORT MODEL DATA #################################
+#### IMPORT MODEL DATA #################################
 modData <- prepare_allCov_iliSum_cty(path_list)
 rmodData <- prepare_allCov_iliSum_cty_raw(path_list)
 
@@ -95,11 +95,12 @@ path_plotExport_scatter_ss <- paste0(path_plotExport, "/stdresid_stdpredictors/d
 importPlot_diag_scatter_predictors_spatiotemporal(path_csvExport, path_plotExport_scatter_ss, paste0("gamma_", modCodeStr), "yhat_resid", modData)
 
 #### Distribution of response, residuals and all predictors #################################
-
 path_plotExport_distr <- paste0(path_plotExport, "/diag_distr_")
 importPlot_diag_data_distribution(path_csvExport, path_plotExport_distr, paste0("gamma_", modCodeStr), modData)
 
-#### vs. county iid error terms #################################
+### vs. county iid error terms #################################
+path_plotExport_spatial <- paste0(path_plotExport2, "/diag_")
+importPlot_diag_scatter_ctyerrors_spatiotemporal(path_csvExport, path_plotExport_spatial, "gamma")
 
 path_plotExport_error <- paste0(path_plotExport2, "/diag_")
 importPlot_diag_scatter_errors_spatiotemporal(path_csvExport, path_plotExport_error, "gamma")
