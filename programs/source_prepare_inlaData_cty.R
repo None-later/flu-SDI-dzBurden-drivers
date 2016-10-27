@@ -118,7 +118,8 @@ id_qqOutliers_gammaDistribution <- function(full_df){
   full_df2 <- full_df %>%
     mutate(tQ = theoreticalQ, eQ = empiricalQ) %>%
     mutate(deviation = 1-(tQ/eQ)) %>%
-    mutate(y1 = ifelse(abs(deviation) < 0.15, y1, NA))
+    mutate(y1 = ifelse(abs(deviation) < 0.15, y1, NA)) %>%
+    select(-tQ, -eQ, -deviation)
 
   return(full_df2)
 }
