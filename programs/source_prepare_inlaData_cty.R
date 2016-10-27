@@ -13,6 +13,9 @@
 
 require(dplyr); require(tidyr); require(maptools); require(spdep)
 
+setwd("/home/elee/Dropbox/code")
+source("return_gammaDistParams.R")
+
 #### functions for model data aggregation  ################################
 
 remove_case_exceptions <- function(full_df){
@@ -26,8 +29,101 @@ remove_case_exceptions <- function(full_df){
   
   return(full_df2)
 }
-
 ################################
+
+remove_gammaSim_outliers <- function(full_df){
+  # remove response outliers greater than max value of ML simulated gamma distributions
+  print(match.call())
+  
+  set.seed(10010099)
+  response <- full_df %>% select(y1) %>% filter(!is.na(y1)) %>% unlist
+  # return max value across 1000 simulated ML gamma distributions
+  threshold <- id_maxThreshold_gammaDistribution(response, 1) 
+  full_df2 <- full_df %>%
+    mutate(y1 = ifelse(y1 > threshold, NA, y1))
+  
+  return(full_df2)
+}
+################################
+
+remove_gammaQQ_outliers <- function(full_df){
+  # remove response outliers according to data that deviates from ML simulated gamma distribution
+  print(match.call())
+  
+  set.seed(10010099)
+  # return dataframe with NA in y1 for outliers (15% deviation from theoretical quantile)
+  full_df2 <- id_qqOutliers_gammaDistribution(full_df) 
+  
+  return(full_df2)
+}
+################################
+
+gamma_llf <- function(params, t1, t2, Nobs){
+  # gamma likelihood function, parameterized with shape and rate
+  print(match.call())
+  
+  shape <- params[1]
+  rate <- params[2]
+  # log-likelihood function
+  return( - ((shape - 1)*t1 - rate*t2 - Nobs*shape*log(1/rate) - Nobs*log(gamma(shape))))
+}
+################################
+
+return_ML_gammaDistParams <- function(empiricalDat){
+  # return ML gamma distribution parameters
+  print(match.call())
+  
+  Nobs <- length(empiricalDat)
+  # grab moments for empirical data
+  mu <- mean(empiricalDat); sigma <- sd(empiricalDat)
+  # plug in moments to get method of moment params for associated gamma distribution
+  params_mom <- return_gammaDistParams(mu, sigma)
+  # use maximum likelihood to get best simulated gamma distribution
+  t1 <- sum(log(empiricalDat)); t2 <- sum(empiricalDat)
+  mloptim <- optim(par=c(params_mom$shape, params_mom$rate), fn=gamma_llf, t1=t1, t2=t2, Nobs=Nobs)
+  params_ml <- mloptim$par # ML parameters
+  
+  return(params_ml)
+}
+################################
+
+id_maxThreshold_gammaDistribution <- function(empiricalDat, nDistr){
+  # return max value in ML gamma distribution among nDistr gamma distributions
+  print(match.call())
+  
+  Nobs <- length(empiricalDat)
+  params_ml <- return_ML_gammaDistParams(empiricalDat)
+  maxVec <- rep(NA, nDistr) # vector of max value generated in gamma distribution after nDistr simulations
+  for (i in 1:nDistr){
+    distr_ml <- rgamma(Nobs, shape=params_ml[1], rate=params_ml[2])
+    maxVec[i] <- max(distr_ml)
+  }
+  return(max(maxVec))
+}
+################################
+
+id_qqOutliers_gammaDistribution <- function(full_df){
+  # return list of outlying data points compared to theoretical quantiles from ML gamma distr
+  # rm data with > 15% deviation from QQline
+  print(match.call())
+  
+  empiricalDat <- full_df %>% select(y1) %>% filter(!is.na(y1)) %>% unlist
+  Nobs <- nrow(full_df)
+  params_ml <- return_ML_gammaDistParams(empiricalDat)
+  theoreticalQ <- qgamma(seq(0, 1, by = 1/(Nobs-1)), shape=params_ml[1], rate=params_ml[2])
+  empiricalQ <- quantile(full_df$y1, probs=seq(0, 1, by = 1/(Nobs-1)), na.rm=TRUE)
+  print(length(theoreticalQ))
+  print(length(empiricalQ))
+  # add new theoretical Q and empirical Q values
+  full_df2 <- full_df %>%
+    mutate(tQ = theoreticalQ, eQ = empiricalQ) %>%
+    mutate(deviation = 1-(tQ/eQ)) %>%
+    mutate(y1 = ifelse(abs(deviation) < 0.15, y1, NA))
+
+  return(full_df2)
+}
+################################
+
 testing_module <- function(filepathList){
   # iliSum response, all sampling effort, and driver variables
   # y = response, E = expected response
