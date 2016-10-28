@@ -971,16 +971,14 @@ convert_hurdleModel_separatePredictors_spatiotemporal <- function(modData_seas){
   # top half response matrix with epi/no-epi indicator (binomial lik) and NA (gamma lik)
   Y_bin <- modData_seas %>% 
     select(y) %>%
-    mutate(y0 = ifelse(y == 0, 0, ifelse(y > 0, 1, NA))) %>% # 0 = no epidemic, 1 = epidemic, NA = NA
+    mutate(y0 = ifelse(y == 0, 0, ifelse(!is.na(y1), 1, NA))) %>% # 0 = no epidemic, 1 = epidemic, NA = NA
     mutate(y1 = NA) %>%
     select(-y) 
   
   # bottom half response matrix with NA (binomial lik) and non-zeros/NA (gamma lik)
   Y_gam <- modData_seas %>% 
-    select(y) %>%
     mutate(y0 = NA) %>% # 0 = no epidemic, 1 = epidemic, NA = NA
-    mutate(y1 = ifelse(y > 0, y, NA)) %>%
-    select(-y) 
+    select(y0, y1) 
   
   Y <- bind_rows(Y_bin, Y_gam) %>% data.matrix
   
@@ -1027,17 +1025,15 @@ convert_hurdleModel_separatePredictors <- function(modData_seas){
   # top half response matrix with epi/no-epi indicator (binomial lik) and NA (gamma lik)
   Y_bin <- modData_seas %>% 
     select(y) %>%
-    mutate(y0 = ifelse(y == 0, 0, ifelse(y > 0, 1, NA))) %>% # 0 = no epidemic, 1 = epidemic, NA = NA
+    mutate(y0 = ifelse(y == 0, 0, ifelse(!is.na(y1), 1, NA))) %>% # 0 = no epidemic, 1 = epidemic, NA = NA
     mutate(y1 = NA) %>%
     select(-y) 
   
   # bottom half response matrix with NA (binomial lik) and non-zeros/NA (gamma lik)
   Y_gam <- modData_seas %>% 
-    select(y) %>%
-    mutate(y0 = NA) %>% # 0 = no epidemic, 1 = epidemic, NA = NA
-    mutate(y1 = ifelse(y > 0, y, NA)) %>%
-    select(-y) 
-  
+    mutate(y0 = NA) %>%
+    select(y0, y1)  # 0 = no epidemic, 1 = epidemic, NA = NA
+
   Y <- bind_rows(Y_bin, Y_gam) %>% data.matrix
   View(Y)
   
@@ -1081,8 +1077,6 @@ convert_hurdleModel_gamma_spatiotemporal <- function(modData_seas){
   
   # bottom half response matrix with NA (binomial lik) and non-zeros/NA (gamma lik)
   Y_gam <- modData_seas %>% 
-    select(y) %>%
-    mutate(y1 = ifelse(y > 0, y, NA)) %>%
     select(y1) %>%
     unlist
   
@@ -1140,8 +1134,6 @@ convert_hurdleModel_gamma <- function(modData_seas){
   
   # bottom half response matrix with NA (binomial lik) and non-zeros/NA (gamma lik)
   Y_gam <- modData_seas %>% 
-    select(y) %>%
-    mutate(y1 = ifelse(y > 0, y, NA)) %>%
     select(y1) %>%
     unlist
   
