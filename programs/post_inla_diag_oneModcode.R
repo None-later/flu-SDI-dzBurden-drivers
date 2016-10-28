@@ -14,13 +14,14 @@ require(readr)
 
 #### SOURCE: clean and import model data #################################
 setwd(dirname(sys.frame(1)$ofile))
+source("source_prepare_inlaData_cty.R") # remove_gammaQQ_outliers
 source("source_export_inlaDiagnostics.R") # plot_diag_scatter_hurdle function, calculate_residuals
 source("source_clean_response_functions_cty.R") # cty response functions
 source("source_variableSelection_cty.R") # prepare_allCov_iliSum_cty/_raw
 
 #### set these! ################################
 dbCodeStr <- "_ilinDt_Octfit_span0.4_degree2"
-modCodeStr <- "7a_iliSum_v4-1"
+modCodeStr <- "7a_iliSum_v4-2"
 seasons <- c(2:9)
 
 #### IMPORT FILEPATHS #################################
@@ -75,8 +76,12 @@ setwd(sprintf("../R_export/inlaModelData_export/%s", modCodeStr))
 path_csvExport <- getwd()
 
 #### IMPORT MODEL DATA #################################
-modData <- prepare_allCov_iliSum_cty(path_list)
-rmodData <- prepare_allCov_iliSum_cty_raw(path_list)
+modData <- prepare_allCov_iliSum_cty(path_list) %>%
+  remove_case_exceptions(.) %>%
+  remove_gammaQQ_outliers(.)
+rmodData <- prepare_allCov_iliSum_cty_raw(path_list) %>%
+  remove_case_exceptions(.) %>%
+  remove_gammaQQ_outliers(.)
 
 ### raw residuals vs raw data ####
 path_plotExport_scatter_rr <- paste0(path_plotExport, "/rawresid_rawpredictors/diag_rawresid_raw")

@@ -333,9 +333,9 @@ export_summaryStats_fitted_hurdle <- function(exportPath, oneLik_fits, modDataFu
   print(match.call())
   
   names(oneLik_fits) <- c("mean", "sd", "q_025", "q_5", "q_975", "mode")
-  modOutput_fitted <- bind_cols(modDataFullOutput %>% select(fips, ID, y, season), oneLik_fits) %>% 
+  modOutput_fitted <- bind_cols(modDataFullOutput %>% select(fips, ID, y, y1, season), oneLik_fits) %>% 
       mutate(modCodeStr = modCodeString, dbCodeStr = dbCodeString, exportDate = as.character(Sys.Date())) %>% # 10/11/16: grab season from modDataFullOutput instead of function argument
-      select(modCodeStr, dbCodeStr, season, exportDate, fips, ID, mean, sd, q_025, q_5, q_975, mode, y)
+      select(modCodeStr, dbCodeStr, season, exportDate, fips, ID, mean, sd, q_025, q_5, q_975, mode, y, y1)
   
   # export data to file
   write_csv(modOutput_fitted, exportPath)

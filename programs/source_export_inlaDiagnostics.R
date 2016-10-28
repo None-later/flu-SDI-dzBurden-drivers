@@ -29,10 +29,10 @@ plot_diag_scatter_hurdle <- function(path_csvExport, path_plotExport_scatter, li
   fitDat <- tbl_df(data.frame())
 
   for (infile in readfile_list){
-    seasFile <- read_csv(infile, col_types = "cci_ccddddddd")
+    seasFile <- read_csv(infile, col_types = "cci_ccdddddddd")
     fitDat <- bind_rows(fitDat, seasFile)
   }
-  names(fitDat) <- c("modCodeStr", "dbCodeStr", "season", "fips", "ID", "mean", "sd", "q_025", "q_5", "q_975", "mode", "y")
+  names(fitDat) <- c("modCodeStr", "dbCodeStr", "season", "fips", "ID", "mean", "sd", "q_025", "q_5", "q_975", "mode", "y", "y1")
   
   #### import id crosswalk ####
   readfile_list2 <- grep("ids_", list.files(), value = TRUE)
@@ -101,10 +101,10 @@ plot_diag_scatter_hurdle_spatiotemporal <- function(path_csvExport, path_plotExp
   fitDat <- tbl_df(data.frame())
 
   for (infile in readfile_list){
-    seasFile <- read_csv(infile, col_types = "ccd_ccddddddd")
+    seasFile <- read_csv(infile, col_types = "ccd_ccdddddddd")
     fitDat <- bind_rows(fitDat, seasFile)
   }
-  names(fitDat) <- c("modCodeStr", "dbCodeStr", "season", "fips", "ID", "mean", "sd", "q_025", "q_5", "q_975", "mode", "y")
+  names(fitDat) <- c("modCodeStr", "dbCodeStr", "season", "fips", "ID", "mean", "sd", "q_025", "q_5", "q_975", "mode", "y", "y1")
   
   #### import id crosswalk ####
   readfile_list2 <- grep("ids_", list.files(), value = TRUE)
@@ -119,13 +119,13 @@ plot_diag_scatter_hurdle_spatiotemporal <- function(path_csvExport, path_plotExp
   plotDat <- left_join(fitDat, idDat, by = c("season", "fips")) %>%
     mutate(season = as.factor(as.integer(season))) %>%
     mutate(regionID = as.factor(as.integer(regionID)))
-
+  
   #### clean data ####
   # calculate yhat residuals for gamma model only
   if (likelihoodString == "gamma"){
     plotDat <- calculate_residuals(plotDat, TRUE)
   }
-
+  
   # calculate spearman's rho correlations
   corrLab <- plotDat %>% 
     rename_(pltVar = yaxisVariable, xVar = xaxisVariable) %>%
@@ -136,21 +136,24 @@ plot_diag_scatter_hurdle_spatiotemporal <- function(path_csvExport, path_plotExp
   # create new dataset with new varnames
   plotDat2 <- plotDat %>% 
     rename_(pltVar = yaxisVariable, xVar = xaxisVariable)
-
+  
   # plot formatting
   w <- 7; h <- 5; dp <- 250
   
   # scatterplot: predicted vs observed with errorbars
   if (errorbar){
-    plotOutput <- ggplot(plotDat2, aes(x = xVar, y = pltVar)) +
+    plotDat3 <- plotDat2 %>% filter(!is.na(pltVar) & !is.na(xVar))
+    plotOutput <- ggplot(plotDat3, aes(x = xVar, y = pltVar)) +
       geom_pointrange(aes(ymin = q_025, ymax = q_975, colour = season), alpha = 0.3) +
       scale_y_continuous(paste(yaxisVariable, "(95%CI)")) +
       xlab(xaxisVariable) +
       theme(legend.position = "bottom") +
       facet_wrap(~season, nrow = 2, scales = "free") +
       ggtitle(as.character(corrLab$facetlabel))
+    
   } else{
-    plotOutput <- ggplot(plotDat2, aes(x = xVar, y = pltVar)) +
+    plotDat3 <- plotDat2 %>% filter(!is.na(pltVar) & !is.na(xVar))
+    plotOutput <- ggplot(plotDat3, aes(x = xVar, y = pltVar)) +
       geom_point(aes(colour = season), alpha = 0.3) +
       ylab(yaxisVariable) +
       xlab(xaxisVariable) +
@@ -174,10 +177,10 @@ importPlot_diag_scatter_predictors_spatiotemporal <- function(path_csvExport, pa
   fitDat <- tbl_df(data.frame())
   
   for (infile in readfile_list){
-    seasFile <- read_csv(infile, col_types = "ccd_ccddddddd")
+    seasFile <- read_csv(infile, col_types = "ccd_ccdddddddd")
     fitDat <- bind_rows(fitDat, seasFile)
   }
-  names(fitDat) <- c("modCodeStr", "dbCodeStr", "season", "fips", "ID", "mean", "sd", "q_025", "q_5", "q_975", "mode", "y")
+  names(fitDat) <- c("modCodeStr", "dbCodeStr", "season", "fips", "ID", "mean", "sd", "q_025", "q_5", "q_975", "mode", "y", "y1")
   
   #### import id crosswalk ####
   readfile_list2 <- grep("ids_", list.files(), value = TRUE)
@@ -214,8 +217,8 @@ importPlot_diag_scatter_predictors_spatiotemporal <- function(path_csvExport, pa
   }
 
 }
-
 ################################
+
 plot_diag_scatter_predictors_spatiotemporal <- function(plotDat, xaxisVariable, yaxisVariable, path_plotExport_predictor){
   
   # formatting for scatterplot with fitted values/residuals vs. predictors
@@ -285,7 +288,7 @@ importPlot_diag_scatter_ctyerrors_spatiotemporal <- function(path_csvExport, pat
   fitDat2 <- calculate_residuals(fitDat, TRUE)
   fitDat_clean <- fitDat2 %>%
     rename(fit_mn = mean, fit_sd = sd, fit_LB = LB, fit_UB = UB) %>%
-    select(season, fips, fit_mn, fit_sd, fit_LB, fit_UB, y, y_nonzero, yhat_resid, yhat_rawresid)
+    select(season, fips, fit_mn, fit_sd, fit_LB, fit_UB, y, y1, yhat_resid, yhat_rawresid)
   
   #### clean coefficient data ####
   coefDf_clean <- coefDf %>%
@@ -315,11 +318,11 @@ importPlot_diag_scatter_ctyerrors_spatiotemporal <- function(path_csvExport, pat
   
   # y_nonzero vs. error, color by season
   path_plotExport_obs <- paste0(path_plotExport_scatter, "ctyerrorVsObs_seas", "_", likelihoodString, "_", modCodeStr, ".png")
-  plot_diag_scatter_errors_spatiotemporal(plotDat, "y_nonzero", "season", c(FALSE), path_plotExport_obs)
+  plot_diag_scatter_errors_spatiotemporal(plotDat, "y1", "season", c(FALSE), path_plotExport_obs)
   print(paste("exported", path_plotExport_obs))
   # y_nonzero vs. error, color by region
   path_plotExport_obs2 <- paste0(path_plotExport_scatter, "ctyerrorVsObs_reg", "_", likelihoodString, "_", modCodeStr, ".png")
-  plot_diag_scatter_errors_spatiotemporal(plotDat, "y_nonzero", "regionID", c(FALSE), path_plotExport_obs2)
+  plot_diag_scatter_errors_spatiotemporal(plotDat, "y1", "regionID", c(FALSE), path_plotExport_obs2)
   print(paste("exported", path_plotExport_obs2))
   
   # raw resid vs. error, color by season
@@ -353,10 +356,10 @@ importPlot_diag_scatter_errors_spatiotemporal <- function(path_csvExport, path_p
   fitDat <- tbl_df(data.frame())
   
   for (infile in fitfile_list){
-    seasFile <- read_csv(infile, col_types = "ccd_ccddddddd")
+    seasFile <- read_csv(infile, col_types = "ccd_ccdddddddd")
     fitDat <- bind_rows(fitDat, seasFile)
   }
-  names(fitDat) <- c("modCodeStr", "dbCodeStr", "season", "fips", "ID", "mean", "sd", "q_025", "q_5", "q_975", "mode", "y")
+  names(fitDat) <- c("modCodeStr", "dbCodeStr", "season", "fips", "ID", "mean", "sd", "q_025", "q_5", "q_975", "mode", "y", "y1")
   
   #### import error values ####
   coeffile_list <- grep("summaryStats_", list.files(), value = TRUE)
@@ -380,7 +383,7 @@ importPlot_diag_scatter_errors_spatiotemporal <- function(path_csvExport, path_p
   fitDat2 <- calculate_residuals(fitDat, TRUE)
   fitDat_clean <- fitDat2 %>%
     rename(fit_mn = mean, fit_sd = sd, fit_LB = LB, fit_UB = UB) %>%
-    select(season, fips, fit_mn, fit_sd, fit_LB, fit_UB, y, y_nonzero, yhat_resid, yhat_rawresid)
+    select(season, fips, fit_mn, fit_sd, fit_LB, fit_UB, y, y1, yhat_resid, yhat_rawresid)
   
   #### clean coefficient data ####
   coefDf_clean <- coefDf %>%
@@ -411,11 +414,11 @@ importPlot_diag_scatter_errors_spatiotemporal <- function(path_csvExport, path_p
   
   # y_nonzero vs. error, color by season
   path_plotExport_obs <- paste0(path_plotExport_scatter, "errorVsObs_seas", "_", likelihoodString, "_", modCodeStr, ".png")
-  plot_diag_scatter_errors_spatiotemporal(plotDat, "y_nonzero", "season", c(FALSE), path_plotExport_obs)
+  plot_diag_scatter_errors_spatiotemporal(plotDat, "y1", "season", c(FALSE), path_plotExport_obs)
   print(paste("exported", path_plotExport_obs))
   # y_nonzero vs. error, color by region
   path_plotExport_obs2 <- paste0(path_plotExport_scatter, "errorVsObs_reg", "_", likelihoodString, "_", modCodeStr, ".png")
-  plot_diag_scatter_errors_spatiotemporal(plotDat, "y_nonzero", "regionID", c(FALSE), path_plotExport_obs2)
+  plot_diag_scatter_errors_spatiotemporal(plotDat, "y1", "regionID", c(FALSE), path_plotExport_obs2)
   print(paste("exported", path_plotExport_obs2))
   
   # raw resid vs. error, color by season
@@ -497,10 +500,10 @@ importPlot_diag_index_spatiotemporal <- function(path_csvExport, path_plotExport
   fitDat <- tbl_df(data.frame())
   
   for (infile in fitfile_list){
-    seasFile <- read_csv(infile, col_types = "ccd_ccddddddd")
+    seasFile <- read_csv(infile, col_types = "ccd_ccdddddddd")
     fitDat <- bind_rows(fitDat, seasFile)
   }
-  names(fitDat) <- c("modCodeStr", "dbCodeStr", "season", "fips", "ID", "mean", "sd", "q_025", "q_5", "q_975", "mode", "y")
+  names(fitDat) <- c("modCodeStr", "dbCodeStr", "season", "fips", "ID", "mean", "sd", "q_025", "q_5", "q_975", "mode", "y", "y1")
   
   #### import error values ####
   coeffile_list <- grep("summaryStats_", list.files(), value = TRUE)
@@ -524,7 +527,7 @@ importPlot_diag_index_spatiotemporal <- function(path_csvExport, path_plotExport
   fitDat2 <- calculate_residuals(fitDat, TRUE)
   fitDat_clean <- fitDat2 %>%
     rename(fit_mn = mean, fit_sd = sd, fit_LB = LB, fit_UB = UB) %>%
-    select(season, fips, fit_mn, fit_sd, fit_LB, fit_UB, y, y_nonzero, yhat_resid, yhat_rawresid)
+    select(season, fips, fit_mn, fit_sd, fit_LB, fit_UB, y, y1, yhat_resid, yhat_rawresid)
   
   #### clean coefficient data ####
   coefDf_clean <- coefDf %>%
@@ -618,7 +621,6 @@ plot_diag_index_spatiotemporal <- function(plotDat, yaxisVariable, colorVariable
   ggsave(path_plotExport_index, plotOutput, height = h, width = w, dpi = dp)
   
 }
-
 ################################
 
 importPlot_diag_data_distribution <- function(path_csvExport, path_plotExport_distribution, likelihoodString, modelDat){
@@ -631,10 +633,10 @@ importPlot_diag_data_distribution <- function(path_csvExport, path_plotExport_di
   fitDat <- tbl_df(data.frame())
   
   for (infile in readfile_list){
-    seasFile <- read_csv(infile, col_types = "ccd_ccddddddd")
+    seasFile <- read_csv(infile, col_types = "ccd_ccdddddddd")
     fitDat <- bind_rows(fitDat, seasFile)
   }
-  names(fitDat) <- c("modCodeStr", "dbCodeStr", "season", "fips", "ID", "mean", "sd", "q_025", "q_5", "q_975", "mode", "y")
+  names(fitDat) <- c("modCodeStr", "dbCodeStr", "season", "fips", "ID", "mean", "sd", "q_025", "q_5", "q_975", "mode", "y", "y1")
   
   #### grab only predictor data ####
   modDat_clean <- modelDat %>%
@@ -651,7 +653,7 @@ importPlot_diag_data_distribution <- function(path_csvExport, path_plotExport_di
   }
   # list of varnames
   varnames <- grep("[XO]_", names(plotDat), value = TRUE)
-  resnames <- c("y_nonzero", "yhat_resid", "yhat_rawresid")
+  resnames <- c("y1", "yhat_resid", "yhat_rawresid")
   allnames <- c(varnames, resnames)
   
   for (i in 1:length(allnames)){
@@ -1047,13 +1049,19 @@ calculate_residuals <- function(fitDat, nonzeroOnly){
   print(match.call())
 
   if(nonzeroOnly){
-    returnDat <- fitDat %>%
-    mutate(y_nonzero = ifelse(y > 0, y, NA)) %>%
-    mutate(yhat_resid = (y_nonzero-mean)/sd) %>%
-    mutate(yhat_rawresid = (y_nonzero-mean)) %>%
-    mutate(LB = mean-(sd*2), UB = mean+(sd*2))
-    } 
-  else{
+    if(is.null(fitDat$y1)){
+      returnDat <- fitDat %>%
+        mutate(y1 = ifelse(y > 0, y, NA)) %>%
+        mutate(yhat_resid = (y1-mean)/sd) %>%
+        mutate(yhat_rawresid = (y1-mean)) %>%
+        mutate(LB = mean-(sd*2), UB = mean+(sd*2))
+    } else{
+      returnDat <- fitDat %>%
+        mutate(yhat_resid = (y1-mean)/sd) %>%
+        mutate(yhat_rawresid = (y1-mean)) %>%
+        mutate(LB = mean-(sd*2), UB = mean+(sd*2))
+    }
+  } else{
     returnDat <- fitDat %>%
     mutate(yhat_resid = (y-mean)/sd) %>%
     mutate(yhat_rawresid = (y-mean)) %>%

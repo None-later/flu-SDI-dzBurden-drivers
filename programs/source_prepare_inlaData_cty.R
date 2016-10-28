@@ -15,6 +15,7 @@ require(dplyr); require(tidyr); require(maptools); require(spdep)
 
 setwd("/home/elee/Dropbox/code")
 source("return_gammaDistParams.R")
+setwd(dirname(sys.frame(1)$ofile))
 
 #### functions for model data aggregation  ################################
 
@@ -104,7 +105,7 @@ id_maxThreshold_gammaDistribution <- function(empiricalDat, nDistr){
 
 id_qqOutliers_gammaDistribution <- function(full_df){
   # return list of outlying data points compared to theoretical quantiles from ML gamma distr
-  # rm data with > 15% deviation from QQline
+  # rm data with > 5% deviation from QQline
   print(match.call())
   
   empiricalDat <- full_df %>% select(y1) %>% filter(!is.na(y1)) %>% unlist
@@ -118,7 +119,7 @@ id_qqOutliers_gammaDistribution <- function(full_df){
   full_df2 <- full_df %>%
     mutate(tQ = theoreticalQ, eQ = empiricalQ) %>%
     mutate(deviation = 1-(tQ/eQ)) %>%
-    mutate(y1 = ifelse(abs(deviation) < 0.15, y1, NA)) %>%
+    mutate(y1 = ifelse(abs(deviation) < 0.05, y1, NA)) %>%
     select(-tQ, -eQ, -deviation)
 
   return(full_df2)
