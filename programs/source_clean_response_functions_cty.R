@@ -237,6 +237,17 @@ cleanO_imsCoverage_cty <- function(){
 }
 
 ##### REFERENCE DATA ##########################################
+clean_graphIDx <- function(filepathList){
+  # 10/30/16 import spatial crosswalk for zip3-county
+  print(match.call())
+  
+  graphIdxDat <- read_csv(filepathList$path_graphIdx_cty) %>%
+    select(fips, graphIdx)
+   
+  return(graphIdxDat)
+}
+
+################################
 cw_zip3_cty <- function(){
   # spatial crosswalk for zip3-county
   print(match.call())
