@@ -216,8 +216,14 @@ export_ids <- function(exportPath, modDataFullOutput){
   # export random and state/region group effect ids with true identities, as a key
   print(match.call())
   
-  ids <- modDataFullOutput %>% 
-    select(season, fips, county, ID, st, regionID)
+  # 10/30/16 control flow for spatial structure
+  if(is.null(modDataFullOutput$graphIdx)){ # without spatially structured term
+    ids <- modDataFullOutput %>% 
+      select(season, fips, county, ID, st, regionID)
+  } else{ # with spatially structured term
+    ids <- modDataFullOutput %>% 
+      select(season, fips, county, ID, st, regionID, graphIdx)
+  }
   
   # export data to file
   write_csv(ids, exportPath)
