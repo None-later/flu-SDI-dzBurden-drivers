@@ -21,7 +21,7 @@ source("source_variableSelection_cty.R") # prepare_allCov_iliSum_cty/_raw
 
 #### set these! ################################
 dbCodeStr <- "_ilinDt_Octfit_span0.4_degree2"
-modCodeStr <- "7a_iliSum_v4-2"
+modCodeStr <- "7a_iliSum_v4-5"
 seasons <- c(2:9)
 
 #### IMPORT FILEPATHS #################################
