@@ -91,3 +91,10 @@ setwd('../reference_data/UScounty_shapefiles')
 path_adjMxExport_cty <- paste0(getwd(), "/US_county_adjacency.graph")
 nb2INLA(path_adjMxExport_cty, adjMx_cont2)
 # exported 6/20/16
+
+#### exports graph index to file ################################
+ID_crosswalk <- cty.statesonly2@data
+ID_crosswalk["fips"] <- paste0(ID_crosswalk$STATE, ID_crosswalk$COUNTY)
+ID_crosswalk["graphIdx"] <- seq_along(ID_crosswalk$fips)
+write_csv(ID_crosswalk, 'US_county_graph_index.csv')
+# exported 10/30/16
