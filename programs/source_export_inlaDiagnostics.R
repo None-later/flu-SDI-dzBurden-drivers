@@ -111,7 +111,7 @@ plot_diag_scatter_hurdle_spatiotemporal <- function(path_csvExport, path_plotExp
   idDat <- tbl_df(data.frame())
   
   for (infile2 in readfile_list2){
-    seasFile2 <- read_csv(infile2, col_types = "dc__cd")
+    seasFile2 <- read_csv(infile2, col_types = cols_only(season = "d", fips = "c", st = "c", regionID = "d"))
     idDat <- bind_rows(idDat, seasFile2)
   }
   
@@ -986,6 +986,13 @@ importPlot_coefDistr_RV_spatiotemporal <- function(path_csvExport, path_plotExpo
       seasDat <- coefDf_lik %>% filter(effectType == 'season') %>% clean_RVnames(.) %>% mutate(RV = factor(RV, levels = seasIds))
       plot_coefDistr_RV(seasDat, path_plotExport_coefDistr, sprintf('season_%sLikelihood.png', lik))
     }
+    
+    # plot effects of spatial structure
+    if (nrow(coefDf_lik %>% filter(effectType == 'structured')) > 0){
+      sampleStruc <- coefDf_lik %>% filter(effectType == 'structured') %>% clean_RVnames(.) %>% select(RV) %>% sample_n(56) %>% unlist 
+      strucDat <- coefDf_lik %>% clean_RVnames(.) %>% filter(effectType == 'structured' & RV %in% sampleStruc) 
+      plot_coefDistr_RV(strucDat, path_plotExport_coefDistr, sprintf('structured_%sLikelihood.png', lik))
+    }
   } 
 }
 ################################
@@ -1080,7 +1087,8 @@ clean_RVnames <- function(dat){
            mutate(RV = gsub("_nonzero", "", RV)) %>%
            mutate(RV = gsub("_bin", "", RV)) %>%
            mutate(RV = gsub("X_", "", RV)) %>%
-           mutate(RV = gsub("O_", "", RV))
+           mutate(RV = gsub("O_", "", RV)) %>%
+           mutate(RV = gsub("phi", "", RV))
          )
 }
 
