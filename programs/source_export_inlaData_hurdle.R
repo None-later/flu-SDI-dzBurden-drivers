@@ -284,6 +284,15 @@ export_summaryStats_hurdle_gamma <- function(exportPath, modelOutput, rdmFxTxt, 
       select(RV, effectType, likelihood, mean, sd, q_025, q_5, q_975, mode, kld)
     summaryComplete <- bind_rows(summaryComplete, summaryRandomFips)
   }
+  # clean structure spatial effects  summary statistics output from INLA
+  if (!is.null(modelOutput$summary.random$graphIdx_nonzero)){
+    names(modelOutput$summary.random$graphIdx_nonzero) <- c("RV", names(modelOutput$summary.fixed))
+    summaryRandomGraphid <- modelOutput$summary.random$graphIdx_nonzero %>% mutate(likelihood = "gamma") %>%
+      mutate(RV = as.character(paste0("phi", RV))) %>%
+      mutate(effectType = "structured") %>%
+      select(RV, effectType, likelihood, mean, sd, q_025, q_5, q_975, mode, kld)
+    summaryComplete <- bind_rows(summaryComplete, summaryRandomGraphid)
+  }
   if (!is.null(modelOutput$summary.random$fips_st_nonzero)){
     names(modelOutput$summary.random$fips_st_nonzero) <- c("RV", names(modelOutput$summary.fixed))
     summaryRandomSt <- modelOutput$summary.random$fips_st_nonzero %>% mutate(likelihood = "gamma") %>%

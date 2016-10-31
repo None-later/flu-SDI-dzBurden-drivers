@@ -722,7 +722,7 @@ model7a_iliSum_v5 <- function(filepathList){
   # all region tables
   cdcH3_df <- cleanX_cdcFluview_H3_region()
   # graph index IDs
-  graphIdx_df <- clean_graphIDx(filepahtList)
+  graphIdx_df <- clean_graphIDx(filepathList)
   
   # list of continental states
   statesOnly <- read_csv(filepathList$path_abbr_st, col_types = "__c", col_names = c("stateID"), skip = 1) 
@@ -766,6 +766,7 @@ model7a_iliSum_v5 <- function(filepathList){
     mutate(X_humidity = centerStandardize(humidity)) %>%
     ungroup %>%
     filter(fips_st %in% continentalOnly) %>% # include data for continental states only
+    filter(!is.na(graphIdx)) %>% # rm data not in graph
     select(-stateID, -adjProviderCoverage, -visitsPerProvider, -visitsPerPop, -insured, -poverty, -child, -adult, -hospitalAccess, -popDensity, - housDensity, -commutInflows_prep, -pass, -infantAnyVax, -elderlyAnyVax, -H3, -humidity) %>%
     filter(season %in% 2:9) %>%
     mutate(ID = seq_along(fips)) %>%
@@ -1242,9 +1243,16 @@ convert_hurdleModel_gamma_spatiotemporal <- function(modData_seas){
     unlist
   
   # covariate matrix for gamma lik: response, predictors, random effects & offset
-  Mx_gam <- modData_seas %>%
-    select(contains("X_"), contains("O_"), fips, fips_st, regionID, ID, logE, season) %>%
-    mutate(intercept = 1) 
+  # 10/30/16 control flow for graph Idx
+  if(is.null(modData_seas$graphIdx)){
+    Mx_gam <- modData_seas %>%
+      select(contains("X_"), contains("O_"), fips, fips_st, regionID, ID, logE, season) %>%
+      mutate(intercept = 1) 
+  } else{
+    Mx_gam <- modData_seas %>%
+      select(contains("X_"), contains("O_"), fips, fips_st, regionID, ID, logE, season, graphIdx) %>%
+      mutate(intercept = 1) 
+  }
   colnames(Mx_gam) <- paste0(colnames(Mx_gam), "_nonzero")
   
   # convert matrix information to a list of lists/matrixes
