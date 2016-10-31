@@ -104,7 +104,7 @@ modData_full <- modData
 modData_hurdle <- convert_hurdleModel_gamma_spatiotemporal(modData_full)
 
 starting1 <- inla(formula, 
-                  family = "normal", 
+                  family = "gaussian", 
                   data = modData_hurdle, 
                   # control.family = list(link="log"),
                   control.fixed = list(mean = 0, prec = 1/100), # set prior parameters for regression coefficients
@@ -115,7 +115,7 @@ starting1 <- inla(formula,
                   verbose = TRUE)
 
 starting2 <- inla(formula, 
-                  family = "normal", 
+                  family = "gaussian", 
                   data = modData_hurdle, 
                   # control.family = list(link="log"),
                   control.fixed = list(mean = 0, prec = 1/100), # set prior parameters for regression coefficients
@@ -127,7 +127,7 @@ starting2 <- inla(formula,
                   verbose = TRUE)
 
 starting3 <- inla(formula, 
-                  family = "normal", 
+                  family = "gaussian", 
                   data = modData_hurdle, 
                   # control.family = list(link="log"),
                   control.fixed = list(mean = 0, prec = 1/100), # set prior parameters for regression coefficients
@@ -139,7 +139,7 @@ starting3 <- inla(formula,
                   verbose = TRUE)
 
 starting4 <- inla(formula, 
-                  family = "normal", 
+                  family = "gaussian", 
                   data = modData_hurdle, 
                   # control.family = list(link="log"), 
                   control.fixed = list(mean = 0, prec = 1/100), # set prior parameters for regression coefficients
@@ -151,7 +151,7 @@ starting4 <- inla(formula,
                   verbose = TRUE)
 
 mod <- inla(formula, 
-            family = "normal", 
+            family = "gaussian", 
             data = modData_hurdle, 
             # control.family = list(link="log"), 
             control.fixed = list(mean = 0, prec = 1/100), # set prior parameters for regression coefficients
