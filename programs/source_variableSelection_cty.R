@@ -102,7 +102,8 @@ prepare_allCov_iliSum_cty <- function(filepathList){
     mutate(X_temperature = centerStandardize(temperature)) %>%
     ungroup %>%
     select(-fips_st, -adjProviderCoverage, -visitsPerProvider, -insured, -poverty, -income, -mcaidElig, -mcareElig, -infantToddler, -child, -adult, -elderly, -hospitalAccess, -physicianAccess, -popDensity, -housDensity, -commutInflows_prep, -pass, -fluPos, -H3, -humidity, -temperature) %>%
-    filter(season %in% 2:9)
+    filter(season %in% 2:9) %>%
+    mutate(ID = seq_along(fips))
   
   return(full_df)
 }
@@ -195,7 +196,8 @@ prepare_allCov_iliSum_cty_raw <- function(filepathList){
     mutate(rX_temperature = temperature) %>%
     ungroup %>%
     select(-fips_st, -adjProviderCoverage, -visitsPerProvider, -insured, -poverty, -income, -mcaidElig, -mcareElig, -infantToddler, -child, -adult, -elderly, -hospitalAccess, -physicianAccess, -popDensity, -housDensity, -commutInflows_prep, -pass, -fluPos, -H3, -humidity, -temperature) %>%
-    filter(season %in% 2:9)
+    filter(season %in% 2:9) %>%
+    mutate(ID = seq_along(fips))
   
   return(full_df)
 }
@@ -289,7 +291,8 @@ prepare_allCov_logIliSum_cty <- function(filepathList){
     ungroup %>%
     select(-fips_st, -adjProviderCoverage, -visitsPerProvider, -insured, -poverty, -income, -mcaidElig, -mcareElig, -infantToddler, -child, -adult, -elderly, -hospitalAccess, -physicianAccess, -popDensity, -housDensity, -commutInflows_prep, -pass, -fluPos, -H3, -humidity, -temperature) %>%
     mutate(y1 = log(y1)) %>% # log response
-    filter(season %in% 2:9)
+    filter(season %in% 2:9) %>%
+    mutate(ID = seq_along(fips))
   
   return(full_df)
 }
@@ -383,7 +386,8 @@ prepare_allCov_logIliSum_cty_raw <- function(filepathList){
     ungroup %>%
     select(-fips_st, -adjProviderCoverage, -visitsPerProvider, -insured, -poverty, -income, -mcaidElig, -mcareElig, -infantToddler, -child, -adult, -elderly, -hospitalAccess, -physicianAccess, -popDensity, -housDensity, -commutInflows_prep, -pass, -fluPos, -H3, -humidity, -temperature) %>%
     mutate(y1 = log(y1)) %>% # log response
-    filter(season %in% 2:9)
+    filter(season %in% 2:9) %>%
+    mutate(ID = seq_along(fips))
   
   return(full_df)
 }

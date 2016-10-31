@@ -32,16 +32,23 @@ remove_case_exceptions <- function(full_df){
 }
 ################################
 
-remove_gammaSim_outliers <- function(full_df){
-  # remove response outliers greater than max value of ML simulated gamma distributions
+remove_randomObs_stratifySeas <- function(full_df, proportion){
+  # remove x proportion of observations from each season
   print(match.call())
   
-  set.seed(10010099)
-  response <- full_df %>% select(y1) %>% filter(!is.na(y1)) %>% unlist
-  # return max value across 1000 simulated ML gamma distributions
-  threshold <- id_maxThreshold_gammaDistribution(response, 1) 
+  set.seed(8044321)
+  # return list of sampled Ids, among observations where !is.na(y1)
+  sample_ids <- full_df %>%
+    filter(!is.na(y1)) %>%
+    select(season, ID) %>%
+    group_by(season) %>%
+    sample_frac(size = proportion) %>% 
+    ungroup %>%
+    select(ID) %>%
+    unlist
+  # return original dataframe where y1 is NA for sampled ids
   full_df2 <- full_df %>%
-    mutate(y1 = ifelse(y1 > threshold, NA, y1))
+    mutate(y1 = ifelse(ID %in% sample_ids, NA, y1))
   
   return(full_df2)
 }
@@ -88,21 +95,6 @@ return_ML_gammaDistParams <- function(empiricalDat){
 }
 ################################
 
-id_maxThreshold_gammaDistribution <- function(empiricalDat, nDistr){
-  # return max value in ML gamma distribution among nDistr gamma distributions
-  print(match.call())
-  
-  Nobs <- length(empiricalDat)
-  params_ml <- return_ML_gammaDistParams(empiricalDat)
-  maxVec <- rep(NA, nDistr) # vector of max value generated in gamma distribution after nDistr simulations
-  for (i in 1:nDistr){
-    distr_ml <- rgamma(Nobs, shape=params_ml[1], rate=params_ml[2])
-    maxVec[i] <- max(distr_ml)
-  }
-  return(max(maxVec))
-}
-################################
-
 id_qqOutliers_gammaDistribution <- function(full_df){
   # return list of outlying data points compared to theoretical quantiles from ML gamma distr
   # rm data with > 5% deviation from QQline
@@ -123,6 +115,36 @@ id_qqOutliers_gammaDistribution <- function(full_df){
     select(-tQ, -eQ, -deviation)
 
   return(full_df2)
+}
+################################
+
+remove_gammaSim_outliers <- function(full_df){
+  # remove response outliers greater than max value of ML simulated gamma distributions
+  print(match.call())
+  
+  set.seed(10010099)
+  response <- full_df %>% select(y1) %>% filter(!is.na(y1)) %>% unlist
+  # return max value across 1000 simulated ML gamma distributions
+  threshold <- id_maxThreshold_gammaDistribution(response, 1) 
+  full_df2 <- full_df %>%
+    mutate(y1 = ifelse(y1 > threshold, NA, y1))
+  
+  return(full_df2)
+}
+################################
+
+id_maxThreshold_gammaDistribution <- function(empiricalDat, nDistr){
+  # return max value in ML gamma distribution among nDistr gamma distributions
+  print(match.call())
+  
+  Nobs <- length(empiricalDat)
+  params_ml <- return_ML_gammaDistParams(empiricalDat)
+  maxVec <- rep(NA, nDistr) # vector of max value generated in gamma distribution after nDistr simulations
+  for (i in 1:nDistr){
+    distr_ml <- rgamma(Nobs, shape=params_ml[1], rate=params_ml[2])
+    maxVec[i] <- max(distr_ml)
+  }
+  return(max(maxVec))
 }
 ################################
 
