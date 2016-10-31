@@ -21,7 +21,7 @@ source("source_export_inlaDiagnostics.R") # plot_diag_scatter_hurdle function, c
 source("source_clean_response_functions_cty.R") # cty response functions
 
 #### set these! ################################
-modCodeStr <- "7a_iliSum_v4-5"
+modCodeStr <- "7a_iliSum_v5-1"
 seasons <- c(2:9)
 likStrings <- c("gamma")
 
@@ -45,6 +45,7 @@ path_plotExport_coefDistr <- paste0(path_plotExport, sprintf("/coefDistr_%s_", m
 setwd(dirname(sys.frame(1)$ofile))
 setwd(sprintf("../R_export/inlaModelData_export/%s", modCodeStr))
 path_csvExport <- getwd()
+path_csvExport_ids <- paste0(path_csvExport, "/ids_", modCodeStr, ".csv")
 
 #### results across seasons #################################
 # coef distributions by season
@@ -97,16 +98,29 @@ if ("gamma" %in% likStrings){
   path_plotExport_predsdVsResid <- paste0(path_plotExport, sprintf("/diag_predsdVsResid_%s_%s.png", "gamma", modCodeStr))
   plot_diag_scatter_hurdle_spatiotemporal(path_csvExport, path_plotExport_predsdVsResid, "gamma", "yhat_resid", "sd", FALSE)
   
-  ## map county random effect error terms - check for spatial clustering ##
+  ## import summary statistics ##
   path_csvImport_estimates <- paste0(path_csvExport, sprintf("/summaryStats_%s.csv", modCodeStr))
   mod_est <- read_csv(path_csvImport_estimates, col_types = c("RV" = col_character())) %>%
     filter(likelihood == "gamma") 
   
+  ## map county random effect terms ##
   path_plotExport_ctyEffects <- paste0(path_plotExport, sprintf("/choro_spatialEffect_%s.png", modCodeStr))
   mod_est_ctyEffects <- mod_est %>% 
     filter(effectType == "spatial") %>%
     rename(fips = RV)
-  plot_countyChoro(path_plotExport_ctyEffects, mod_est_ctyEffects, "q_5", "gradient", FALSE)
+  plot_countyChoro(path_plotExport_ctyEffects, mod_est_ctyEffects, "mean", "gradient", FALSE)
+  
+  ## map spatially structured county random effect terms ##
+  if(nrow(mod_est %>% filter(effectType == "structured")) > 0){
+    path_plotExport_strucEffects <- paste0(path_plotExport, sprintf("/choro_structuredEffect_%s.png", modCodeStr))
+    idDat <- read_csv(path_csvExport_ids, col_types = cols_only(fips = "c", graphIdx = "c")) %>% distinct(fips, graphIdx)
+    mod_est_strucEffects <- mod_est %>% 
+      filter(effectType == "structured") %>%
+      clean_RVnames(.) %>%
+      left_join(idDat, by = c("RV" = "graphIdx")) 
+    plot_countyChoro(path_plotExport_strucEffects, mod_est_strucEffects, "mean", "gradient", FALSE)
+  }
+  
 }
 
 #### diagnostics by season #################################
