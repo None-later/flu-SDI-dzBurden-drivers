@@ -187,7 +187,7 @@ importPlot_diag_scatter_predictors_spatiotemporal <- function(path_csvExport, pa
   idDat <- tbl_df(data.frame())
   
   for (infile2 in readfile_list2){
-    seasFile2 <- read_csv(infile2, col_types = "dc__cd")
+    seasFile2 <- read_csv(infile2, col_types = cols_only(season = "d", fips = "c", st = "c", regionID = "d"))
     idDat <- bind_rows(idDat, seasFile2)
   }
   
@@ -261,10 +261,10 @@ importPlot_diag_scatter_ctyerrors_spatiotemporal <- function(path_csvExport, pat
   fitDat <- tbl_df(data.frame())
   
   for (infile in fitfile_list){
-    seasFile <- read_csv(infile, col_types = "ccd_ccddddddd")
+    seasFile <- read_csv(infile, col_types = "ccd_ccdddddddd")
     fitDat <- bind_rows(fitDat, seasFile)
   }
-  names(fitDat) <- c("modCodeStr", "dbCodeStr", "season", "fips", "ID", "mean", "sd", "q_025", "q_5", "q_975", "mode", "y")
+  names(fitDat) <- c("modCodeStr", "dbCodeStr", "season", "fips", "ID", "mean", "sd", "q_025", "q_5", "q_975", "mode", "y", "y1")
   
   #### import error values ####
   coeffile_list <- grep("summaryStats_", list.files(), value = TRUE)
@@ -280,7 +280,7 @@ importPlot_diag_scatter_ctyerrors_spatiotemporal <- function(path_csvExport, pat
   idDat <- tbl_df(data.frame())
   
   for (infile2 in readfile_list2){
-    seasFile2 <- read_csv(infile2, col_types = "dc__cd")
+    seasFile2 <- read_csv(infile2, col_types = cols_only(season = "d", fips = "c", st = "c", regionID = "d"))
     idDat <- bind_rows(idDat, seasFile2)
   }
 
@@ -375,7 +375,7 @@ importPlot_diag_scatter_errors_spatiotemporal <- function(path_csvExport, path_p
   idDat <- tbl_df(data.frame())
   
   for (infile2 in readfile_list2){
-    seasFile2 <- read_csv(infile2, col_types = "dc_ccd")
+    seasFile2 <- read_csv(infile2, col_types = cols_only(season = "d", fips = "c", st = "c", regionID = "d", ID = "c"))
     idDat <- bind_rows(idDat, seasFile2)
   }
 
@@ -519,7 +519,7 @@ importPlot_diag_index_spatiotemporal <- function(path_csvExport, path_plotExport
   idDat <- tbl_df(data.frame())
   
   for (infile2 in readfile_list2){
-    seasFile2 <- read_csv(infile2, col_types = "dc_ccd")
+    seasFile2 <- read_csv(infile2, col_types = cols_only(season = "d", fips = "c", st = "c", regionID = "d", ID = "c"))
     idDat <- bind_rows(idDat, seasFile2)
   }
   
