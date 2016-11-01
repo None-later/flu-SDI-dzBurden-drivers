@@ -29,7 +29,7 @@ plot_diag_scatter_hurdle <- function(path_csvExport, path_plotExport_scatter, li
   fitDat <- tbl_df(data.frame())
 
   for (infile in readfile_list){
-    seasFile <- read_csv(infile, col_types = "cci_ccdddddddd")
+    seasFile <- read_csv(infile, col_types = "ccd_ccdddddddd")
     fitDat <- bind_rows(fitDat, seasFile)
   }
   names(fitDat) <- c("modCodeStr", "dbCodeStr", "season", "fips", "ID", "mean", "sd", "q_025", "q_5", "q_975", "mode", "y", "y1")
@@ -39,13 +39,13 @@ plot_diag_scatter_hurdle <- function(path_csvExport, path_plotExport_scatter, li
   idDat <- tbl_df(data.frame())
   
   for (infile2 in readfile_list2){
-    seasFile2 <- read_csv(infile2, col_types = "dc__cd")
+    seasFile2 <- read_csv(infile2, col_types = cols_only(season = "d", fips = "c", st = "c", regionID = "d"))
     idDat <- bind_rows(idDat, seasFile2)
   }
   
   #### merge data ####
   plotDat <- left_join(fitDat, idDat, by = c("season", "fips")) %>%
-    mutate(season = as.integer(season)) %>%
+    mutate(season = as.factor(as.integer(season))) %>%
     mutate(regionID = as.factor(as.integer(regionID)))
 
   #### clean data ####
@@ -71,14 +71,16 @@ plot_diag_scatter_hurdle <- function(path_csvExport, path_plotExport_scatter, li
   
   # scatterplot: predicted vs observed with errorbars
   if (errorbar){
-    plotOutput <- ggplot(plotDat2, aes(x = xVar, y = pltVar, group = facetlabel)) +
+    plotDat3 <- plotDat2 %>% filter(!is.na(pltVar) & !is.na(xVar))
+    plotOutput <- ggplot(plotDat3, aes(x = xVar, y = pltVar, group = facetlabel)) +
       geom_pointrange(aes(ymin = q_025, ymax = q_975, colour = regionID), alpha = 0.3) +
       facet_wrap(~facetlabel, scales = "free") +
       scale_y_continuous(paste(yaxisVariable, "(95%CI)")) +
       xlab(xaxisVariable) +
       theme(legend.position = "bottom")
   } else{
-    plotOutput <- ggplot(plotDat2, aes(x = xVar, y = pltVar, group = facetlabel)) +
+    plotDat3 <- plotDat2 %>% filter(!is.na(pltVar) & !is.na(xVar))
+    plotOutput <- ggplot(plotDat3, aes(x = xVar, y = pltVar, group = facetlabel)) +
       geom_point(aes(colour = regionID), alpha = 0.3) +
       facet_wrap(~facetlabel, scales = "free") +
       ylab(yaxisVariable) +

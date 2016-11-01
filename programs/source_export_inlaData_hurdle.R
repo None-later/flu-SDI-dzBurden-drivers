@@ -66,11 +66,18 @@ importPlot_coefDistr_season_hurdle <- function(path_csvExport, path_plotExport_c
       plot_coefDistr_season(stIdDat, path_plotExport_coefDistr, sprintf('stateID_%sLikelihood.png', lik))
     }
     
-    # plot effects of state ID
+    # plot effects of region ID
     if (nrow(coefDf_lik %>% filter(effectType == 'regID')) > 0){
       regIds <- coefDf_lik %>% filter(effectType == 'regID') %>% distinct(RV) %>% unlist 
       regIdDat <- coefDf_lik %>% filter(effectType == 'regID') %>% clean_RVnames(.) %>% mutate(RV = factor(RV, levels = regIds))
       plot_coefDistr_season(regIdDat, path_plotExport_coefDistr, sprintf('regionID_%sLikelihood.png', lik))
+    }
+
+    # plot CAR county effects
+    if (nrow(coefDf_lik %>% filter(effectType == 'structured')) > 0){
+      sampleStruc <- coefDf_lik %>% filter(effectType == 'structured') %>% clean_RVnames(.) %>% select(RV) %>% sample_n(56) %>% unlist 
+      strucDat <- coefDf_lik %>% clean_RVnames(.) %>% filter(effectType == 'structured' & RV %in% sampleStruc) 
+      plot_coefDistr_season(strucDat, path_plotExport_coefDistr, sprintf('structured_%sLikelihood.png', lik))
     }
   } 
 }

@@ -1329,9 +1329,16 @@ convert_hurdleModel_gamma <- function(modData_seas){
     unlist
   
   # covariate matrix for gamma lik: response, predictors, random effects & offset
-  Mx_gam <- modData_seas %>%
-    select(contains("X_"), contains("O_"), fips, fips_st, regionID, logE) %>%
-    mutate(intercept = 1) 
+  # 10/30/16 control flow for graph Idx
+  if(is.null(modData_seas$graphIdx)){
+    Mx_gam <- modData_seas %>%
+      select(contains("X_"), contains("O_"), fips, fips_st, regionID, logE) %>%
+      mutate(intercept = 1)
+  } else{
+    Mx_gam <- modData_seas %>%
+      select(contains("X_"), contains("O_"), fips, fips_st, regionID, logE, graphIdx) %>%
+      mutate(intercept = 1)
+  } 
   colnames(Mx_gam) <- paste0(colnames(Mx_gam), "_nonzero")
   
   # convert matrix information to a list of lists/matrixes
