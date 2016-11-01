@@ -21,7 +21,7 @@ source("source_export_inlaDiagnostics.R") # plot_diag_scatter_hurdle function, c
 source("source_clean_response_functions_cty.R") # cty response functions
 
 #### set these! ################################
-modCodeStr <- "6a_iliSum_v3-10"
+modCodeStr <- "6a_iliSum_v5-1"
 seasons <- c(2:9)
 likStrings <- c("gamma")
 
@@ -63,7 +63,7 @@ if ("binomial" %in% likStrings){
 if ("gamma" %in% likStrings){
   # scatter: predicted vs. observed data (yhat - gamma) + 95%CI vs. y nonzero observed 
   path_plotExport_predVsObs <- paste0(path_plotExport, sprintf("/diag_predVsObs_%s_%s.png", "gamma", modCodeStr))
-  plot_diag_scatter_hurdle(path_csvExport, path_plotExport_predVsObs, "gamma", "y_nonzero", "mean", TRUE)
+  plot_diag_scatter_hurdle(path_csvExport, path_plotExport_predVsObs, "gamma", "y1", "mean", TRUE)
   
   # scatter: standardized residuals vs. fitted (yhat - gamma model only)
   path_plotExport_residVsPred <- paste0(path_plotExport, sprintf("/diag_residVsPred_%s_%s.png", "gamma", modCodeStr))
@@ -75,11 +75,27 @@ if ("gamma" %in% likStrings){
   
   # scatter: standardized residuals vs. observed y_nonzero (yhat - gamma model only)
   path_plotExport_residVsObs <- paste0(path_plotExport, sprintf("/diag_residVsObs_%s_%s.png", "gamma", modCodeStr))
-  plot_diag_scatter_hurdle(path_csvExport, path_plotExport_residVsObs, "gamma", "y_nonzero", "yhat_resid", FALSE)
+  plot_diag_scatter_hurdle(path_csvExport, path_plotExport_residVsObs, "gamma", "y1", "yhat_resid", FALSE)
   
   # scatter: raw residuals vs. observed y_nonzero (yhat - gamma model only)
   path_plotExport_residVsObs2 <- paste0(path_plotExport, sprintf("/diag_rawresidVsObs_%s_%s.png", "gamma", modCodeStr))
-  plot_diag_scatter_hurdle(path_csvExport, path_plotExport_residVsObs2, "gamma", "y_nonzero", "yhat_rawresid", FALSE)
+  plot_diag_scatter_hurdle(path_csvExport, path_plotExport_residVsObs2, "gamma", "y1", "yhat_rawresid", FALSE)
+
+  # scatter: predicted SD vs. predicted 
+  path_plotExport_predsdVsPred <- paste0(path_plotExport, sprintf("/diag_predsdVsPred_%s_%s.png", "gamma", modCodeStr))
+  plot_diag_scatter_hurdle(path_csvExport, path_plotExport_predsdVsPred, "gamma", "mean", "sd", FALSE)
+  
+  # scatter: predicted SD vs. observed y_nonzero 
+  path_plotExport_predsdVsObs <- paste0(path_plotExport, sprintf("/diag_predsdVsObs_%s_%s.png", "gamma", modCodeStr))
+  plot_diag_scatter_hurdle(path_csvExport, path_plotExport_predsdVsObs, "gamma", "y1", "sd", FALSE)
+  
+  # scatter: predicted SD vs. raw residuals 
+  path_plotExport_predsdVsResid2 <- paste0(path_plotExport, sprintf("/diag_predsdVsRawresid_%s_%s.png", "gamma", modCodeStr))
+  plot_diag_scatter_hurdle(path_csvExport, path_plotExport_predsdVsResid2, "gamma", "yhat_rawresid", "sd", FALSE)
+  
+  # scatter: predicted SD vs. standardized residuals 
+  path_plotExport_predsdVsResid <- paste0(path_plotExport, sprintf("/diag_predsdVsResid_%s_%s.png", "gamma", modCodeStr))
+  plot_diag_scatter_hurdle(path_csvExport, path_plotExport_predsdVsResid, "gamma", "yhat_resid", "sd", FALSE)
 }
 
 #### diagnostics by season #################################
@@ -87,16 +103,28 @@ for (s in seasons){
   print(paste("Season", s, "-----------------"))
   #### any likelihood model figures ####
   for (i in 1:length(likStrings)){
-    ## map county random effect error terms - check for spatial clustering ##
+    ## import summary statistics ##
     path_csvImport_estimates <- paste0(path_csvExport, sprintf("/summaryStats_%s_S%s.csv", modCodeStr, s))
     mod_est <- read_csv(path_csvImport_estimates, col_types = c("RV" = col_character())) %>%
       filter(likelihood == likStrings[i])
     
+    ## map county error terms ##
     path_plotExport_ctyEffects <- paste0(path_plotExport, sprintf("/choro_spatialEffect_%s_S%s.png", modCodeStr, s))
     mod_est_ctyEffects <- mod_est %>% 
       filter(effectType == "spatial") %>%
       rename(fips = RV)
     plot_countyChoro(path_plotExport_ctyEffects, mod_est_ctyEffects, "q_5", "gradient", FALSE)
+
+    ## map spatially structured county terms ##
+  if(nrow(mod_est %>% filter(effectType == "structured")) > 0){
+    path_plotExport_strucEffects <- paste0(path_plotExport, sprintf("/choro_structuredEffect_%s.png", modCodeStr))
+    idDat <- read_csv(path_csvExport_ids, col_types = cols_only(fips = "c", graphIdx = "c")) %>% distinct(fips, graphIdx)
+    mod_est_strucEffects <- mod_est %>% 
+      filter(effectType == "structured") %>%
+      clean_RVnames(.) %>%
+      left_join(idDat, by = c("RV" = "graphIdx")) 
+    plot_countyChoro(path_plotExport_strucEffects, mod_est_strucEffects, "mean", "gradient", FALSE)
+  }
   }
   
   #### binomial model figures ####
@@ -121,6 +149,11 @@ for (s in seasons){
     mod_gam_import <- read_csv(path_csvImport_fittedGamma, col_types = c("fips" = col_character(), "ID" = col_character())) 
     mod_gam_fitted <- calculate_residuals(mod_gam_import, TRUE) # 2nd arg: nonzeronOnly
     
+    if (nrow(mod_gam_fitted %>% filter(!is.na(y1))) > 0){
+      # choropleth: observed values (y_nonzero) - Magnitude of non-zero epidemic
+      path_plotExport_yobs_gam <- paste0(path_plotExport, sprintf("/choro_yObs_%s_S%s.png", modCodeStr, s))
+      plot_countyChoro(path_plotExport_yobs_gam, mod_gam_fitted, "y1", "tier", TRUE)
+
     # choropleth: fitted values (yhat_i) - Magnitude of non-zero epidemic
     path_plotExport_yhat_gam <- paste0(path_plotExport, sprintf("/choro_yHat_%s_S%s.png", modCodeStr, s))
     plot_countyChoro(path_plotExport_yhat_gam, mod_gam_fitted, "mean", "tier", FALSE)
@@ -136,10 +169,10 @@ for (s in seasons){
     # choropleth: raw residuals 
     path_plotExport_resid_gam2 <- paste0(path_plotExport, sprintf("/choro_yRawResid_%s_S%s.png", modCodeStr, s))
     plot_countyChoro(path_plotExport_resid_gam2, mod_gam_fitted, "yhat_rawresid", "tier", TRUE)
-  }
+    }
   
+  }
 }
-
 
 
 
