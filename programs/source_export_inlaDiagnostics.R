@@ -169,6 +169,60 @@ plot_diag_scatter_hurdle_spatiotemporal <- function(path_csvExport, path_plotExp
 }
 ################################
 
+importPlot_correlogram_gamma <- function(path_csvExport, path_plotExport_correlogram, path_list, spatiotemporalModel){
+  # plot correlogram of residual spatial autocorrelation vs. distance
+  print(match.call())
+
+  #### import fitted values ####
+  setwd(path_csvExport)
+  readfile_list <- grep(sprintf("summaryStatsFitted_%s", likelihoodString), list.files(), value = TRUE)
+  fitDat <- tbl_df(data.frame())
+
+  for (infile in readfile_list){
+    seasFile <- read_csv(infile, col_types = "ccd_ccdddddddd")
+    fitDat <- bind_rows(fitDat, seasFile)
+  }
+  names(fitDat) <- c("modCodeStr", "dbCodeStr", "season", "fips", "ID", "mean", "sd", "q_025", "q_5", "q_975", "mode", "y", "y1")
+
+  seasons <- fitDat %>% distinct(season) %>% unlist
+
+  #### import lat/lon by fips ####
+  respDat <- cleanR_iliSum_cty(path_list) %>%
+    distinct(fips, lat, lon)
+
+  fullDat <- calculate_residuals(fitDat, TRUE) %>%
+    full_join(respDat, by = "fips") %>%
+    mutate(season = paste0("S", season)) %>%
+    select(season, fips, lat, lon, yhat_resid, yhat_rawresid)
+
+  #### clean data ####
+  residDf <- spread(fullDat, season, yhat_resid)
+  # rawresidDf <- spread(fullDat, season, yhat_rawresid)
+
+  #### plot correlogram ####
+  # plot formatting
+  w <- 4; h <- 4; dp <- 250
+
+  # control flow for multiple vs. single season model
+  if(spatiotemporalModel){
+    resids <- data.matrix(residDf %>% select(-fips, -lat, -lon))
+
+    exportPath <- paste0(path_plotExport_correlogram, ".png")
+    png(exportPath, width = w, height = h, units = "in", res = dp)
+    correlogram <- correlog(residDf$lon, residDf$lat, resids, increment, resamp = 1000, latlon = TRUE, na.rm = TRUE, quiet = FALSE)
+    dev.off()
+
+  }else{
+    for (s in seasons){
+      exportPath <- paste0(path_plotExport_correlogram, "_S", s, ".png")
+      png(exportPath, width = w, height = h, units = "in", res = dp)
+      correlogram <- correlog(residDf$lon, residDf$lat, residDf[,s+2], increment, resamp = 1000, latlon = TRUE, na.rm = TRUE, quiet = FALSE)
+      dev.off()
+    }
+  }
+}
+################################
+
 importPlot_diag_scatter_predictors_spatiotemporal <- function(path_csvExport, path_plotExport_scatter, likelihoodString, yaxisVariable, modelDat){
   # import data and call scatterplot with fitted values/residuals vs. predictors
   print(match.call())
