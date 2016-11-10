@@ -20,7 +20,7 @@ require(RColorBrewer); require(ggplot2) # export_inlaData_st dependencies
 
 #### set these! ################################
 dbCodeStr <- "_ilinDt_Octfit_span0.4_degree2"
-modCodeStr <- "7a_iliSum_v5-2"; testDataOn <- FALSE
+modCodeStr <- "7a_iliSum_v5-3"; testDataOn <- FALSE
 rdmFx_RV <- "phi"
 dig <- 4 # number of digits in the number of elements at this spatial scale (~3000 counties -> 4 digits)
 s <- 999 # all seasons code for spatiotemporal analysis = 999
@@ -72,7 +72,7 @@ if (testDataOn){
 #### Import and process data ####
   dummy <- model7a_iliSum_v5(path_list) # with driver & sampling effort variables
   modData <- dummy %>%
-    remove_randomObs_stratifySeas(0.2)
+    remove_randomObs_stratifySeas(0.4)
     #remove_case_exceptions(.) %>%
     #remove_gammaQQ_outliers(.)
   #### Model 6a: County-level, after variable selection, one model per season, separate predictors for the 2 likelihoods ####

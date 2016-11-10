@@ -11,6 +11,7 @@
 
 #### header #################################
 require(readr)
+require(ncf)
 
 #### SOURCE: clean and import model data #################################
 setwd(dirname(sys.frame(1)$ofile))
@@ -21,7 +22,8 @@ source("source_export_inlaDiagnostics.R") # plot_diag_scatter_hurdle function, c
 source("source_clean_response_functions_cty.R") # cty response functions
 
 #### set these! ################################
-modCodeStr <- "7a_iliSum_v5-2"
+dbCodeStr <- "_ilinDt_Octfit_span0.4_degree2"
+modCodeStr <- "7a_iliSum_v5-1"
 seasons <- c(2:9)
 likStrings <- c("gamma")
 
@@ -30,9 +32,13 @@ setwd('../reference_data')
 path_abbr_st <- paste0(getwd(), "/state_abbreviations_FIPS.csv")
 path_latlon_cty <- paste0(getwd(), "/cty_pop_latlon.csv")
 
+setwd("../R_export")
+path_response_cty <- paste0(getwd(), sprintf("/dbMetrics_periodicReg%s_analyzeDB_cty.csv", dbCodeStr))
+
 # put all paths in a list to pass them around in functions
 path_list <- list(path_abbr_st = path_abbr_st,
-                  path_latlon_cty = path_latlon_cty)
+                  path_latlon_cty = path_latlon_cty,
+                  path_response_cty = path_response_cty)
 
 #### EXPORT FILEPATHS #################################
 # diagnostic plot export directories
@@ -62,6 +68,10 @@ if ("binomial" %in% likStrings){
 
 ### model fit ###
 if ("gamma" %in% likStrings){
+  # correlogram: Moran's I vs. distance
+  path_plotExport_correlogram <- paste0(path_plotExport, sprintf("/diag_correlog_gamma_%s", modCodeStr))
+  importPlot_correlogram_gamma(path_csvExport, path_plotExport_correlogram, path_list) 
+
   # scatter: predicted vs. observed data (yhat - gamma) + 95%CI vs. y nonzero observed 
   path_plotExport_predVsObs <- paste0(path_plotExport, sprintf("/diag_predVsObs_%s_%s.png", "gamma", modCodeStr))
   plot_diag_scatter_hurdle_spatiotemporal(path_csvExport, path_plotExport_predVsObs, "gamma", "y1", "mean", TRUE)
