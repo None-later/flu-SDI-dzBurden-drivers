@@ -4,7 +4,6 @@
 ## Function: write ilic data: ilic_{z, w} = ili_{z, w} / alpha_{z, y} / effPhysCov_{z, y}
 ## ilic --> number of ili cases in zip z in week w, correcting for constant care-seeking rates across zip3s and scaling up for physician coverage; scaling up assumes that the ili/physician ratio is the same for the reported and unreported cases
 ## alpha_{z, y} = (viz_{z, y}/numPhys_{z, y}) / (\bar{viz_y}/\bar{phys_y}) --> correction for general care-seeking behavior
-
 ## Filenames: physician_coverage/DX_Coverage_by_Flu_Season_20150620.csv; Py_export/iliByallZip_allWeekly_totServ_totAge.csv
 ## Data Source: IMS Health ili dataset and physician coverage dataset
 ## Notes: 7/15/16
@@ -21,11 +20,15 @@ require(tidyr)
 require(readr)
 setwd(dirname(sys.frame(1)$ofile))
 
+#### set these! ####################################
+# 11/10/16 new age group toggle
+agegroup <- "adult" # "adult", "totAge"
+
 #### import data ################################
 setwd('../Py_export')
-ili_df <- read.csv('iliByallZip_allWeekly_totServ_totAge.csv', header=T, colClasses=c("week"="Date"))
+ili_df <- read.csv(sprintf('iliByallZip_allWeekly_totServ_%s.csv', agegroup), header=T, colClasses=c("week"="Date"))
 # viz_df <- read.csv('vizByallZip_allWeekly_totServ_totAge.csv', header=T, colClasses=c("week"="Date"))
-pop_df <- read.csv('popByallZip_allYearly_totAge.csv', header=T, colClasses=c("year"="character"))
+pop_df <- read.csv(sprintf('popByallZip_allYearly_%s.csv', agegroup), header=T, colClasses=c("year"="character"))
 
 setwd('../R_export')
 cov_df <- read_csv('physicianCoverage_IMSHealth_zip3.csv', col_types = list("zip3" = col_character()))
@@ -192,7 +195,7 @@ ilicDat <- left_join(iliDat2, alphaDat, by = c("zip3", "year")) %>%
 
 #### write Data to file ####################################
 write.csv(alphaDat_Full2, file = 'vizPhysRatio_zipYear_corrections.csv', row.names=F)
-write.csv(ilicDat, file = 'ilicByallZip3_allWeekly_totServ_totAge.csv', row.names=F)
+write.csv(ilicDat, file = sprintf('ilicByallZip3_allWeekly_totServ_%s.csv', agegroup), row.names=F)
 # exported 7/16/16
 
 

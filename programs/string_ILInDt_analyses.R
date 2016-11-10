@@ -45,21 +45,24 @@ if (spatial.scale == "state"){
   spatial.params <- list(scale = spatial.scale, stringcode = "Zip3", stringabbr = "", serv = "_totServ", servToggle = "") 
   source("write_loess_fits_ILIn.R")
 } else if (spatial.scale == "county"){
-  spatial.params <- list(scale = spatial.scale, stringcode = "County", stringabbr = "_cty", serv = "_totServ", servToggle = "") 
+  spatial.params <- list(scale = spatial.scale, stringcode = "County", stringabbr = "_cty", serv = "_totServ", servToggle = "", age = "_child", ageToggle = "_child") 
   source("write_loess_fits_ILIn_cty.R")
 }
 
 # serv = "_totServ", servToggle = ""
 # serv = "_emergency", servToggle = "_emergency"
 
+# age = "_totAge", ageToggle = ""
+# age = "_child" or age = "_adult"; ageToggle = "_child" or ageToggle = "_adult"
+
 for (span in span.list){
   params <- list(span.var = span, degree.var = deg, spatial = spatial.params)
 
-  # do.call(write_loess_fits_ILIn, c(params))
-  # do.call(explore_loess_fits_ILIn, c(params))
-  # do.call(write_periodicReg_fits_ilinDt_Octfit, c(params))
+  do.call(write_loess_fits_ILIn, c(params))
+  do.call(explore_loess_fits_ILIn, c(params))
+  do.call(write_periodicReg_fits_ilinDt_Octfit, c(params))
   do.call(write_fullIndic_periodicReg_ilinDt, c(params))
-  # do.call(explore_periodicReg_fits_ilinDt, c(params))
+  do.call(explore_periodicReg_fits_ilinDt, c(params))
   do.call(write_relativeDiseaseBurden_ilinDt, c(params))
   do.call(explore_dbMetricsDistribution_ilinDt, c(params))
   do.call(explore_periodicReg_inSeasonFits_ilinDt, c(params))

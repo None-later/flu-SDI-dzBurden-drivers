@@ -30,7 +30,7 @@ write_loess_fits_ILIn <- function(span.var, degree.var, spatial){
   
   #### set these! ################################
 #     # uncomment when running script separately
-#     spatial <- list(scale = "county", stringcode = "County", stringabbr = "_cty", serv = "_totServ", servToggle = "") 
+#     spatial <- list(scale = "county", stringcode = "County", stringabbr = "_cty", serv = "_totServ", servToggle = "", age = "_totAge", ageToggle = "") 
 #     span.var <- 0.4 # 0.4, 0.6
 #     degree.var <- 2
   code.str <- sprintf('_span%s_degree%s', span.var, degree.var)
@@ -43,7 +43,7 @@ write_loess_fits_ILIn <- function(span.var, degree.var, spatial){
   pop_data <- clean_pop_cty_plain()
   
   # import zip3 data
-  zipILI_df <- read_csv(sprintf('ilicByallZip3_allWeekly%s_totAge.csv', spatial$serv), col_types = list(zip3 = col_character(), ili = col_integer(), pop = col_integer(), cov_z.y = col_double(), alpha_z.y = col_double(), ILIc = col_double(), cov_below5 = col_logical())) %>%
+  zipILI_df <- read_csv(sprintf('ilicByallZip3_allWeekly%s%s.csv', spatial$serv, spatial$age), col_types = list(zip3 = col_character(), ili = col_integer(), pop = col_integer(), cov_z.y = col_double(), alpha_z.y = col_double(), ILIc = col_double(), cov_below5 = col_logical())) %>%
     select(week, Thu.week, year, month, flu.week, t, fit.week, zip3, ili, pop) %>%
     mutate(ILIn = ili/pop*10000)
   
@@ -106,7 +106,7 @@ write_loess_fits_ILIn <- function(span.var, degree.var, spatial){
   allLoessMods_fit_ILI2 <- scaleRename(spatial$scale, allLoessMods_fit_ILI) 
   
   # write fitted and original loess smoothed ILI data 
-  write.csv(allLoessMods_fit_ILI2, file=sprintf('loess%s_all%sMods_ILIn%s.csv', code.str, spatial$stringcode, spatial$servToggle), row.names=FALSE)
+  write.csv(allLoessMods_fit_ILI2, file=sprintf('loess%s_all%sMods_ILIn%s%s.csv', code.str, spatial$stringcode, spatial$servToggle, spatial$ageToggle), row.names=FALSE)
 
 }
 

@@ -25,7 +25,7 @@ explore_periodicReg_inSeasonFits_ilinDt <- function(span.var, degree.var, spatia
   code2 <- "_Octfit" # fit = Apr to Oct and fluseason = Oct to Apr
   
   ## uncomment when running script separately
-  # spatial <- list(scale = "state", stringcode = "State", stringabbr = "_st", serv = "_emergency", servToggle = "_emergency")
+  # spatial <- list(scale = "state", stringcode = "State", stringabbr = "_st", serv = "_emergency", servToggle = "_emergency", age = "_totAge", ageToggle = "")
   # span.var <- 0.4 # 0.4, 0.6
   # degree.var <- 2
   code.str <- sprintf('_span%s_degree%s', span.var, degree.var)
@@ -45,14 +45,14 @@ explore_periodicReg_inSeasonFits_ilinDt <- function(span.var, degree.var, spatia
     data5 <- read_csv(sprintf('fullIndicAll_periodicReg_%silinDt%s%s_analyzeDB%s.csv', code, code2, code.str, spatial$stringabbr), col_names = T, col_types = list(state = col_character(), ili = col_integer(), pop = col_integer(), .fitted = col_double(), .se.fit = col_double(), .fittedLoess = col_double(), .se.fitLoess = col_double(), ilin.dt = col_double(), ILIn = col_double())) %>%
       rename(scale = state)
   } else if (spatial$scale == 'county'){
-    data5 <- read_csv(sprintf('fullIndicAll_periodicReg_%silinDt%s%s_analyzeDB%s.csv', code, code2, code.str, spatial$stringabbr), col_names = T, col_types = list(fips = col_character(), ili = col_double(), pop = col_integer(), .fitted = col_double(), .se.fit = col_double(), .fittedLoess = col_double(), .se.fitLoess = col_double(), ilin.dt = col_double(), ILIn = col_double())) %>%
+    data5 <- read_csv(sprintf('fullIndicAll_periodicReg_%silinDt%s%s%s%s_analyzeDB%s.csv', code, code2, spatial$servToggle, spatial$ageToggle, code.str, spatial$stringabbr), col_names = T, col_types = list(fips = col_character(), ili = col_double(), pop = col_integer(), .fitted = col_double(), .se.fit = col_double(), .fittedLoess = col_double(), .se.fitLoess = col_double(), ilin.dt = col_double(), ILIn = col_double())) %>%
       rename(scale = fips)
   }
   
   #### 9/15/15 in.season fits ################################
   print(sprintf('plotting in season time series %s', code.str))
-  dir.create(sprintf('../graph_outputs/explore_periodicReg_%sfits_ilinDt%s%s%s%s/inSeason', code, code2, spatial$servToggle, code.str, spatial$stringabbr), showWarnings = FALSE)
-  setwd(sprintf('../graph_outputs/explore_periodicReg_%sfits_ilinDt%s%s%s%s/inSeason', code, code2, spatial$servToggle, code.str, spatial$stringabbr))
+  dir.create(sprintf('../graph_outputs/explore_periodicReg_%sfits_ilinDt%s%s%s%s%s/inSeason', code, code2, spatial$servToggle, spatial$ageToggle, code.str, spatial$stringabbr), showWarnings = FALSE)
+  setwd(sprintf('../graph_outputs/explore_periodicReg_%sfits_ilinDt%s%s%s%s%s/inSeason', code, code2, spatial$servToggle, spatial$ageToggle, code.str, spatial$stringabbr))
   
   zip3list2 <- data5 %>% select(scale) %>% distinct(scale) %>% arrange(scale) %>% mutate(for.plot = seq_along(1:nrow(.)))
   data_plot2 <- right_join(data5, zip3list2, by="scale")

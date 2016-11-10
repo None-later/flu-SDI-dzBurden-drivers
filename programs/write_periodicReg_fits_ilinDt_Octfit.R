@@ -45,7 +45,7 @@ write_periodicReg_fits_ilinDt_Octfit <- function(span.var, degree.var, spatial){
     ILI_full_df <- read_csv(file=sprintf('loess%s_all%sMods_ILIn.csv', code.str, spatial$stringcode), col_types=list(state = col_character(), ili = col_integer(), pop = col_integer(),  ILIn = col_double(), .fitted=col_double(), .se.fit=col_double(), ilin.dt=col_double(), ILIn = col_double())) %>%
       rename(scale = state, .fittedLoess = .fitted, .se.fitLoess = .se.fit)
   } else if (spatial$scale == 'county'){
-    ILI_full_df <- read_csv(file=sprintf('loess%s_all%sMods_ILIn.csv', code.str, spatial$stringcode), col_types=list(fips = col_character(), ili = col_double(), pop = col_integer(),  ILIn = col_double(), .fitted=col_double(), .se.fit=col_double(), ilin.dt=col_double(), ILIn = col_double())) %>%
+    ILI_full_df <- read_csv(file=sprintf('loess%s_all%sMods_ILIn%s%s.csv', code.str, spatial$stringcode, spatial$servToggle, spatial$ageToggle), col_types=list(fips = col_character(), ili = col_double(), pop = col_integer(),  ILIn = col_double(), .fitted=col_double(), .se.fit=col_double(), ilin.dt=col_double(), ILIn = col_double())) %>%
       rename(scale = fips, .fittedLoess = .fitted, .se.fitLoess = .se.fit)
   }
   
@@ -78,11 +78,11 @@ write_periodicReg_fits_ilinDt_Octfit <- function(span.var, degree.var, spatial){
   sumStats <- scaleRename(spatial$scale, allMods_glance)
   
   # write fitted and original IR data 
-  write.csv(perReg, file=sprintf('periodicReg_%sall%sMods_ilinDt%s%s%s.csv', code, spatial$stringcode, code2, spatial$servToggle, code.str), row.names=FALSE)
+  write.csv(perReg, file=sprintf('periodicReg_%sall%sMods_ilinDt%s%s%s%s.csv', code, spatial$stringcode, code2, spatial$servToggle, spatial$ageToggle, code.str), row.names=FALSE)
   # write tidy coefficient dataset
-  write.csv(tidCoef, file=sprintf('tidyCoef_periodicReg_%sall%sMods_ilinDt%s%s%s.csv', code, spatial$stringcode, code2, spatial$servToggle, code.str), row.names=FALSE)
+  write.csv(tidCoef, file=sprintf('tidyCoef_periodicReg_%sall%sMods_ilinDt%s%s%s%s.csv', code, spatial$stringcode, code2, spatial$servToggle, spatial$ageToggle, code.str), row.names=FALSE)
   # write summary statistics for all models
-  write.csv(sumStats, file=sprintf('summaryStats_periodicReg_%sall%sMods_ilinDt%s%s%s.csv', code, spatial$stringcode, code2, spatial$servToggle, code.str), row.names=FALSE)
+  write.csv(sumStats, file=sprintf('summaryStats_periodicReg_%sall%sMods_ilinDt%s%s%s%s.csv', code, spatial$stringcode, code2, spatial$servToggle, spatial$ageToggle, code.str), row.names=FALSE)
   
 }
 
