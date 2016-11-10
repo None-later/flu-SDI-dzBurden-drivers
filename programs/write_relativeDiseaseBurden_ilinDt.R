@@ -59,9 +59,10 @@ write_relativeDiseaseBurden_ilinDt <- function(span.var, degree.var, spatial){
     setwd('../reference_data')
     coordsData <- read_csv(file='state_latlon.csv') %>%
       rename(scale = state, lat = latitude, long = longitude)
+    
   } else if (spatial$scale == 'county'){
     setwd('../R_export')
-    data5 <- read_csv(sprintf('fullIndicAll_periodicReg_%silinDt%s%s_analyzeDB%s.csv', code, code2, code.str, spatial$stringabbr), col_names = T, col_types = list(fips = col_character(), ili = col_double(), pop = col_integer(), .fitted = col_double(), .se.fit = col_double(), .fittedLoess = col_double(), .se.fitLoess = col_double(), ilin.dt = col_double(), ILIn = col_double(), in.season = col_logical(), has.epi = col_logical(), incl.analysis = col_logical())) %>%
+    data5 <- read_csv(sprintf('fullIndicAll_periodicReg_%silinDt%s%s%s%s_analyzeDB%s.csv', code, code2, spatial$servToggle, spatial$ageToggle, code.str, spatial$stringabbr), col_names = T, col_types = list(fips = col_character(), ili = col_double(), pop = col_integer(), .fitted = col_double(), .se.fit = col_double(), .fittedLoess = col_double(), .se.fitLoess = col_double(), ilin.dt = col_double(), ILIn = col_double(), in.season = col_logical(), has.epi = col_logical(), incl.analysis = col_logical())) %>%
       rename(scale = fips)
     
     # import state lat/long coordinate data
@@ -123,12 +124,12 @@ write_relativeDiseaseBurden_ilinDt <- function(span.var, degree.var, spatial){
   # save summary data to file 
   # these data are used in "explore_dbMetricsDistribution_ilinDt.R" for exploratory analysis of outcome metrics
   setwd('../R_export')
-  write.csv(dbMetrics.g2, file = sprintf('dbMetrics_periodicReg_%silinDt%s%s%s_analyzeDB%s.csv', code, code2, spatial$servToggle, code.str, spatial$stringabbr), row.names=FALSE)
+  write.csv(dbMetrics.g2, file = sprintf('dbMetrics_periodicReg_%silinDt%s%s%s%s_analyzeDB%s.csv', code, code2, spatial$servToggle, spatial$ageToggle, code.str, spatial$stringabbr), row.names=FALSE)
   
   # save summary data to file with coords 
   # these data are used in "analyze_dbMetricsDistance_IR.R" for matrix correlations
   setwd('../R_export')
-  write.csv(dbMetrics.coords2, file = sprintf('dbMetrics_periodicReg_%silinDt%s%s%s_analyzeDBdist%s.csv', code, code2, spatial$servToggle, code.str, spatial$stringabbr), row.names=FALSE)
+  write.csv(dbMetrics.coords2, file = sprintf('dbMetrics_periodicReg_%silinDt%s%s%s%s_analyzeDBdist%s.csv', code, code2, spatial$servToggle, spatial$ageToggle, code.str, spatial$stringabbr), row.names=FALSE)
   
 }
 

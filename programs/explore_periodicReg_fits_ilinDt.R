@@ -49,16 +49,16 @@ explore_periodicReg_fits_ilinDt <- function(span.var, degree.var, spatial){
     fitdata <- read_csv(file=sprintf('summaryStats_periodicReg_%sall%sMods_ilinDt%s%s.csv', code, spatial$stringcode, code2, code.str), col_types=list(state = col_character())) %>%
       rename(scale = state)
   } else if (spatial$scale == 'county'){
-    data <- read_csv(file=sprintf('periodicReg_%sall%sMods_ilinDt%s%s.csv', code, spatial$stringcode, code2, code.str), col_types=list(fips = col_character(), ili = col_double(), pop = col_integer(), .fitted = col_double(), .se.fit = col_double(), .fittedLoess = col_double(), .se.fitLoess = col_double(), ilin.dt = col_double(), ILIn = col_double())) %>%
+    data <- read_csv(file=sprintf('periodicReg_%sall%sMods_ilinDt%s%s%s%s.csv', code, spatial$stringcode, code2, spatial$servToggle, spatial$ageToggle, code.str), col_types=list(fips = col_character(), ili = col_double(), pop = col_integer(), .fitted = col_double(), .se.fit = col_double(), .fittedLoess = col_double(), .se.fitLoess = col_double(), ilin.dt = col_double(), ILIn = col_double())) %>%
       rename(scale = fips)
-    fitdata <- read_csv(file=sprintf('summaryStats_periodicReg_%sall%sMods_ilinDt%s%s.csv', code, spatial$stringcode, code2, code.str), col_types=list(fips = col_character())) %>%
+    fitdata <- read_csv(file=sprintf('summaryStats_periodicReg_%sall%sMods_ilinDt%s%s%s%s.csv', code, spatial$stringcode, code2, spatial$servToggle, spatial$ageToggle, code.str), col_types=list(fips = col_character())) %>%
       rename(scale = fips)
   }
   
   #### initial time series plots ################################
   print(sprintf('plotting time series %s', code.str))
-  dir.create(sprintf('../graph_outputs/explore_periodicReg_%sfits_ilinDt%s%s%s%s', code, code2, spatial$servToggle, code.str, spatial$stringabbr), showWarnings = FALSE)
-  setwd(sprintf('../graph_outputs/explore_periodicReg_%sfits_ilinDt%s%s%s%s', code, code2, spatial$servToggle, code.str, spatial$stringabbr))
+  dir.create(sprintf('../graph_outputs/explore_periodicReg_%sfits_ilinDt%s%s%s%s%s', code, code2, spatial$servToggle, spatial$ageToggle, code.str, spatial$stringabbr), showWarnings = FALSE)
+  setwd(sprintf('../graph_outputs/explore_periodicReg_%sfits_ilinDt%s%s%s%s%s', code, code2, spatial$servToggle, spatial$ageToggle, code.str, spatial$stringabbr))
   
   zip3list <- data %>% filter(incl.lm) %>% select(scale) %>% distinct(scale) %>% mutate(for.plot = seq_along(1:nrow(.)))
   data_plot <- right_join(data, zip3list, by="scale")
