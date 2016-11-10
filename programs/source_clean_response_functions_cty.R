@@ -235,6 +235,27 @@ cleanO_imsCoverage_cty <- function(){
     arrange(fips, year)
   return(covDat)
 }
+##########################################
+
+cleanX_priorBurden_cty <- function(filepathList){
+  # clean data variable: ilinDt.sum for previous year; new 11/10/16
+  print(match.call())
+  
+  # grab disease burden metric (e.g., ilinDt): match "ili" 1+ times
+  dbCode <- grep("ili+", strsplit(filepathList$path_response_cty, "_")[[1]], value=T)
+  
+  # clean burden data into prior immunity
+  output <- read_csv(filepathList$path_response_cty, col_types = "icllcd") %>%
+    filter(metric == sprintf("%s.sum", dbCode)) %>%
+    select(-metric) %>%
+    rename(priorBurden = burden) %>%
+    mutate(season = season + 1) %>%
+    select(fips, season, priorBurden) %>%
+    filter(season >= 2 & season <= 9)
+  
+  return(output)
+}
+##########################################
 
 ##### REFERENCE DATA ##########################################
 clean_graphIDx <- function(filepathList){
