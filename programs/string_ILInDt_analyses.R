@@ -45,7 +45,7 @@ if (spatial.scale == "state"){
   spatial.params <- list(scale = spatial.scale, stringcode = "Zip3", stringabbr = "", serv = "_totServ", servToggle = "") 
   source("write_loess_fits_ILIn.R")
 } else if (spatial.scale == "county"){
-  spatial.params <- list(scale = spatial.scale, stringcode = "County", stringabbr = "_cty", serv = "_totServ", servToggle = "", age = "_child", ageToggle = "_child") 
+  spatial.params <- list(scale = spatial.scale, stringcode = "County", stringabbr = "_cty", serv = "_totServ", servToggle = "", age = "_adult", ageToggle = "_adult") 
   source("write_loess_fits_ILIn_cty.R")
 }
 
@@ -53,7 +53,8 @@ if (spatial.scale == "state"){
 # serv = "_emergency", servToggle = "_emergency"
 
 # age = "_totAge", ageToggle = ""
-# age = "_child" or age = "_adult"; ageToggle = "_child" or ageToggle = "_adult"
+# age = "_child", ageToggle = "_child" 
+# age = "_adult", ageToggle = "_adult"
 
 for (span in span.list){
   params <- list(span.var = span, degree.var = deg, spatial = spatial.params)
