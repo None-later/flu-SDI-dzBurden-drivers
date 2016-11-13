@@ -20,8 +20,8 @@ source("source_export_inlaDiagnostics.R")
 
 #### set these! ################################
 dbCodeStr <- "_ilinDt_Octfit_span0.4_degree2"
-modCodeStr <- "7a_iliSum_v5-3"
-s <- 5
+modCodeStr <- "7a_iliSum_v5-1"
+s <- 8
 
 #### functions #################################
 plot_countyChoro_legend <- function(exportPath, pltDat, pltVarTxt, code, zeroes){
@@ -90,8 +90,8 @@ path_plotExport <- getwd()
 path_plotExport_y1_origscale <- paste0(path_plotExport, sprintf("/MISMS_choro_expyObs_%s_S%s.png", modCodeStr, s))
 plot_countyChoro_legend(path_plotExport_y1_origscale, importDat, "y1_origscale", "tier", FALSE)
 
-# # choropleth: fitted values
-# path_plotExport_yhat_origscale <- paste0(path_plotExport, sprintf("/MISMS_choro_expyHat_%s_S%s.png", modCodeStr, s))
-# plot_countyChoro_legend(path_plotExport_yhat_origscale, importDat, "mean_origscale", "tier", FALSE)
+# choropleth: fitted values
+path_plotExport_yhat_origscale <- paste0(path_plotExport, sprintf("/MISMS_choro_expyHat_%s_S%s.png", modCodeStr, s))
+plot_countyChoro_legend(path_plotExport_yhat_origscale, importDat, "mean_origscale", "tier", FALSE)
 
 
