@@ -49,6 +49,7 @@ prepare_allCov_iliSum_cty <- function(filepathList){
   # all region tables
   cdcFluPos_df <- cleanX_cdcFluview_fluPos_region()
   cdcH3_df <- cleanX_cdcFluview_H3_region() %>% select(-region)
+  protectedPriorSeas_df <- cleanX_protectedFromPrevSeason_cty(filepathList)
   
   #### join data ####
   dummy_df <- full_join(mod_cty_df, imsCov_cty_df, by = c("year", "fips"))
@@ -74,6 +75,7 @@ prepare_allCov_iliSum_cty <- function(filepathList){
     mutate(fips_st = substring(fips, 1, 2)) %>% # region is linked by state fips code
     full_join(cdcFluPos_df, by = c("season", "fips_st" = "fips")) %>%
     full_join(cdcH3_df, by = c("season", "fips_st" = "fips")) %>%
+    full_join(protectedPriorSeas_df, by = c("season", "fips")) %>%
     full_join(narrSpecHum_cty_df, by = c("season", "fips")) %>%
     full_join(narrSfcTemp_cty_df, by = c("season", "fips")) %>%
     group_by(season) %>%

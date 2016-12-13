@@ -37,7 +37,7 @@ cleanR_iliSum_cty <- function(filepathList){
     group_by(season) %>%
     mutate(E = weighted.mean(y1, pop, na.rm = TRUE)) %>%
     ungroup %>%
-    filter(season != 1)
+    filter(season > 2) # 12/12/16
 
   return(return_data)
 }
@@ -67,7 +67,7 @@ cleanR_iliExcessBL_cty <- function(filepathList){
     group_by(season) %>%
     mutate(E = weighted.mean(y1, pop, na.rm = TRUE)) %>%
     ungroup %>%
-    filter(season != 1)
+    filter(season > 2) # 12/12/16
   
   return(return_data)
 }
@@ -97,7 +97,7 @@ cleanR_iliExcessThresh_cty <- function(filepathList){
     group_by(season) %>%
     mutate(E = weighted.mean(y1, pop, na.rm = TRUE)) %>%
     ungroup %>%
-    filter(season != 1)
+    filter(season > 2) # 12/12/16
   
   return(return_data)
 }
@@ -128,7 +128,7 @@ cleanR_iliPeak_cty <- function(filepathList){
     group_by(season) %>%
     mutate(E = weighted.mean(y1, pop, na.rm = TRUE)) %>%
     ungroup %>%
-    filter(season != 1)
+    filter(season > 2) # 12/12/16
   
   return(return_data)
 }
@@ -251,11 +251,28 @@ cleanX_priorBurden_cty <- function(filepathList){
     rename(priorBurden = burden) %>%
     mutate(season = season + 1) %>%
     select(fips, season, priorBurden) %>%
-    filter(season >= 2 & season <= 9)
+    filter(season >= 3 & season <= 9)
   
   return(output)
 }
 ##########################################
+
+##### COVARIATE DATA RELYING ON RESPONSE VARIABLE ##########################################
+cleanX_protectedFromPrevSeason_cty <- function(filepathList){
+  # clean variable indicating protection conferred from infection during previous flu season: incorporates previous and current season subtype/type distributions (H1/H3/B) and strain similarity
+  print(match.call())
+  
+  priorburdenDat <- cleanX_priorBurden_cty(filepathList) %>% mutate(fips_st = substr(fips, 2)) # fips, season, priorBurden
+  protectedPropDat <- cleanX_multsrcSubtypeDistrStrainSim_reg() # season, region, estImmuneProp
+  cw <- cleanX_cdcFluview_H3_region() %>% select(region, fips) %>% rename(fips_st = fips) # region, fips_st
+  
+  output <- left_join(priorburdenDat, cw, by = c("fips_st")) %>%
+    left_join(protectedPropDat, by = c("season", "region")) %>%
+    mutate(protectionPrevSeason = priorBurden*estImmuneProp) %>%
+    select(fips, season, protectionPrevSeason)
+  
+  return(output)
+}
 
 ##### REFERENCE DATA ##########################################
 clean_graphIDx <- function(filepathList){

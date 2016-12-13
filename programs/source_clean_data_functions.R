@@ -910,13 +910,55 @@ cleanX_cdcFluview_H3_region <- function(){
   
   dbListFields(con, "flu_cdcFluview9714_subtype_region")
   # sel.statement <- "SELECT * from flu_cdcFluview9714_subtype_region limit 5"
-  sel.statement <- "SELECT season, region, fips, prop_aAllH3 from flu_cdcFluview9714_subtype_region where season >= 2 and season <= 9"
+  sel.statement <- "SELECT season, region, fips, prop_H3_all from flu_cdcFluview9714_subtype_region where season >= 2 and season <= 9"
   dummy <- dbGetQuery(con, sel.statement)
   
   dbDisconnect(con)
   
   output <- tbl_df(dummy) %>%
-    rename(H3 = prop_aAllH3)
+    rename(H3 = prop_H3_all)
+  
+  return(output)
+}
+################################
+
+cleanX_cdcFluview_H3A_region <- function(){
+  # proportion of seasonal flu positive A subtypes that are H3
+  print(match.call())
+  
+  con <- dbConnect(RMySQL::MySQL(), group = "rmysql-fludrivers")
+  dbListTables(con)
+  
+  dbListFields(con, "flu_cdcFluview9714_subtype_region")
+  # sel.statement <- "SELECT * from flu_cdcFluview9714_subtype_region limit 5"
+  sel.statement <- "SELECT season, region, fips, prop_H3_a from flu_cdcFluview9714_subtype_region where season >= 2 and season <= 9"
+  dummy <- dbGetQuery(con, sel.statement)
+  
+  dbDisconnect(con)
+  
+  output <- tbl_df(dummy) %>%
+    rename(H3A = prop_H3_a)
+  
+  return(output)
+}
+################################
+
+cleanX_cdcFluview_B_region <- function(){
+  # proportion of seasonal flu positives that are B
+  print(match.call())
+  
+  con <- dbConnect(RMySQL::MySQL(), group = "rmysql-fludrivers")
+  dbListTables(con)
+  
+  dbListFields(con, "flu_cdcFluview9714_subtype_region")
+  # sel.statement <- "SELECT * from flu_cdcFluview9714_subtype_region limit 5"
+  sel.statement <- "SELECT season, region, fips, prop_b_all from flu_cdcFluview9714_subtype_region where season >= 2 and season <= 9"
+  dummy <- dbGetQuery(con, sel.statement)
+  
+  dbDisconnect(con)
+  
+  output <- tbl_df(dummy) %>%
+    rename(B = prop_b_all)
   
   return(output)
 }
@@ -1145,6 +1187,38 @@ cleanX_noaanarrSfcTemp_cty <- function(){
   
 }
 
+##### subtype distribution and strain similarity ##########
+cleanX_multsrcSubtypeDistrStrainSim_reg <- function(){
+  # clean previous and current season subtype/type (H1/H3/B) distribution by region and strain similarity between seasons -- create new variable for "proportion of individuals infected in the previous flu season that will have protection during this year, according to the current distribution of subtypes/types"
+  print(match.call())
+  
+  con <- dbConnect(RMySQL::MySQL(), group = "rmysql-fludrivers")
+  dbListTables(con)
+  
+  dbListFields(con, "subtypeDistribution_hiAssayStrainSimilarity_multSources_region")
+  # sel.statement <- "SELECT * from subtypeDistribution_hiAssayStrainSimilarity_multSources_region limit 5"
+  sel.statement <- "SELECT year, region, category, prevYrProportion as prevProp, strainSimilarity as strainSim, proportion as currProp from subtypeDistribution_hiAssayStrainSimilarity_multSources_region where (year >= 2003 and year <= 2009)"
+  dummy <- dbGetQuery(con, sel.statement)
+  
+  dbDisconnect(con)
+  
+  dummy2 <- tbl_df(dummy) %>%
+    rowwise %>%
+    mutate(estImmuneProp = prod(prevProp, strainSim, currProp)) %>%
+    ungroup
+  output <- dummy2 %>%
+    group_by(year, region) %>%
+    summarise(estImmuneProp = sum(estImmuneProp)) %>%
+    ungroup %>%
+    mutate(season = year-2000) %>%
+    mutate(region = as.numeric(region)) %>%
+    select(season, region, estImmuneProp)
+  
+  return(output)
+  
+}
+
+
 #### testing area ################################
 
 # # all county tables
@@ -1168,7 +1242,8 @@ cleanX_noaanarrSfcTemp_cty <- function(){
  
 # # all region tables
 # cdcFluPos_df <- cleanX_cdcFluview_fluPos_region()
-# cdcH3_df <- cleanX_cdcFluview_H3_region()
+cdcH3_df <- cleanX_cdcFluview_H3_region()
+protectedProp_df <- cleanX_multsrcSubtypeDistrStrainSim_reg()
 
 # # all state tables
 # cpsasecInsured_df <- cleanO_cpsasecInsured_st()
