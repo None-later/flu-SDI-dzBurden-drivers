@@ -123,8 +123,8 @@ plot_diag_scatter_hurdle_spatiotemporal <- function(path_csvExport, path_plotExp
     mutate(regionID = as.factor(as.integer(regionID)))
   
   #### clean data ####
-  # calculate yhat residuals for gamma model only
-  if (likelihoodString == "gamma"){
+  # calculate yhat residuals for nonzero model only
+  if (likelihoodString %in% c("gamma", "normal")){
     plotDat <- calculate_residuals(plotDat, TRUE)
   }
   
@@ -169,13 +169,13 @@ plot_diag_scatter_hurdle_spatiotemporal <- function(path_csvExport, path_plotExp
 }
 ################################
 
-importPlot_correlogram_gamma <- function(path_csvExport, path_plotExport_correlogram, path_list){
+importPlot_correlogram <- function(path_csvExport, path_plotExport_correlogram, path_list, likelihoodString){
   # plot correlogram of residual spatial autocorrelation vs. distance
   print(match.call())
 
   #### import fitted values ####
   setwd(path_csvExport)
-  readfile_list <- grep("summaryStatsFitted_gamma", list.files(), value = TRUE)
+  readfile_list <- grep(sprintf("summaryStatsFitted_%s", likelihoodString), list.files(), value = TRUE)
   fitDat <- tbl_df(data.frame())
 
   for (infile in readfile_list){
@@ -1105,7 +1105,8 @@ calculate_residuals <- function(fitDat, nonzeroOnly){
   if(nonzeroOnly){
     if(is.null(fitDat$y1)){
       returnDat <- fitDat %>%
-        mutate(y1 = ifelse(y > 0, y, NA)) %>%
+        mutate(y1 = log(y+1)) %>%
+        # mutate(y1 = ifelse(y > 0, y, NA)) %>% # 12/15/16 modified for cleanR_iliSum_shift1_cty
         mutate(yhat_resid = (y1-mean)/sd) %>%
         mutate(yhat_rawresid = (y1-mean)) %>%
         mutate(LB = mean-(sd*2), UB = mean+(sd*2))
