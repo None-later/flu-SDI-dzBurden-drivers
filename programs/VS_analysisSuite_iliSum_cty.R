@@ -18,15 +18,16 @@ require(RColorBrewer); require(ggplot2)
 #### set these! ################################
 dbCodeStr <- "_ilinDt_Octfit_span0.4_degree2"
 rCode <- "iliSum"
-seasons <- 2:9
-analysesOn <- c('loadData', 'dataQuality', 'pairwise') 
+seasons <- 3:9
+analysesOn <- c('loadData', 'pairwise') 
 # 'loadData', 'dataQuality', 'pairwise', 'singleVarWrite', 'singleVarPlot'
-
+type_cleanDataFxns <- '_nofill'
+# '' or '_nofill
 
 #### SOURCE: clean and import model data #################################
 setwd(dirname(sys.frame(1)$ofile))
 source("source_clean_response_functions_cty.R") # functions to clean response and IMS coverage data (cty)
-source("source_clean_data_functions.R") # functions to clean covariate data
+source(sprintf("source_clean_data_functions%s.R", type_cleanDataFxns)) # functions to clean covariate data
 source("source_variableSelection_cty.R") # functions for variable selection analyses specific to county scale
 source("source_variableSelection.R") # functions for variable selection, generally
 source("source_prepare_inlaData_cty.R") # import prepared inla data
@@ -38,9 +39,9 @@ path_abbr_st <- paste0(getwd(), "/state_abbreviations_FIPS.csv")
 
 setwd("../R_export")
 path_response_cty <- paste0(getwd(), sprintf("/dbMetrics_periodicReg%s_analyzeDB_cty.csv", dbCodeStr))
-fname_coefDat <- sprintf("/VS_coefDat_%s_cty", rCode)
+fname_coefDat <- sprintf("/VS_coefDat_%s_cty%s", rCode, type_cleanDataFxns)
 path_coefDat <- paste0(getwd(), fname_coefDat)
-path_tempDatQuality <- paste0(getwd(), sprintf("/VS_tempDatQuality_%s_cty.csv", rCode))
+path_tempDatQuality <- paste0(getwd(), sprintf("/VS_tempDatQuality_%s_cty%s.csv", rCode, type_cleanDataFxns))
 
 # put all paths in a list to pass them around in functions
 path_list <- list(path_abbr_st = path_abbr_st,
@@ -62,9 +63,9 @@ setwd(path_pltExport)
 if("loadData" %in% analysesOn){
   
   # load data frame with all available cleaned variables
-  # allDat <- prepare_allCov_iliSum_cty(path_list) 
-  importDat <- model6a_iliSum_v2(path_list)
-  allDat <- remove_case_exceptions(importDat)
+  allDat <- prepare_allCov_iliSum_cty(path_list)
+  # importDat <- model6a_iliSum_v2(path_list)
+  # allDat <- remove_case_exceptions(importDat)
   summary(allDat)
   
 } # end loadData
@@ -82,14 +83,14 @@ if("dataQuality" %in% analysesOn){
 #### Pairwise variable comparisons ####################################
 if("pairwise" %in% analysesOn){
   
-  # full scatterplot matrix
-  png(sprintf("scatterMx_%s_cty%s.png", rCode, dbCodeStr), width = w, height = h, units = "in", res = dp)
-  scatterMx <- pairs_scatterplotMatrix(allDat)
-  print(scatterMx)
-  dev.off()
+  # # full scatterplot matrix
+  # png(sprintf("scatterMx_%s_cty%s%s.png", rCode, dbCodeStr, type_cleanDataFxns), width = w, height = h, units = "in", res = dp)
+  # scatterMx <- pairs_scatterplotMatrix(allDat)
+  # print(scatterMx)
+  # dev.off()
   
   # full correlation matrix
-  png(sprintf("corrMx_spearman_%s_cty%s.png", rCode, dbCodeStr), width = w, height = h, units = "in", res = dp)
+  png(sprintf("corrMx_spearman_%s_cty%s%s.png", rCode, dbCodeStr, type_cleanDataFxns), width = w, height = h, units = "in", res = dp)
   corrMx <- pairs_corrMatrix(allDat)
   print(corrMx)
   dev.off()
@@ -157,7 +158,7 @@ if("singleVarPlot" %in% analysesOn){
   
   setwd(path_pltExport)
   plt_coefTime <- plot_singleVarCoef_time(coefDat)
-  ggsave(sprintf("singleVar_coefSeason_%s_cty.png", rCode), width = w2, height = h2, dpi = dp)
+  ggsave(sprintf("singleVar_coefSeason_%s_cty%s.png", rCode, type_cleanDataFxns), width = w2, height = h2, dpi = dp)
 }
 
 

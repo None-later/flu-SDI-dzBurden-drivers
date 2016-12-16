@@ -53,7 +53,9 @@ subset_singleVariable_data <- function(full_df, s, covariate){
     filter(season == s & !is.na(lat) & !is.na(lon)) %>%
 #     mutate(logy = centerStandardize(logy)) %>%
     rename_(varInterest = covariate) %>%
-    select(fips, fips_st, regionID, season, y, logE, varInterest) %>%
+    mutate(fips_st = substr(fips, 1, 2)) %>%
+    rename(regionID = region) %>%
+    select(fips, fips_st, regionID, season, logy, logE, varInterest) %>%
     mutate(ID = seq_along(fips))
   
   return(mod_df)
@@ -64,23 +66,21 @@ model_singleVariable_inla <- function(mod_df, respCode, s, covariate){
   # inla model for single response and covariate, output fixed effect coeff
   print(match.call())
   
-  formula <- y_nonzero ~ 1 + varInterest + f(fips_st, model = "iid") + f(regionID, model = "iid")
-  mod_df2 <- mod_df %>%
-    mutate(y_nonzero = ifelse(y>0, y, NA))
+  formula <- logy ~ 1 + varInterest + f(fips_st, model = "iid") + f(regionID, model = "iid") + f(ID, model = "iid") + offset(logE)
 
-  starting1 <- inla(formula, family = "gamma", data = mod_df2, 
-              control.family = list(link = 'log'),
+  starting1 <- inla(formula, family = "gaussian", data = mod_df, 
+              # control.family = list(link = 'log'),
               control.predictor = list(compute = TRUE), # compute summary statistics on fitted values
               control.compute = list(dic = TRUE),
-              control.inla = list(correct = TRUE, correct.factor = 10, diagonal = 1000, strategy = "gaussian", int.strategy = "eb"),
-              offset = logE) # offset of expected cases
-  mod <- inla(formula, family = "gamma", data = mod_df2, 
-                control.family = list(link = 'log'),
+              control.inla = list(correct = TRUE, correct.factor = 10, diagonal = 1000, strategy = "gaussian", int.strategy = "eb")
+              ) 
+  mod <- inla(formula, family = "gaussian", data = mod_df, 
+                # control.family = list(link = 'log'),
                 control.predictor = list(compute = TRUE), # compute summary statistics on fitted values
                 control.compute = list(dic = TRUE),
                 control.inla = list(correct = TRUE, correct.factor = 10, diagonal = 0,  tolerance = 1e-6),
-                control.mode = list(result = starting1, restart = TRUE),
-                offset = logE) # offset of expected cases
+                control.mode = list(result = starting1, restart = TRUE)
+                ) 
   
   names(mod$summary.fixed) <- c("mean", "sd", "q_025", "q_5", "q_975", "mode", "kld")
   modOutput <- tbl_df(mod$summary.fixed) %>%
