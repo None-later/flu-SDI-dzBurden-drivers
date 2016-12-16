@@ -20,7 +20,7 @@ require(RColorBrewer); require(ggplot2) # export_inlaData_st dependencies
 
 #### set these! ################################
 dbCodeStr <- "_ilinDt_Octfit_span0.4_degree2"
-modCodeStr <- "7a_iliSum_v6-1"; testDataOn <- FALSE
+modCodeStr <- "7a_iliSum_v6-2"; testDataOn <- FALSE
 rdmFx_RV <- "nu"
 likString <- "normal"
 dig <- 4 # number of digits in the number of elements at this spatial scale (~3000 counties -> 4 digits)
@@ -84,7 +84,7 @@ if (testDataOn){
     f(fips_st_nonzero, model = "iid") + 
     f(regionID_nonzero, model = "iid") + 
     f(season_nonzero, model = "iid") +
-    intercept_nonzero + O_imscoverage_nonzero + O_careseek_nonzero + O_insured_nonzero + X_poverty_nonzero + X_child_nonzero + X_adult_nonzero + X_hospaccess_nonzero + X_popdensity_nonzero + X_housdensity_nonzero + X_vaxcovI_nonzero + X_vaxcovE_nonzero + X_H3A_nonzero + X_B_nonzero + X_priorImmunity_nonzero + X_humidity_nonzero + X_pollution_nonzero + X_singlePersonHH_nonzero + offset(logE_nonzero)
+    intercept_nonzero + O_imscoverage_nonzero + O_careseek_nonzero + O_insured_nonzero + X_poverty_nonzero + X_child_nonzero + X_adult_nonzero + X_hospaccess_nonzero + X_popdensity_nonzero + X_housdensity_nonzero + X_vaxcovI_nonzero + X_vaxcovE_nonzero + X_H3A_nonzero + X_B_nonzero + X_priorImmunity_nonzero + X_humidity_nonzero + X_pollution_nonzero + X_singlePersonHH_nonzero + X_H3A_nonzero*X_adult_nonzero + X_B_nonzero*X_child_nonzero + offset(logE_nonzero)
 }
 
 #### export formatting ####
@@ -134,68 +134,68 @@ starting3 <- inla(formula,
                   # control.mode = list(result = starting2, restart = TRUE),
                   verbose = TRUE)
 
-starting4 <- inla(formula,
-                  family = "gaussian",
-                  data = modData_hurdle,
-                  control.fixed = list(mean = 0, prec = 1/100), # set prior parameters for regression coefficients
-                  control.predictor = list(compute = TRUE, link = rep(1, nrow(modData_full))),
-                  control.inla = list(correct = TRUE, correct.factor = 10, diagonal = 1, strategy = "gaussian", int.strategy = "eb"), # http://www.r-inla.org/events/newfeaturesinr-inlaapril2015; http://www.r-inla.org/?place=msg%2Fr-inla-discussion-group%2Fuf2ZGh4jmWc%2FA0rdPE5W7uMJ
-                  control.mode = list(result = starting3, restart = TRUE),
-                  verbose = TRUE)
-
-mod <- inla(formula,
-            family = "gaussian",
-            data = modData_hurdle,
-            control.fixed = list(mean = 0, prec = 1/100), # set prior parameters for regression coefficients
-            control.predictor = list(compute = TRUE, link = rep(1, nrow(modData_full))),
-            control.compute = list(dic = TRUE, cpo = TRUE),
-            control.inla = list(correct = TRUE, correct.factor = 10, diagonal = 0, tolerance = 1e-8), # http://www.r-inla.org/events/newfeaturesinr-inlaapril2015
-            control.mode = list(result = starting4, restart = TRUE),
-            verbose = TRUE,
-            keep = TRUE, debug = TRUE)
-
-
-#### model summary outputs ################################
-# 7/20/16 reorganized
-
-#### write DIC and CPO values in separate tables by season ####
-# file path
-path_csvExport_dic <- paste0(path_csvExport, sprintf("/modFit_%s.csv", modCodeStr))
-# DIC & CPO file formatting
-dicData <- unlist(c(modCodeStr, s, as.character(Sys.Date()), mod$dic$dic, sum(log(mod$cpo$cpo), na.rm=TRUE), sum(mod$cpo$failure, na.rm=TRUE), use.names=FALSE))
-dicData2 <- as.data.frame(matrix(dicData, nrow = 1), byrow = TRUE)
-names(dicData2) <- c("modCodeStr", "season", "exportDate", "DIC", "CPO", "cpoFail")
-# write DIC & CPO to file
-export_DIC(path_csvExport_dic, dicData2)
-
-#### write random and group effect identities ####
-# file path
-path_csvExport_ids <- paste0(path_csvExport, sprintf("/ids_%s.csv", modCodeStr))
-# write identity codes to file
-export_ids(path_csvExport_ids, modData_full)
-
-#### write fixed and random effects summary statistics ####
-# file path
-path_csvExport_summaryStats <- paste0(path_csvExport, sprintf("/summaryStats_%s.csv", modCodeStr))
-# write all summary statistics to file
-export_summaryStats_hurdle_likString(path_csvExport_summaryStats, mod, rdmFx_RV, modCodeStr, dbCodeStr, s, likString) # assuming hyperpar, fixed always exist
-
-
-# #### process fitted values for each model ################################
-# normal model processing
-path_csvExport_fittedNonzero <- paste0(path_csvExport, sprintf("/summaryStatsFitted_%s_%s.csv", likString, modCodeStr))
-dummy_nz <- mod$summary.fitted.values[1:nrow(modData_full),]
-mod_nz_fitted <- export_summaryStats_fitted_hurdle(path_csvExport_fittedNonzero, dummy_nz, modData_full, modCodeStr, dbCodeStr, s)
-
-
-#### Diagnostic plots ################################
-
-#### normal likelihood figures ####
-# marginal posteriors: first 6 county random effects (nu or phi)
-path_plotExport_rdmFxSample_nonzero <- paste0(path_plotExport, sprintf("/inla_%s_%s1-6_marg_%s.png", modCodeStr, rdmFx_RV, likString))
-plot_rdmFx_marginalsSample(path_plotExport_rdmFxSample_nonzero, mod$marginals.random$fips_nonzero, "nu")
-
-# marginal posteriors: first 6 observation error terms
-path_plotExport_rdmFxSample_nonzero <- paste0(path_plotExport, sprintf("/inla_%s_ID1-6_marg_%s.png", modCodeStr, likString))
-plot_rdmFx_marginalsSample(path_plotExport_rdmFxSample_nonzero, mod$marginals.random$ID_nonzero, "obs err")
+# starting4 <- inla(formula,
+#                   family = "gaussian",
+#                   data = modData_hurdle,
+#                   control.fixed = list(mean = 0, prec = 1/100), # set prior parameters for regression coefficients
+#                   control.predictor = list(compute = TRUE, link = rep(1, nrow(modData_full))),
+#                   control.inla = list(correct = TRUE, correct.factor = 10, diagonal = 1, strategy = "gaussian", int.strategy = "eb"), # http://www.r-inla.org/events/newfeaturesinr-inlaapril2015; http://www.r-inla.org/?place=msg%2Fr-inla-discussion-group%2Fuf2ZGh4jmWc%2FA0rdPE5W7uMJ
+#                   control.mode = list(result = starting3, restart = TRUE),
+#                   verbose = TRUE)
+# 
+# mod <- inla(formula,
+#             family = "gaussian",
+#             data = modData_hurdle,
+#             control.fixed = list(mean = 0, prec = 1/100), # set prior parameters for regression coefficients
+#             control.predictor = list(compute = TRUE, link = rep(1, nrow(modData_full))),
+#             control.compute = list(dic = TRUE, cpo = TRUE),
+#             control.inla = list(correct = TRUE, correct.factor = 10, diagonal = 0, tolerance = 1e-8), # http://www.r-inla.org/events/newfeaturesinr-inlaapril2015
+#             control.mode = list(result = starting4, restart = TRUE),
+#             verbose = TRUE,
+#             keep = TRUE, debug = TRUE)
+# 
+# 
+# #### model summary outputs ################################
+# # 7/20/16 reorganized
+# 
+# #### write DIC and CPO values in separate tables by season ####
+# # file path
+# path_csvExport_dic <- paste0(path_csvExport, sprintf("/modFit_%s.csv", modCodeStr))
+# # DIC & CPO file formatting
+# dicData <- unlist(c(modCodeStr, s, as.character(Sys.Date()), mod$dic$dic, sum(log(mod$cpo$cpo), na.rm=TRUE), sum(mod$cpo$failure, na.rm=TRUE), use.names=FALSE))
+# dicData2 <- as.data.frame(matrix(dicData, nrow = 1), byrow = TRUE)
+# names(dicData2) <- c("modCodeStr", "season", "exportDate", "DIC", "CPO", "cpoFail")
+# # write DIC & CPO to file
+# export_DIC(path_csvExport_dic, dicData2)
+# 
+# #### write random and group effect identities ####
+# # file path
+# path_csvExport_ids <- paste0(path_csvExport, sprintf("/ids_%s.csv", modCodeStr))
+# # write identity codes to file
+# export_ids(path_csvExport_ids, modData_full)
+# 
+# #### write fixed and random effects summary statistics ####
+# # file path
+# path_csvExport_summaryStats <- paste0(path_csvExport, sprintf("/summaryStats_%s.csv", modCodeStr))
+# # write all summary statistics to file
+# export_summaryStats_hurdle_likString(path_csvExport_summaryStats, mod, rdmFx_RV, modCodeStr, dbCodeStr, s, likString) # assuming hyperpar, fixed always exist
+# 
+# 
+# # #### process fitted values for each model ################################
+# # normal model processing
+# path_csvExport_fittedNonzero <- paste0(path_csvExport, sprintf("/summaryStatsFitted_%s_%s.csv", likString, modCodeStr))
+# dummy_nz <- mod$summary.fitted.values[1:nrow(modData_full),]
+# mod_nz_fitted <- export_summaryStats_fitted_hurdle(path_csvExport_fittedNonzero, dummy_nz, modData_full, modCodeStr, dbCodeStr, s)
+# 
+# 
+# #### Diagnostic plots ################################
+# 
+# #### normal likelihood figures ####
+# # marginal posteriors: first 6 county random effects (nu or phi)
+# path_plotExport_rdmFxSample_nonzero <- paste0(path_plotExport, sprintf("/inla_%s_%s1-6_marg_%s.png", modCodeStr, rdmFx_RV, likString))
+# plot_rdmFx_marginalsSample(path_plotExport_rdmFxSample_nonzero, mod$marginals.random$fips_nonzero, "nu")
+# 
+# # marginal posteriors: first 6 observation error terms
+# path_plotExport_rdmFxSample_nonzero <- paste0(path_plotExport, sprintf("/inla_%s_ID1-6_marg_%s.png", modCodeStr, likString))
+# plot_rdmFx_marginalsSample(path_plotExport_rdmFxSample_nonzero, mod$marginals.random$ID_nonzero, "obs err")
 
