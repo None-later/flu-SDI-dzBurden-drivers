@@ -21,8 +21,9 @@ source("source_variableSelection_cty.R") # prepare_allCov_iliSum_cty/_raw
 
 #### set these! ################################
 dbCodeStr <- "_ilinDt_Octfit_span0.4_degree2"
-modCodeStr <- "7a_iliSum_v5-2"
-seasons <- c(2:9)
+modCodeStr <- "7a_iliSum_v6-1"
+seasons <- c(3:9)
+likString <- "normal"
 
 #### IMPORT FILEPATHS #################################
 setwd('../reference_data')
@@ -85,36 +86,36 @@ path_csvExport <- getwd()
 modData <- prepare_allCov_logIliSum_cty(path_list) 
 rmodData <- prepare_allCov_logIliSum_cty_raw(path_list) 
 
-### raw residuals vs raw data ####
-path_plotExport_scatter_rr <- paste0(path_plotExport, "/rawresid_rawpredictors/diag_rawresid_raw")
-importPlot_diag_scatter_predictors_spatiotemporal(path_csvExport, path_plotExport_scatter_rr, paste0("gamma_", modCodeStr), "yhat_rawresid", rmodData)
+# ### raw residuals vs raw data ####
+# path_plotExport_scatter_rr <- paste0(path_plotExport, "/rawresid_rawpredictors/diag_rawresid_raw")
+# importPlot_diag_scatter_predictors_spatiotemporal(path_csvExport, path_plotExport_scatter_rr, paste0(likString, "_", modCodeStr), "yhat_rawresid", rmodData)
 
 #### raw residuals vs std data ####
 path_plotExport_scatter_rs <- paste0(path_plotExport, "/rawresid_stdpredictors/diag_rawresid_")
-importPlot_diag_scatter_predictors_spatiotemporal(path_csvExport, path_plotExport_scatter_rs, paste0("gamma_", modCodeStr), "yhat_rawresid", modData)
+importPlot_diag_scatter_predictors_spatiotemporal(path_csvExport, path_plotExport_scatter_rs, paste0(likString, "_", modCodeStr), "yhat_rawresid", modData)
 
-#### std residuals vs raw data ####
-path_plotExport_scatter_sr <- paste0(path_plotExport, "/stdresid_rawpredictors/diag_resid_raw")
-importPlot_diag_scatter_predictors_spatiotemporal(path_csvExport, path_plotExport_scatter_sr, paste0("gamma_", modCodeStr), "yhat_resid", rmodData)
+# #### std residuals vs raw data ####
+# path_plotExport_scatter_sr <- paste0(path_plotExport, "/stdresid_rawpredictors/diag_resid_raw")
+# importPlot_diag_scatter_predictors_spatiotemporal(path_csvExport, path_plotExport_scatter_sr, paste0(likString, "_", modCodeStr), "yhat_resid", rmodData)
 
 #### std residuals vs std data ####
 path_plotExport_scatter_ss <- paste0(path_plotExport, "/stdresid_stdpredictors/diag_resid_")
-importPlot_diag_scatter_predictors_spatiotemporal(path_csvExport, path_plotExport_scatter_ss, paste0("gamma_", modCodeStr), "yhat_resid", modData)
+importPlot_diag_scatter_predictors_spatiotemporal(path_csvExport, path_plotExport_scatter_ss, paste0(likString, "_", modCodeStr), "yhat_resid", modData)
 
 #### Distribution of response, residuals and all predictors #################################
 path_plotExport_distr <- paste0(path_plotExport, "/diag_distr_")
-importPlot_diag_data_distribution(path_csvExport, path_plotExport_distr, paste0("gamma_", modCodeStr), modData)
+importPlot_diag_data_distribution(path_csvExport, path_plotExport_distr, paste0(likString, "_", modCodeStr), modData)
 
 ### vs. county iid group terms #################################
 path_plotExport_spatial <- paste0(path_plotExport2, "/diag_")
-importPlot_diag_scatter_ctyerrors_spatiotemporal(path_csvExport, path_plotExport_spatial, "gamma")
+importPlot_diag_scatter_ctyerrors_spatiotemporal(path_csvExport, path_plotExport_spatial, likString)
 
 ### vs. observation iid error terms #################################
 path_plotExport_error <- paste0(path_plotExport2, "/diag_")
-importPlot_diag_scatter_errors_spatiotemporal(path_csvExport, path_plotExport_error, "gamma")
+importPlot_diag_scatter_errors_spatiotemporal(path_csvExport, path_plotExport_error, likString)
 
 #### vs. index #################################
 path_plotExport_index <- paste0(path_plotExport3, "/diag_")
-importPlot_diag_index_spatiotemporal(path_csvExport, path_plotExport_index, "gamma")
+importPlot_diag_index_spatiotemporal(path_csvExport, path_plotExport_index, likString)
 
 
