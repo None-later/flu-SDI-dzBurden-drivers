@@ -10,7 +10,7 @@
 ## install.packages("pkg", dependencies=TRUE, lib="/usr/local/lib/R/site-library") # in sudo R
 ## update.packages(lib.loc = "/usr/local/lib/R/site-library")
 
-require(RColorBrewer); require(ggplot2); require(ggcounty); require(scales); require(classInt)
+require(RColorBrewer); require(ggplot2); require(maps); require(scales); require(classInt); require(data.table)
 
 #### functions for diagnostic plots  ################################
 
@@ -18,11 +18,23 @@ plot_countyChoro <- function(exportPath, pltDat, pltVarTxt, code, zeroes){
 # draw state choropleth with tiers or gradient colors and export to file
   print(match.call())
   
+  countyMap <- map_data("county")
+  data(county.fips)
   # plot formatting
-  us <- ggcounty.us()
-  gg <- us$g
   h <- 5; w <- 8; dp <- 300
 
+  # merge county data
+  polynameSplit <- tstrsplit(county.fips$polyname, ",", names = c("region", "subregion"))
+  ctyMap <- tbl_df(county.fips) %>%
+    mutate(fips = substr.Right(paste0("0", fips), 5)) %>%
+    mutate(region = polynameSplit$region) %>%
+    mutate(subregion = polynameSplit$subregion) %>%
+    full_join(countyMap, by = c("region", "subregion")) %>%
+    filter(!is.na(polyname) & !is.na(long)) %>%
+    rename(state = region, county = subregion) %>%
+    rename(region = fips) %>%
+    select(-polyname)
+  
   # tier choropleth
   if (code == 'tier'){
     # process data for tiers
@@ -52,10 +64,12 @@ plot_countyChoro <- function(exportPath, pltDat, pltVarTxt, code, zeroes){
       mutate(pltVarBin = factor(.bincode(pltVar, breaks, right = TRUE, include.lowest = TRUE))) %>%
       mutate(pltVarBin = factor(pltVarBin, levels = rev(levels(pltVarBin))))
 
-    choro <- gg +
-      geom_map(data = pltDat2, aes(map_id = fips, fill = pltVarBin), map = us$map, color = "grey25", size = 0.2) +
+    
+    choro <- ggplot() +
+      geom_map(data = ctyMap, map = ctyMap, aes(x = long, y = lat, map_id = region)) +
+      geom_map(data = pltDat2, map = ctyMap, aes(fill = pltVarBin, map_id = fips), color = "grey25", size = 0.15) +
       scale_fill_brewer(palette = "RdYlGn", label = breakLabels, na.value = "grey60") +
-      expand_limits(x = gg$long, y = gg$lat) +
+      expand_limits(x = ctyMap$long, y = ctyMap$lat) +
       theme_minimal() +
       theme(text = element_text(size = 18), axis.ticks = element_blank(), axis.text = element_blank(), axis.title = element_blank(), panel.grid = element_blank(), legend.position = "bottom")
   }
@@ -63,18 +77,20 @@ plot_countyChoro <- function(exportPath, pltDat, pltVarTxt, code, zeroes){
   # gradient choropleth
   else if (code == 'gradient'){
     # data for gradient has minimal processing
-    pltDat <- pltDat %>% rename_(pltVar = pltVarTxt)
-    
-    choro <- gg +
-      geom_map(data = pltDat, aes(map_id = fips, fill = pltVar), map = us$map, color = "grey25", size = 0.2) +
+    pltDat <- pltDat %>% rename_(pltVar = pltVarTxt) 
+
+    choro <- ggplot() +
+      geom_map(data = ctyMap, map = ctyMap, aes(x = long, y = lat, map_id=region)) +
+      geom_map(data = pltDat, map = ctyMap, aes(fill = pltVar, map_id = fips), color = "grey25", size = 0.15) +
       scale_fill_continuous(low = "#f0fff0", high = "#006400") +
-      expand_limits(x = gg$long, y = gg$lat) +
+      expand_limits(x = ctyMap$long, y = ctyMap$lat) +
       theme_minimal() +
       theme(text = element_text(size = 18), axis.ticks = element_blank(), axis.text = element_blank(), axis.title = element_blank(), panel.grid = element_blank(), legend.position = "bottom") 
   }
-  
+
   ggsave(exportPath, choro, height = h, width = w, dpi = dp)  
   
 }
+
 ################################
 
