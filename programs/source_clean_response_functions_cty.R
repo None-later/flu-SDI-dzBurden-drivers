@@ -11,6 +11,7 @@
 
 #### functions for model data cleaning ################################
 require(dplyr); require(tidyr); require(readr); require(DBI); require(RMySQL)
+require(igraph)
 
 ##### COUNTY-LEVEL VARIABLES ##########################################
 cleanR_iliSum_cty <- function(filepathList){
@@ -306,7 +307,7 @@ cleanX_protectedFromPrevSeason_cty <- function(filepathList){
 
 ##### REFERENCE DATA ##########################################
 clean_graphIDx <- function(filepathList){
-  # 10/30/16 import spatial crosswalk for zip3-county
+  # 10/30/16 import spatial crosswalk for fips-graph IDs
   print(match.call())
   
   graphIdxDat <- read_csv(filepathList$path_graphIdx_cty) %>%
@@ -316,6 +317,18 @@ clean_graphIDx <- function(filepathList){
 }
 
 ################################
+clean_ctyCommmuter_graph <- function(filepathList){
+  # 10/30/16 import spatial crosswalk for zip3-county
+  print(match.call())
+  
+  g <- read_graph(filepathList$path_graphExport_cty, format = "edgelist", directed = FALSE)
+  adjMx <- as_adjacency_matrix(g, type = "both")
+  
+  return(adjMx)
+}
+
+################################
+
 cw_zip3_cty <- function(){
   # spatial crosswalk for zip3-county
   print(match.call())
