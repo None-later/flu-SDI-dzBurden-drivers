@@ -22,7 +22,7 @@ source("source_clean_response_functions_cty.R") # cty response functions
 
 #### set these! ################################
 dbCodeStr <- "_ilinDt_Octfit_span0.4_degree2"
-modCodeStr <- "9a_iliSum_v2-1"
+modCodeStr <- "9a_iliSum_v4-1"
 seasons <- c(3:9)
 likString <- "normal"; likStrings <- c(likString)
 
@@ -50,67 +50,68 @@ path_plotExport_coefDistr <- paste0(path_plotExport, sprintf("/coefDistr_%s_", m
 setwd(dirname(sys.frame(1)$ofile))
 setwd(sprintf("../R_export/inlaModelData_export/%s", modCodeStr))
 path_csvExport <- getwd()
-path_csvExport_ids <- paste0(path_csvExport, "/ids_", modCodeStr, ".csv")
 
-# #### results across seasons #################################
-# # coef distributions by season
-# importPlot_coefDistr_season_hurdle(path_csvExport, path_plotExport_coefDistr)
-# 
-# #### diagnostics across seasons #################################
-# 
-# ### model validity ###
-# if ("binomial" %in% likStrings){
-#   # scatter: predicted vs. observed data (phat - binomial) + 95%CI vs. y observed 
-#   path_plotExport_predVsObs <- paste0(path_plotExport, sprintf("/diag_predVsObs_%s_%s.png", "binomial", modCodeStr))
-#   plot_diag_scatter_hurdle(path_csvExport, path_plotExport_predVsObs, "binomial", "y", "mean", TRUE)
-# }
-# 
-# ### model fit ###
-# if ("gamma" %in% likStrings){
-#   # correlogram: Moran's I vs. distance
-#   path_plotExport_correlogram <- paste0(path_plotExport, sprintf("/diag_correlog_%s_%s", likString, modCodeStr))
-#   importPlot_correlogram(path_csvExport, path_plotExport_correlogram, path_list) 
-#   
-#   # scatter: predicted vs. observed data (yhat - nonzero) + 95%CI vs. y nonzero observed 
-#   path_plotExport_predVsObs <- paste0(path_plotExport, sprintf("/diag_predVsObs_%s_%s.png", likString, modCodeStr))
-#   plot_diag_scatter_hurdle(path_csvExport, path_plotExport_predVsObs, likString, "y1", "mean", TRUE)
-#   
-#   # scatter: standardized residuals vs. fitted (yhat - nonzero model only)
-#   path_plotExport_residVsPred <- paste0(path_plotExport, sprintf("/diag_residVsPred_%s_%s.png", likString, modCodeStr))
-#   plot_diag_scatter_hurdle(path_csvExport, path_plotExport_residVsPred, likString, "mean", "yhat_resid", FALSE)
-#   
-#   # scatter: raw residuals vs. fitted (yhat - nonzero model only)
-#   path_plotExport_residVsPred2 <- paste0(path_plotExport, sprintf("/diag_rawresidVsPred_%s_%s.png", likString, modCodeStr))
-#   plot_diag_scatter_hurdle(path_csvExport, path_plotExport_residVsPred2, likString, "mean", "yhat_rawresid", FALSE)
-#   
-#   # scatter: standardized residuals vs. observed y_nonzero (yhat - gamma model only)
-#   path_plotExport_residVsObs <- paste0(path_plotExport, sprintf("/diag_residVsObs_%s_%s.png", likString, modCodeStr))
-#   plot_diag_scatter_hurdle(path_csvExport, path_plotExport_residVsObs, likString, "y1", "yhat_resid", FALSE)
-#   
-#   # scatter: raw residuals vs. observed y_nonzero (yhat - gamma model only)
-#   path_plotExport_residVsObs2 <- paste0(path_plotExport, sprintf("/diag_rawresidVsObs_%s_%s.png", likString, modCodeStr))
-#   plot_diag_scatter_hurdle(path_csvExport, path_plotExport_residVsObs2, likString, "y1", "yhat_rawresid", FALSE)
-# 
-#   # scatter: predicted SD vs. predicted 
-#   path_plotExport_predsdVsPred <- paste0(path_plotExport, sprintf("/diag_predsdVsPred_%s_%s.png", likString, modCodeStr))
-#   plot_diag_scatter_hurdle(path_csvExport, path_plotExport_predsdVsPred, likString, "mean", "sd", FALSE)
-#   
-#   # scatter: predicted SD vs. observed y_nonzero 
-#   path_plotExport_predsdVsObs <- paste0(path_plotExport, sprintf("/diag_predsdVsObs_%s_%s.png", likString, modCodeStr))
-#   plot_diag_scatter_hurdle(path_csvExport, path_plotExport_predsdVsObs, likString, "y1", "sd", FALSE)
-#   
-#   # scatter: predicted SD vs. raw residuals 
-#   path_plotExport_predsdVsResid2 <- paste0(path_plotExport, sprintf("/diag_predsdVsRawresid_%s_%s.png", likString, modCodeStr))
-#   plot_diag_scatter_hurdle(path_csvExport, path_plotExport_predsdVsResid2, likString, "yhat_rawresid", "sd", FALSE)
-#   
-#   # scatter: predicted SD vs. standardized residuals 
-#   path_plotExport_predsdVsResid <- paste0(path_plotExport, sprintf("/diag_predsdVsResid_%s_%s.png", likString, modCodeStr))
-#   plot_diag_scatter_hurdle(path_csvExport, path_plotExport_predsdVsResid, likString, "yhat_resid", "sd", FALSE)
-# }
+#### results across seasons #################################
+# coef distributions by season
+importPlot_coefDistr_season_hurdle(path_csvExport, path_plotExport_coefDistr)
+
+#### diagnostics across seasons #################################
+
+### model validity ###
+if ("binomial" %in% likStrings){
+  # scatter: predicted vs. observed data (phat - binomial) + 95%CI vs. y observed
+  path_plotExport_predVsObs <- paste0(path_plotExport, sprintf("/diag_predVsObs_%s_%s.png", "binomial", modCodeStr))
+  plot_diag_scatter_hurdle(path_csvExport, path_plotExport_predVsObs, "binomial", "y", "mean", TRUE)
+}
+
+### model fit ###
+if ("gamma" %in% likStrings){
+  # correlogram: Moran's I vs. distance
+  path_plotExport_correlogram <- paste0(path_plotExport, sprintf("/diag_correlog_%s_%s", likString, modCodeStr))
+  importPlot_correlogram(path_csvExport, path_plotExport_correlogram, path_list)
+
+  # scatter: predicted vs. observed data (yhat - nonzero) + 95%CI vs. y nonzero observed
+  path_plotExport_predVsObs <- paste0(path_plotExport, sprintf("/diag_predVsObs_%s_%s.png", likString, modCodeStr))
+  plot_diag_scatter_hurdle(path_csvExport, path_plotExport_predVsObs, likString, "y1", "mean", TRUE)
+
+  # scatter: standardized residuals vs. fitted (yhat - nonzero model only)
+  path_plotExport_residVsPred <- paste0(path_plotExport, sprintf("/diag_residVsPred_%s_%s.png", likString, modCodeStr))
+  plot_diag_scatter_hurdle(path_csvExport, path_plotExport_residVsPred, likString, "mean", "yhat_resid", FALSE)
+
+  # scatter: raw residuals vs. fitted (yhat - nonzero model only)
+  path_plotExport_residVsPred2 <- paste0(path_plotExport, sprintf("/diag_rawresidVsPred_%s_%s.png", likString, modCodeStr))
+  plot_diag_scatter_hurdle(path_csvExport, path_plotExport_residVsPred2, likString, "mean", "yhat_rawresid", FALSE)
+
+  # scatter: standardized residuals vs. observed y_nonzero (yhat - gamma model only)
+  path_plotExport_residVsObs <- paste0(path_plotExport, sprintf("/diag_residVsObs_%s_%s.png", likString, modCodeStr))
+  plot_diag_scatter_hurdle(path_csvExport, path_plotExport_residVsObs, likString, "y1", "yhat_resid", FALSE)
+
+  # scatter: raw residuals vs. observed y_nonzero (yhat - gamma model only)
+  path_plotExport_residVsObs2 <- paste0(path_plotExport, sprintf("/diag_rawresidVsObs_%s_%s.png", likString, modCodeStr))
+  plot_diag_scatter_hurdle(path_csvExport, path_plotExport_residVsObs2, likString, "y1", "yhat_rawresid", FALSE)
+
+  # scatter: predicted SD vs. predicted
+  path_plotExport_predsdVsPred <- paste0(path_plotExport, sprintf("/diag_predsdVsPred_%s_%s.png", likString, modCodeStr))
+  plot_diag_scatter_hurdle(path_csvExport, path_plotExport_predsdVsPred, likString, "mean", "sd", FALSE)
+
+  # scatter: predicted SD vs. observed y_nonzero
+  path_plotExport_predsdVsObs <- paste0(path_plotExport, sprintf("/diag_predsdVsObs_%s_%s.png", likString, modCodeStr))
+  plot_diag_scatter_hurdle(path_csvExport, path_plotExport_predsdVsObs, likString, "y1", "sd", FALSE)
+
+  # scatter: predicted SD vs. raw residuals
+  path_plotExport_predsdVsResid2 <- paste0(path_plotExport, sprintf("/diag_predsdVsRawresid_%s_%s.png", likString, modCodeStr))
+  plot_diag_scatter_hurdle(path_csvExport, path_plotExport_predsdVsResid2, likString, "yhat_rawresid", "sd", FALSE)
+
+  # scatter: predicted SD vs. standardized residuals
+  path_plotExport_predsdVsResid <- paste0(path_plotExport, sprintf("/diag_predsdVsResid_%s_%s.png", likString, modCodeStr))
+  plot_diag_scatter_hurdle(path_csvExport, path_plotExport_predsdVsResid, likString, "yhat_resid", "sd", FALSE)
+}
 
 #### diagnostics by season #################################
 for (s in seasons){
   print(paste("Season", s, "-----------------"))
+  path_csvExport_ids <- paste0(path_csvExport, "/ids_", modCodeStr, "_S", s, ".csv")
+  
   #### any likelihood model figures ####
   for (i in 1:length(likStrings)){
     ## import summary statistics ##
