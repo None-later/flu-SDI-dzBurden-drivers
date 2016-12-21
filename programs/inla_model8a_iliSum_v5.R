@@ -1,7 +1,7 @@
 
 ## Name: Elizabeth Lee
 ## Date: 12/16/16
-## Function: Model 8a v2: CAR spatial model, shifted response variable (e.g., seasonal intensity 0 -> 1), with interaction terms
+## Function: Model 8a v5: CAR spatial model- county commute, shifted response variable (e.g., seasonal intensity 0 -> 1), with interaction terms
 ## Filenames: physicianCoverage_IMSHealth_state.csv, dbMetrics_periodicReg_ilinDt_Octfit_span0.4_degree2_analyzeDB_st.csv
 ## Data Source: IMS Health
 ## Notes: 
@@ -73,7 +73,7 @@ if (testDataOn){
     #%>%
     # remove_randomObs_stratifySeas(0.4)
   
-  ctyCommuter_adjMx <- clean_ctyCommmuter_graph(path_list)
+  ctyCommuter_adjMx <- clean_ctyCommmuter_stPassenger_graph(path_list, "county")
   
   formula <- Y ~ -1 + 
     f(ID_nonzero, model = "iid") +
