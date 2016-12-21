@@ -73,16 +73,10 @@ hist(fullDat2$fTot_norm, xlim = c(0, 0.01), breaks=10000)
 hist(fullDat2$fDiff, breaks=300)
 hist(fullDat2$fDiff_norm, breaks=300)
 
-#### check number of connected components ################################
-edgels <- as.matrix(fullDat2 %>% select(fips1, fips2))
-g <- graph_from_edgelist(edgels, directed = FALSE)
-count_components(g) # 1 connected component
-deg <- degree(g, mode = "all")
-hist(deg/2) # degree distribution
-mean(deg/2) # undirected mean degree 41.44
-
-summDeg <- fullDat2 %>% group_by(fips1) %>% count
-mean(summDeg$n) # undirected mean degree 41.44
+#### look at only top 30% of flight passenger connections bw states ################################
+quantile(fullDat2$fTot, seq(0, 1, by = 0.05))
+fullDat2 <- fullDat2 %>%
+  filter(fTot >= quantile(fTot, 0.70)) # connects states with > 1000 passengers traveling between them on an average flu season day
 
 #### remove duplicate edges in prep for export ################################
 fipsIDs <- fullDat2 %>% 
@@ -92,15 +86,17 @@ fipsIDs <- fullDat2 %>%
   rename(fips_st = fips1)
 
 fullDat3 <- fullDat2 %>% 
-  left_join(fipsIDs, by = c("fips1"="fips")) %>%
+  left_join(fipsIDs, by = c("fips1"="fips_st")) %>%
   rename(id1 = graphIdx_st) %>%
-  left_join(fipsIDs, by = c("fips2"="fips")) %>%
+  left_join(fipsIDs, by = c("fips2"="fips_st")) %>%
   rename(id2 = graphIdx_st)
 
 edgels <- as.matrix(fullDat3 %>% select(id1, id2))
 g <- graph_from_edgelist(edgels, directed = FALSE)
 g_cl <- simplify(g)
 count_components(g_cl)
+deg_cl <- degree(g_cl, mode = "all")
+hist(deg_cl)
 
 #### write graph & ids to file ################################
 setwd(dirname(sys.frame(1)$ofile)) # only works if you source the program
@@ -116,7 +112,7 @@ write_csv(fipsIDs, path_idCrosswalk)
 
 path_full <- paste0(getwd(), "/US_statePassenger_fullData.csv")
 write_csv(fullDat3, path_full)
-# exported 12/19/16
+# exported 12/21/16
 
 #### test graph object ################################
 f_adjMx <- as_adjacency_matrix(g_cl, type = "both")
