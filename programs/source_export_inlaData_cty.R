@@ -68,7 +68,7 @@ plot_countyChoro <- function(exportPath, pltDat, pltVarTxt, code, zeroes){
     choro <- ggplot() +
       geom_map(data = ctyMap, map = ctyMap, aes(x = long, y = lat, map_id = region)) +
       geom_map(data = pltDat2, map = ctyMap, aes(fill = pltVarBin, map_id = fips), color = "grey25", size = 0.15) +
-      scale_fill_brewer(palette = "RdYlGn", label = breakLabels, na.value = "grey60") +
+      scale_fill_brewer(name = pltVarTxt, palette = "RdYlGn", label = breakLabels, na.value = "grey60") +
       expand_limits(x = ctyMap$long, y = ctyMap$lat) +
       theme_minimal() +
       theme(text = element_text(size = 18), axis.ticks = element_blank(), axis.text = element_blank(), axis.title = element_blank(), panel.grid = element_blank(), legend.position = "bottom")
@@ -82,7 +82,7 @@ plot_countyChoro <- function(exportPath, pltDat, pltVarTxt, code, zeroes){
     choro <- ggplot() +
       geom_map(data = ctyMap, map = ctyMap, aes(x = long, y = lat, map_id=region)) +
       geom_map(data = pltDat, map = ctyMap, aes(fill = pltVar, map_id = fips), color = "grey25", size = 0.15) +
-      scale_fill_continuous(low = "#f0fff0", high = "#006400") +
+      scale_fill_continuous(name = pltVarTxt, low = "#f0fff0", high = "#006400") +
       expand_limits(x = ctyMap$long, y = ctyMap$lat) +
       theme_minimal() +
       theme(text = element_text(size = 18), axis.ticks = element_blank(), axis.text = element_blank(), axis.title = element_blank(), panel.grid = element_blank(), legend.position = "bottom") 
