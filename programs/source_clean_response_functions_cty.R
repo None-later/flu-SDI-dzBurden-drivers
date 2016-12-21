@@ -306,22 +306,32 @@ cleanX_protectedFromPrevSeason_cty <- function(filepathList){
 }
 
 ##### REFERENCE DATA ##########################################
-clean_graphIDx <- function(filepathList){
+clean_graphIDx <- function(filepathList, spatial_scale){
   # 10/30/16 import spatial crosswalk for fips-graph IDs
   print(match.call())
   
-  graphIdxDat <- read_csv(filepathList$path_graphIdx_cty) %>%
-    select(fips, graphIdx)
+  if (spatial_scale == "county"){
+    graphIdxDat <- read_csv(filepathList$path_graphIdx_cty) %>%
+      select(fips, graphIdx)
+  } else if (spatial_scale == "state"){
+    graphIdxDat <- read_csv(filepathList$path_graphIdx_st) %>%
+      select(fips_st, graphIdx_st)
+  }
    
   return(graphIdxDat)
 }
 
 ################################
-clean_ctyCommmuter_graph <- function(filepathList){
-  # 10/30/16 import spatial crosswalk for zip3-county
+clean_ctyCommmuter_stPassenger_graph <- function(filepathList, spatial_scale){
+  # 12/19/16 import spatial dependence for commuting flows at county level or flight passenger flows at state level
   print(match.call())
   
-  g <- read_graph(filepathList$path_graphExport_cty, format = "edgelist", directed = FALSE)
+  if (spatial_scale == "county"){
+    g <- read_graph(filepathList$path_graphExport_cty, format = "edgelist", directed = FALSE)
+  } else if (spatial_scale == "state"){
+    g <- read_graph(filepathList$path_graphExport_st, format = "edgelist", directed = FALSE)
+  }
+  
   adjMx <- as_adjacency_matrix(g, type = "both")
   
   return(adjMx)
@@ -396,5 +406,26 @@ clean_pop_cty_plain <- function(){
   # clean final dataset
   output <- tbl_df(dummy) %>% 
     select(fips, year, pop)
+  return(output)
+}
+################################
+clean_pop_st_plain <- function(){
+  # clean pop data at state level
+  print(match.call())
+  
+  # import population data from mysql
+  con <- dbConnect(RMySQL::MySQL(), group = "rmysql-fludrivers")
+  dbListTables(con)
+  
+  dbListFields(con, "demog_Census_agePop_state")
+  # sel.statement <- "Select * from demog_Census_agePop_state limit 5"
+  sel.statement <- "SELECT fips as fips_st, agegroup, year, pop FROM demog_Census_agePop_state WHERE scale = 'state' and agegroup = 'total'"
+  dummy <- dbGetQuery(con, sel.statement)
+  
+  dbDisconnect(con)
+  
+  # clean final dataset
+  output <- tbl_df(dummy) %>% 
+    select(fips_st, year, pop)
   return(output)
 }
