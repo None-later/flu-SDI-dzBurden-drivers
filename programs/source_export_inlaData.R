@@ -217,12 +217,18 @@ export_ids <- function(exportPath, modDataFullOutput){
   print(match.call())
   
   # 10/30/16 control flow for spatial structure
-  if(is.null(modDataFullOutput$graphIdx)){ # without spatially structured term
+  if(is.null(modDataFullOutput$graphIdx) & is.null(modDataFullOutput$graphIdx_st)){ # without spatially structured terms
     ids <- modDataFullOutput %>% 
       select(season, fips, county, ID, st, regionID)
-  } else{ # with spatially structured term
+  } else if(is.null(modDataFullOutput$graphIdx_st) & !is.null(modDataFullOutput$graphIdx)){ # with spatially structured county term
     ids <- modDataFullOutput %>% 
       select(season, fips, county, ID, st, regionID, graphIdx)
+  } else if(!is.null(modDataFullOutput$graphIdx_st) & is.null(modDataFullOutput$graphIdx)){ # with spatially structured state term
+    ids <- modDataFullOutput %>% 
+      select(season, fips, county, ID, st, regionID, graphIdx_st)
+  } else{
+    ids <- modDataFullOutput %>% 
+      select(season, fips, county, ID, st, regionID, graphIdx, graphIdx_st)
   }
   
   # export data to file

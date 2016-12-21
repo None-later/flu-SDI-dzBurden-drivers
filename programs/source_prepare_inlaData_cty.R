@@ -221,7 +221,7 @@ model8a_iliSum_v2 <- function(filepathList){
   cdcB_df <- cleanX_cdcFluview_B_region() %>% select(-region)
   protectedPriorSeas_df <- cleanX_protectedFromPrevSeason_cty(filepathList)
   # graph index IDs
-  graphIdx_df <- clean_graphIDx(filepathList)
+  graphIdx_df <- clean_graphIDx(filepathList, "county")
 
   #### join data ####
   dummy_df <- full_join(mod_cty_df, imsCov_cty_df, by = c("year", "fips"))
@@ -265,6 +265,94 @@ model8a_iliSum_v2 <- function(filepathList){
     ungroup %>%
     filter(fips_st %in% continentalOnly) %>%
     filter(!is.na(graphIdx)) %>% # rm data not in graph
+    mutate(logE = log(E), y1 = log(y1)) %>% # model response y1 = log(y+1)
+    select(-stateID, -adjProviderCoverage, -visitsPerProvider, -insured, -poverty, -child, -adult, -hospitalAccess, -popDensity, -housDensity, -infantAnyVax, -elderlyAnyVax, -prop_H3_a, -prop_b_all, -protectionPrevSeason, -humidity, -avg_pm, -perc_hh_1p) %>%
+    filter(season %in% 3:9) %>%
+    mutate(ID = seq_along(fips))
+  
+  return(full_df)
+}
+################################
+
+model8a_iliSum_v6 <- function(filepathList){
+  # 12/20/16 model 8a_v6
+  # shifted1 iliSum response, all sampling effort, and driver variables
+  # with spatial term - state flight passenger
+  # y1 = log(response+1), E = expected response+1
+  print(match.call())
+  print(filepathList)
+  
+  # list of continental states
+  statesOnly <- read_csv(filepathList$path_abbr_st, col_types = "__c", col_names = c("stateID"), skip = 1) 
+  continentalOnly <- statesOnly %>% filter(!(stateID %in% c("02", "15"))) %>% unlist
+  
+  #### import data ####
+  # IMS Health based tables
+  mod_cty_df <- cleanR_iliSum_shift1_cty(filepathList)
+  imsCov_cty_df <- cleanO_imsCoverage_cty()
+  # all county tables
+  sahieIns_cty_df <- cleanO_sahieInsured_cty()
+  saipePov_cty_df <- cleanX_saipePoverty_cty()
+  censusChPop_cty_df <- cleanX_censusChildPop_cty()
+  censusAdPop_cty_df <- cleanX_censusAdultPop_cty()
+  ahrfHosp_cty_df <- cleanX_ahrfHospitals_cty()
+  popDens_cty_df <- cleanX_popDensity_cty()
+  housDens_cty_df <- cleanX_housDensity_cty()
+  narrSpecHum_cty_df <- cleanX_noaanarrSpecHum_cty()
+  wonderPollution_cty_df <- cleanX_wonderAirParticulateMatter_cty()
+  acsOnePersonHH_cty_df <- cleanX_acsOnePersonHH_cty()
+  # all state tables 
+  infantAnyVax_st_df <- cleanX_nisInfantAnyVaxCov_st()
+  elderlyAnyVax_st_df <- cleanX_brfssElderlyAnyVaxCov_st() 
+  # all region tables
+  cdcH3A_df <- cleanX_cdcFluview_H3A_region()
+  cdcB_df <- cleanX_cdcFluview_B_region() %>% select(-region)
+  protectedPriorSeas_df <- cleanX_protectedFromPrevSeason_cty(filepathList)
+  # graph index IDs
+  graphIdx_df <- clean_graphIDx(filepathList, "state")
+  
+  #### join data ####
+  dummy_df <- full_join(mod_cty_df, imsCov_cty_df, by = c("year", "fips"))
+  dummy_df2 <- full_join(dummy_df, sahieIns_cty_df, by = c("year", "fips"))
+  
+  full_df <- full_join(dummy_df2, saipePov_cty_df, by = c("year", "fips")) %>%
+    full_join(censusChPop_cty_df, by = c("year", "fips")) %>%
+    full_join(censusAdPop_cty_df, by = c("year", "fips")) %>%
+    full_join(ahrfHosp_cty_df, by = c("year", "fips")) %>%
+    full_join(popDens_cty_df, by = c("year", "fips")) %>%
+    full_join(housDens_cty_df, by = c("year", "fips")) %>%
+    full_join(infantAnyVax_st_df, by = c("season", "st")) %>%
+    full_join(elderlyAnyVax_st_df, by = c("season", "st")) %>%
+    mutate(fips_st = substring(fips, 1, 2)) %>% # region is linked by state fips code
+    full_join(cdcH3A_df, by = c("season", "fips_st" = "fips")) %>%
+    full_join(cdcB_df, by = c("season", "fips_st" = "fips")) %>%
+    rename(regionID = region) %>%
+    full_join(protectedPriorSeas_df, by = c("season", "fips")) %>%
+    full_join(narrSpecHum_cty_df, by = c("season", "fips")) %>%
+    full_join(wonderPollution_cty_df, by = c("season", "fips")) %>%
+    full_join(acsOnePersonHH_cty_df, by = c("fips", "year")) %>%
+    full_join(graphIdx_df, by = "fips_st") %>%
+    group_by(season) %>%
+    mutate(O_imscoverage = centerStandardize(adjProviderCoverage)) %>%
+    mutate(O_careseek = centerStandardize(visitsPerProvider)) %>%
+    mutate(O_insured = centerStandardize(insured)) %>%
+    mutate(X_poverty = centerStandardize(poverty)) %>%
+    mutate(X_child = centerStandardize(child)) %>%
+    mutate(X_adult = centerStandardize(adult)) %>%
+    mutate(X_hospaccess = centerStandardize(hospitalAccess)) %>%
+    mutate(X_popdensity = centerStandardize(popDensity)) %>%
+    mutate(X_housdensity = centerStandardize(housDensity)) %>%
+    mutate(X_vaxcovI = centerStandardize(infantAnyVax)) %>%
+    mutate(X_vaxcovE = centerStandardize(elderlyAnyVax)) %>%
+    mutate(X_H3A = centerStandardize(prop_H3_a)) %>%
+    mutate(X_B = centerStandardize(prop_b_all)) %>%
+    mutate(X_priorImmunity = centerStandardize(protectionPrevSeason)) %>%
+    mutate(X_humidity = centerStandardize(humidity)) %>%
+    mutate(X_pollution = centerStandardize(avg_pm)) %>%
+    mutate(X_singlePersonHH = centerStandardize(perc_hh_1p)) %>%
+    ungroup %>%
+    filter(fips_st %in% continentalOnly) %>%
+    filter(!is.na(graphIdx_st)) %>% # rm data not in graph
     mutate(logE = log(E), y1 = log(y1)) %>% # model response y1 = log(y+1)
     select(-stateID, -adjProviderCoverage, -visitsPerProvider, -insured, -poverty, -child, -adult, -hospitalAccess, -popDensity, -housDensity, -infantAnyVax, -elderlyAnyVax, -prop_H3_a, -prop_b_all, -protectionPrevSeason, -humidity, -avg_pm, -perc_hh_1p) %>%
     filter(season %in% 3:9) %>%
@@ -916,7 +1004,7 @@ model7a_iliSum_v5 <- function(filepathList){
   # all region tables
   cdcH3_df <- cleanX_cdcFluview_H3_region()
   # graph index IDs
-  graphIdx_df <- clean_graphIDx(filepathList)
+  graphIdx_df <- clean_graphIDx(filepathList, "county")
   
   # list of continental states
   statesOnly <- read_csv(filepathList$path_abbr_st, col_types = "__c", col_names = c("stateID"), skip = 1) 
@@ -1437,15 +1525,23 @@ convert_hurdleModel_nz_spatiotemporal <- function(modData_seas){
     unlist
   
   # covariate matrix for gamma lik: response, predictors, random effects & offset
-  # 10/30/16 control flow for graph Idx
-  if(is.null(modData_seas$graphIdx)){
+  # 10/30/16 control flow for graph Idx # 12/20/16 graph Idx st
+  if(is.null(modData_seas$graphIdx) & is.null(modData_seas$graphIdx_st)){
     Mx_gam <- modData_seas %>%
       select(contains("X_"), contains("O_"), fips, fips_st, regionID, ID, logE, season) %>%
       mutate(intercept = 1) 
-  } else{
+  } else if(is.null(modData_seas$graphIdx_st) & !is.null(modData_seas$graphIdx)){
     Mx_gam <- modData_seas %>%
       select(contains("X_"), contains("O_"), fips, fips_st, regionID, ID, logE, season, graphIdx) %>%
       mutate(intercept = 1) 
+  } else if(!is.null(modData_seas$graphIdx_st) & is.null(modData_seas$graphIdx)){
+    Mx_gam <- modData_seas %>%
+      select(contains("X_"), contains("O_"), fips, fips_st, regionID, ID, logE, season, graphIdx_st) %>%
+      mutate(intercept = 1)
+  } else{
+    Mx_gam <- modData_seas %>%
+      select(contains("X_"), contains("O_"), fips, fips_st, regionID, ID, logE, season, graphIdx, graphIdx_st) %>%
+      mutate(intercept = 1)
   }
   colnames(Mx_gam) <- paste0(colnames(Mx_gam), "_nonzero")
   

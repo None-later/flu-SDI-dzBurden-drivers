@@ -79,6 +79,13 @@ importPlot_coefDistr_season_hurdle <- function(path_csvExport, path_plotExport_c
       strucDat <- coefDf_lik %>% clean_RVnames(.) %>% filter(effectType == 'structured' & RV %in% sampleStruc) 
       plot_coefDistr_season(strucDat, path_plotExport_coefDistr, sprintf('structured_%sLikelihood.png', lik))
     }
+    
+    # plot CAR state effects
+    if (nrow(coefDf_lik %>% filter(effectType == 'structured_st')) > 0){
+      sampleStruc2 <- coefDf_lik %>% filter(effectType == 'structured_st') %>% clean_RVnames(.) %>% select(RV) %>% sample_n(56) %>% unlist 
+      strucDat2 <- coefDf_lik %>% clean_RVnames(.) %>% filter(effectType == 'structured_st' & RV %in% sampleStruc2) 
+      plot_coefDistr_season(strucDat2, path_plotExport_coefDistr, sprintf('structured_st_%sLikelihood.png', lik))
+    }
   } 
 }
 ################################
@@ -382,6 +389,14 @@ export_summaryStats_hurdle_likString <- function(exportPath, modelOutput, rdmFxT
       mutate(effectType = "structured") %>%
       select(RV, effectType, likelihood, mean, sd, q_025, q_5, q_975, mode, kld)
     summaryComplete <- bind_rows(summaryComplete, summaryRandomGraphid)
+  }
+  if (!is.null(modelOutput$summary.random$graphIdx_st_nonzero)){
+    names(modelOutput$summary.random$graphIdx_st_nonzero) <- c("RV", names(modelOutput$summary.fixed))
+    summaryRandomGraphid2 <- modelOutput$summary.random$graphIdx_st_nonzero %>% mutate(likelihood = likString) %>%
+      mutate(RV = as.character(paste0("phi", RV))) %>%
+      mutate(effectType = "structured_st") %>%
+      select(RV, effectType, likelihood, mean, sd, q_025, q_5, q_975, mode, kld)
+    summaryComplete <- bind_rows(summaryComplete, summaryRandomGraphid2)
   }
   if (!is.null(modelOutput$summary.random$fips_st_nonzero)){
     names(modelOutput$summary.random$fips_st_nonzero) <- c("RV", names(modelOutput$summary.fixed))
