@@ -23,7 +23,7 @@ source("source_clean_response_functions_cty.R") # cty response functions
 
 #### set these! ################################
 dbCodeStr <- "_ilinDt_Octfit_span0.4_degree2"
-modCodeStr <- "8a_iliSum_v2-2"
+modCodeStr <- "8a_iliSum_v7-1"
 seasons <- c(3:9)
 likString <- "normal"; likStrings <- c(likString) 
 
