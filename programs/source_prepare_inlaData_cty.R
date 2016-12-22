@@ -450,7 +450,53 @@ model8a_iliSum_v7 <- function(filepathList){
   
   return(full_df)
 }
+################################
 
+model7e_epiDur_v1 <- function(filepathList){
+  # 12/22/16 model 7e_v1
+  # epiDur week count response, small sampling effort and driver variables
+  # y1 = non-zero values only, E = expected response
+  print(match.call())
+  print(filepathList)
+  
+  # list of continental states
+  statesOnly <- read_csv(filepathList$path_abbr_st, col_types = "__c", col_names = c("stateID"), skip = 1) 
+  continentalOnly <- statesOnly %>% filter(!(stateID %in% c("02", "15"))) %>% unlist
+  
+  #### import data ####
+  # IMS Health based tables
+  mod_cty_df <- cleanR_epiDur_cty(filepathList)
+  imsCov_cty_df <- cleanO_imsCoverage_cty()
+  # all county tables
+  saipePov_cty_df <- cleanX_saipePoverty_cty()
+  # all state tables 
+  infantAnyVax_st_df <- cleanX_nisInfantAnyVaxCov_st()
+  # all region tables
+  cdcH3A_df <- cleanX_cdcFluview_H3A_region()
+
+  #### join data ####
+  dummy_df2 <- full_join(mod_cty_df, imsCov_cty_df, by = c("year", "fips"))
+  
+  full_df <- full_join(dummy_df2, saipePov_cty_df, by = c("year", "fips")) %>%
+    full_join(infantAnyVax_st_df, by = c("season", "st")) %>%
+    mutate(fips_st = substring(fips, 1, 2)) %>% # region is linked by state fips code
+    full_join(cdcH3A_df, by = c("season", "fips_st" = "fips")) %>%
+    rename(regionID = region) %>%
+    group_by(season) %>%
+    mutate(O_imscoverage = centerStandardize(adjProviderCoverage)) %>%
+    mutate(O_careseek = centerStandardize(visitsPerProvider)) %>%
+    mutate(X_poverty = centerStandardize(poverty)) %>%
+    mutate(X_vaxcovI = centerStandardize(infantAnyVax)) %>%
+    mutate(X_H3A = centerStandardize(prop_H3_a)) %>%
+    ungroup %>%
+    filter(fips_st %in% continentalOnly) %>%
+    mutate(logE = log(E), y1 = y1) %>% # model response y1 = nonzero y
+    select(-stateID, -adjProviderCoverage, -visitsPerProvider, -poverty, -infantAnyVax, -prop_H3_a) %>%
+    filter(season %in% 3:9) %>%
+    mutate(ID = seq_along(fips))
+  
+  return(full_df)
+}
 ################################
 
 model7a_iliSum_v6 <- function(filepathList){
@@ -1609,39 +1655,39 @@ convert_hurdleModel_nz_spatiotemporal <- function(modData_seas){
   # 10/11/16: prepare data seasonal model data for nonzero model component
   print(match.call())
   
-  # bottom half response matrix with NA (binomial lik) and non-zeros/NA (gamma lik)
-  Y_gam <- modData_seas %>% 
+  # bottom half response matrix with NA (binomial lik) and non-zeros/NA (gamma/normal lik)
+  Y_nz <- modData_seas %>% 
     select(y1) %>%
     unlist
   
-  # covariate matrix for gamma lik: response, predictors, random effects & offset
+  # covariate matrix for nonzero lik: response, predictors, random effects & offset
   # 10/30/16 control flow for graph Idx # 12/20/16 graph Idx st
   if(is.null(modData_seas$graphIdx) & is.null(modData_seas$graphIdx_st)){
-    Mx_gam <- modData_seas %>%
+    Mx_nz <- modData_seas %>%
       select(contains("X_"), contains("O_"), fips, fips_st, regionID, ID, logE, season) %>%
       mutate(intercept = 1) 
   } else if(is.null(modData_seas$graphIdx_st) & !is.null(modData_seas$graphIdx)){
-    Mx_gam <- modData_seas %>%
+    Mx_nz <- modData_seas %>%
       select(contains("X_"), contains("O_"), fips, fips_st, regionID, ID, logE, season, graphIdx) %>%
       mutate(intercept = 1) 
   } else if(!is.null(modData_seas$graphIdx_st) & is.null(modData_seas$graphIdx)){
-    Mx_gam <- modData_seas %>%
+    Mx_nz <- modData_seas %>%
       select(contains("X_"), contains("O_"), fips, fips_st, regionID, ID, logE, season, graphIdx_st) %>%
       mutate(intercept = 1)
   } else{
-    Mx_gam <- modData_seas %>%
+    Mx_nz <- modData_seas %>%
       select(contains("X_"), contains("O_"), fips, fips_st, regionID, ID, logE, season, graphIdx, graphIdx_st) %>%
       mutate(intercept = 1)
   }
-  colnames(Mx_gam) <- paste0(colnames(Mx_gam), "_nonzero")
+  colnames(Mx_nz) <- paste0(colnames(Mx_nz), "_nonzero")
   
   # convert matrix information to a list of lists/matrixes
   modData_seas_lists <- list()
-  for (column in colnames(Mx_gam)){
-    modData_seas_lists[[column]] <- Mx_gam[[column]]
+  for (column in colnames(Mx_nz)){
+    modData_seas_lists[[column]] <- Mx_nz[[column]]
   }
   # add Y response vector as a list
-  modData_seas_lists[['Y']] <- Y_gam
+  modData_seas_lists[['Y']] <- Y_nz
   
   return(modData_seas_lists)
 }
