@@ -74,9 +74,10 @@ hist(fullDat2$fDiff, breaks=300)
 hist(fullDat2$fDiff_norm, breaks=300)
 
 #### look at only top 30% of flight passenger connections bw states ################################
-quantile(fullDat2$fTot, seq(0, 1, by = 0.05))
-fullDat2 <- fullDat2 %>%
-  filter(fTot >= quantile(fTot, 0.70)) # connects states with > 1000 passengers traveling between them on an average flu season day
+# quantile(fullDat2$fTot, seq(0, 1, by = 0.05))
+# fullDat2 <- fullDat2 %>%
+#   filter(fTot >= quantile(fTot, 0.30)) # 0.7 connects states with > 1000 passengers traveling between them on an average flu season day
+# # 12/22/16 0.3 fully connects all continental states accept DC
 
 #### remove duplicate edges in prep for export ################################
 fipsIDs <- fullDat2 %>% 
