@@ -327,7 +327,9 @@ cleanX_protectedFromPrevSeason_cty <- function(filepathList){
   
   output <- left_join(priorburdenDat, cw, by = c("fips_st")) %>%
     left_join(protectedPropDat, by = c("season", "region")) %>%
-    mutate(protectionPrevSeason = ifelse(is.na(priorBurden), 0, priorBurden*estImmuneProp)) %>%
+    rowwise %>% 
+    mutate(protectionPrevSeason = prod(priorBurden, estImmuneProp)) %>%
+    mutate(protectionPrevSeason = ifelse(is.na(protectionPrevSeason), 0, protectionPrevSeason)) %>%
     select(fips, season, protectionPrevSeason)
   
   return(output)
