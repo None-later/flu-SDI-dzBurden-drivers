@@ -1034,11 +1034,18 @@ importPlot_coefDistr_RV_spatiotemporal <- function(path_csvExport, path_plotExpo
       plot_coefDistr_RV(seasDat, path_plotExport_coefDistr, sprintf('season_%sLikelihood.png', lik))
     }
     
-    # plot effects of spatial structure
+    # plot effects of county spatial structure
     if (nrow(coefDf_lik %>% filter(effectType == 'structured')) > 0){
       sampleStruc <- coefDf_lik %>% filter(effectType == 'structured') %>% clean_RVnames(.) %>% select(RV) %>% sample_n(56) %>% unlist 
       strucDat <- coefDf_lik %>% clean_RVnames(.) %>% filter(effectType == 'structured' & RV %in% sampleStruc) 
       plot_coefDistr_RV(strucDat, path_plotExport_coefDistr, sprintf('structured_%sLikelihood.png', lik))
+    }
+
+    # plot effects of state spatial structure
+    if (nrow(coefDf_lik %>% filter(effectType == 'structured_st')) > 0){
+      sampleStruc2 <- coefDf_lik %>% filter(effectType == 'structured_st') %>% clean_RVnames(.) %>% select(RV) %>% unlist 
+      strucDat2 <- coefDf_lik %>% clean_RVnames(.) %>% filter(effectType == 'structured_st' & RV %in% sampleStruc2) 
+      plot_coefDistr_RV(strucDat2, path_plotExport_coefDistr, sprintf('structured_st_%sLikelihood.png', lik))
     }
   } 
 }
