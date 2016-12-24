@@ -103,15 +103,6 @@ path_csvExport <- getwd()
 modData_full <- modData
 modData_hurdle <- convert_hurdleModel_nz_spatiotemporal(modData_full)
 
-# starting3 <- inla(formula,
-#                   family = "poisson",
-#                   data = modData_hurdle,
-#                   control.family = list(link="log"),
-#                   control.fixed = list(mean = 0, prec = 1/100), # set prior parameters for regression coefficients
-#                   control.predictor = list(compute = TRUE, link = rep(1, nrow(modData_full))),
-#                   control.inla = list(correct = TRUE, correct.factor = 10, diagonal = 10, strategy = "gaussian", int.strategy = "eb"), # http://www.r-inla.org/events/newfeaturesinr-inlaapril2015; http://www.r-inla.org/?place=msg%2Fr-inla-discussion-group%2Fuf2ZGh4jmWc%2FA0rdPE5W7uMJ
-#                   verbose = TRUE)
-
 # starting4 <- inla(formula,
 #                   family = "poisson",
 #                   data = modData_hurdle,
