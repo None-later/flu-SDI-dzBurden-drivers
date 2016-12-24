@@ -330,7 +330,8 @@ cleanX_protectedFromPrevSeason_cty <- function(filepathList){
     rowwise %>% 
     mutate(protectionPrevSeason = prod(priorBurden, estImmuneProp)) %>%
     mutate(protectionPrevSeason = ifelse(is.na(protectionPrevSeason), 0, protectionPrevSeason)) %>%
-    select(fips, season, protectionPrevSeason)
+    select(fips, season, protectionPrevSeason) %>%
+    ungroup
   
   return(output)
 }
