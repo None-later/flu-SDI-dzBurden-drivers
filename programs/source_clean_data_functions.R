@@ -183,8 +183,10 @@ cleanO_imsCareseekAdult_cty <- function(){
   # combine viz and pop dat
   output <- vizCty %>%
     full_join(popDat, by = c("year", "fips")) %>%
-    mutate(visitsPerPop = visits/pop) %>%
-    filter(season >= 3 & season <= 9)
+    mutate(visitsPerPopA = visits/pop) %>%
+    filter(season >= 3 & season <= 9) %>%
+    select(fips, season, visitsPerPopA) %>%
+    arrange(fips, season)
   
   return(output)
 }
@@ -241,9 +243,11 @@ cleanO_imsCareseekChild_cty <- function(){
   # combine viz and pop dat
   output <- vizCty %>%
     full_join(popDat, by = c("year", "fips")) %>%
-    mutate(visitsPerPop = visits/pop) %>%
+    mutate(visitsPerPopC = visits/pop) %>%
     filter(season >= 3 & season <= 9) %>%
-    mutate(visitsPerPop = ifelse(fips=='15005', NA, visitsPerPop)) # visits >> pop in fips 15005 (Hawaii)
+    select(fips, season, visitsPerPopC) %>%
+    arrange(fips, season)
+    mutate(visitsPerPopC = ifelse(fips=='15005', NA, visitsPerPopC)) # visits >> pop in fips 15005 (Hawaii)
   
   return(output)
 }
