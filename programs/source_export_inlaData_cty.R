@@ -24,11 +24,11 @@ plot_countyChoro <- function(exportPath, pltDat, pltVarTxt, code, zeroes){
   h <- 5; w <- 8; dp <- 300
 
   # merge county data
-  polynameSplit <- tstrsplit(county.fips$polyname, ",", names = c("region", "subregion"))
+  polynameSplit <- tstrsplit(county.fips$polyname, ",")
   ctyMap <- tbl_df(county.fips) %>%
     mutate(fips = substr.Right(paste0("0", fips), 5)) %>%
-    mutate(region = polynameSplit$region) %>%
-    mutate(subregion = polynameSplit$subregion) %>%
+    mutate(region = polynameSplit[[1]]) %>%
+    mutate(subregion = polynameSplit[[2]]) %>%
     full_join(countyMap, by = c("region", "subregion")) %>%
     filter(!is.na(polyname) & !is.na(long)) %>%
     rename(state = region, county = subregion) %>%
