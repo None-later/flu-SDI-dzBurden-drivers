@@ -132,6 +132,122 @@ cleanO_sahieInsured_cty <- function(){
   return(output)
 }
 
+##### age-specific careseeking variables ##########
+cleanO_imsCareseekAdult_cty <- function(){
+  # clean IMS Health visits per population for adults exported from mysql
+  print(match.call())
+  
+  # import visit data
+  con <- dbConnect(RMySQL::MySQL(), group = "rmysql-sdi")
+  dbListTables(con)
+  
+  dbListFields(con, "flu")
+  # sel.statement <- "Select * from flu limit 5"
+  sel.statement <- "SELECT WEEK AS week, PATIENT_ZIP3 AS zip3, sum(ANY_DIAG_VISIT_CT) AS visits FROM flu WHERE SERVICE_PLACE = 'TOTAL' AND patient_zip3 <> 'TOT' AND (MONTH(week) <= 4 OR MONTH(week) >= 11) AND (AGEGROUP = '15-19 years' or AGEGROUP = '20-29 years' or AGEGROUP = '30-39 years' or AGEGROUP = '40-49 years' or AGEGROUP = '50-59 years' or AGEGROUP = '60-69 years') GROUP BY WEEK, PATIENT_ZIP3"
+  dummy <- dbGetQuery(con, sel.statement)
+  
+  dbDisconnect(con)
+  
+  # import adult pop data
+  con2 <- dbConnect(RMySQL::MySQL(), group = "rmysql-fludrivers")
+  dbListTables(con2)
+  
+  dbListFields(con2, "demog_Census_agePop_county")
+  sel.statement2 <- "SELECT year, fips, pop FROM demog_Census_agePop_county WHERE scale = 'county' AND (agegroup = 'adult')"
+  popDat <- dbGetQuery(con2, sel.statement2)
+  
+  dbDisconnect(con2)
+  
+  # spatial crosswalk: fips, zip3, proportion (of overlap in zip3 & fips population)
+  cw <- cw_zip3_cty() 
+
+  vizZip3 <- tbl_df(dummy) %>%
+    mutate(season = as.numeric(substring(week, 3, 4))) %>%
+    mutate(season = ifelse(as.numeric(substring(week, 6, 7)) >= 11, season + 1, season)) %>%
+    group_by(zip3, season) %>%
+    summarise(visits = sum(visits, na.rm = TRUE)) %>% 
+    ungroup %>%
+    arrange(season, zip3) %>%
+    filter(season >= 3 & season <= 9)
+  
+  # clean zip3 adult visits to county adult visits
+  vizCty <- vizZip3 %>% 
+    full_join(cw, by = "zip3") %>%
+    group_by(fips, season) %>%
+    summarise(visits = weighted.mean(visits, proportion, na.rm = TRUE)) %>%
+    ungroup %>%
+    filter(!is.na(fips)) %>%
+    mutate(visits = ifelse(is.na(visits), 0, visits)) %>%
+    mutate(year = season + 2000)
+  
+  # combine viz and pop dat
+  output <- vizCty %>%
+    full_join(popDat, by = c("year", "fips")) %>%
+    mutate(visitsPerPop = visits/pop) %>%
+    filter(season >= 3 & season <= 9)
+  
+  return(output)
+}
+
+################################
+
+cleanO_imsCareseekChild_cty <- function(){
+  # clean IMS Health visits per population for children exported from mysql
+  print(match.call())
+  
+  # import visit data
+  con <- dbConnect(RMySQL::MySQL(), group = "rmysql-sdi")
+  dbListTables(con)
+  
+  dbListFields(con, "flu")
+  # sel.statement <- "Select * from flu limit 5"
+  sel.statement <- "SELECT WEEK AS week, PATIENT_ZIP3 AS zip3, sum(ANY_DIAG_VISIT_CT) AS visits FROM flu WHERE SERVICE_PLACE = 'TOTAL' AND patient_zip3 <> 'TOT' AND (MONTH(week) <= 4 OR MONTH(week) >= 11) AND (AGEGROUP = '5-9 years' or AGEGROUP = '10-14 years' or AGEGROUP = '15-19 years') GROUP BY WEEK, PATIENT_ZIP3"
+  dummy <- dbGetQuery(con, sel.statement)
+  
+  dbDisconnect(con)
+  
+  # import child pop data
+  con2 <- dbConnect(RMySQL::MySQL(), group = "rmysql-fludrivers")
+  dbListTables(con2)
+  
+  dbListFields(con2, "demog_Census_agePop_county")
+  sel.statement2 <- "SELECT year, fips, pop FROM demog_Census_agePop_county WHERE scale = 'county' AND (agegroup = 'child')"
+  popDat <- dbGetQuery(con2, sel.statement2)
+  
+  dbDisconnect(con2)
+  
+  # spatial crosswalk: fips, zip3, proportion (of overlap in zip3 & fips population)
+  cw <- cw_zip3_cty() 
+  
+  vizZip3 <- tbl_df(dummy) %>%
+    mutate(season = as.numeric(substring(week, 3, 4))) %>%
+    mutate(season = ifelse(as.numeric(substring(week, 6, 7)) >= 11, season + 1, season)) %>%
+    group_by(zip3, season) %>%
+    summarise(visits = sum(visits, na.rm = TRUE)) %>% 
+    ungroup %>%
+    arrange(season, zip3) %>%
+    filter(season >= 3 & season <= 9)
+  
+  # clean zip3 visits to county visits
+  vizCty <- vizZip3 %>% 
+    full_join(cw, by = "zip3") %>%
+    group_by(fips, season) %>%
+    summarise(visits = weighted.mean(visits, proportion, na.rm = TRUE)) %>%
+    ungroup %>%
+    filter(!is.na(fips)) %>%
+    mutate(visits = ifelse(is.na(visits), 0, visits)) %>%
+    mutate(year = season + 2000)
+  
+  # combine viz and pop dat
+  output <- vizCty %>%
+    full_join(popDat, by = c("year", "fips")) %>%
+    mutate(visitsPerPop = visits/pop) %>%
+    filter(season >= 3 & season <= 9) %>%
+    mutate(visitsPerPop = ifelse(fips=='15005', NA, visitsPerPop)) # visits >> pop in fips 15005 (Hawaii)
+  
+  return(output)
+}
+
 ##### DRIVER DATA ##########################################
 
 ##### social determinants ##########
@@ -467,7 +583,7 @@ cleanX_censusAdultPop_st <- function(){
 ################################
 
 cleanX_censusAdultPop_cty <- function(){
-  # clean Census population data for 20-64 yo, exported from mysql
+  # clean Census population data for 20-69 yo (1/3/16 updated from 20-64 yo), exported from mysql
   print(match.call())
   
   con <- dbConnect(RMySQL::MySQL(), group = "rmysql-fludrivers")
@@ -513,7 +629,7 @@ cleanX_censusElderlyPop_st <- function(){
 ################################
 
 cleanX_censusElderlyPop_cty <- function(){
-  # clean Census population data for 65+ yo, exported from mysql
+  # clean Census population data for 70+ yo (1/3/16 updated from 65+ yo), exported from mysql
   print(match.call())
   
   con <- dbConnect(RMySQL::MySQL(), group = "rmysql-fludrivers")

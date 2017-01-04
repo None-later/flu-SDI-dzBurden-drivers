@@ -261,7 +261,7 @@ cleanR_iliPeak_cty_downscaleDB <- function(filepathList){
 
 ##### SAMPLING EFFORT DATA ##########################################
 cleanO_imsCoverage_cty <- function(){
-  # clean IMS Health adjusted physician coverage (database coverage) and physician per visit ratio (care-seeking behavior) from zip3 to county level, using overlapping pop bw zip3 & county as a weight for the weighted average
+  # clean IMS Health adjusted physician coverage (database coverage) and visits per physician or visits per population (care-seeking behavior) from zip3 to county level, using overlapping pop bw zip3 & county as a weight for the weighted average
   print(match.call())
 
   # spatial crosswalk: fips, zip3, proportion (of overlap in zip3 & fips population)
@@ -302,9 +302,12 @@ cleanX_priorBurden_cty <- function(filepathList){
   
   # grab disease burden metric (e.g., ilinDt): match "ili" 1+ times
   dbCode <- grep("ili+", strsplit(filepathList$path_response_cty, "_")[[1]], value=T)
+
+  # grab total pop response, not adult or child one
+  total_path_response_cty <- gsub("_child", "", gsub("_adult", "", filepathList$path_response_cty))
   
   # clean burden data into prior immunity
-  output <- read_csv(filepathList$path_response_cty, col_types = "icllcd") %>%
+  output <- read_csv(total_path_response_cty, col_types = "icllcd") %>%
     filter(metric == sprintf("%s.sum", dbCode)) %>%
     select(-metric) %>%
     rename(priorBurden = burden) %>%
