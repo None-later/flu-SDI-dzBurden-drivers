@@ -27,8 +27,11 @@ prepare_allCov_iliSum_cty <- function(filepathList){
   
   #### import data ####
   # IMS Health based tables
-  mod_cty_df <- cleanR_iliSum_cty(filepathList)
+  mod_cty_df <- cleanR_iliSum_shift1_cty(filepathList) # 1/5/17
   imsCov_cty_df <- cleanO_imsCoverage_cty()
+  imsCareseek_cty_df <- cleanO_imsCareseekTot_cty() # 1/5/17 visitsPerPop from sdi flu data
+  imsCareseekChild_cty_df <- cleanO_imsCareseekChild_cty() # 1/5/17 child visitsPerPop from sdi flu data
+  imsCareseekAdult_cty_df <- cleanO_imsCareseekAdult_cty() # 1/5/17 adult visitsPerPop from sdi flu data
   # all county tables
   sahieIns_cty_df <- cleanO_sahieInsured_cty()
   saipePov_cty_df <- cleanX_saipePoverty_cty()
@@ -70,6 +73,9 @@ prepare_allCov_iliSum_cty <- function(filepathList){
   dummy_df2 <- full_join(dummy_df, sahieIns_cty_df, by = c("year", "fips"))
   
   full_df <- full_join(dummy_df2, saipePov_cty_df, by = c("year", "fips")) %>%
+    full_join(imsCareseek_cty_df, by = c("season", "fips")) %>%
+    full_join(imsCareseekChild_cty_df, by = c("season", "fips")) %>%
+    full_join(imsCareseekAdult_cty_df, by = c("season", "fips")) %>%
     full_join(saipeInc_cty_df, by = c("year", "fips")) %>%
     full_join(ahrfMcaid_cty_df, by = c("year", "fips")) %>%
     full_join(ahrfMcare_cty_df, by = c("year", "fips")) %>%
@@ -104,7 +110,9 @@ prepare_allCov_iliSum_cty <- function(filepathList){
     full_join(brfssUnhealthyDays_cty_df, by = c("fips", "year")) %>%
     group_by(season) %>%
     mutate(O_imscoverage = centerStandardize(adjProviderCoverage)) %>%
-    mutate(O_careseek = centerStandardize(visitsPerProvider)) %>%
+    mutate(O_careseekT = centerStandardize(visitsPerPopT)) %>%
+    mutate(O_careseekC = centerStandardize(visitsPerPopC)) %>%
+    mutate(O_careseekA = centerStandardize(visitsPerPopA)) %>%
     mutate(O_insured = centerStandardize(insured)) %>%
     mutate(X_poverty = centerStandardize(poverty)) %>%
     mutate(X_income = centerStandardize(income)) %>%
@@ -140,7 +148,7 @@ prepare_allCov_iliSum_cty <- function(filepathList){
     ungroup %>%
     filter(fips_st %in% continentalOnly) %>%
     mutate(logE = log(E), logy = log(y1)) %>%
-    select(-fips_st, -adjProviderCoverage, -visitsPerProvider, -insured, -poverty, -income, -mcaidElig, -mcareElig, -infantToddler, -child, -adult, -elderly, -hospitalAccess, -physicianAccess, -medcost, -popDensity, -housDensity, -commutInflows_prep, -pass, -fluPos, -H3, -prop_H3_a, -prop_b_all, -protectionPrevSeason, -humidity, -temperature, -avg_pm, -socialOrgs, -prop_oneParentFamHH, -perc_hh_1p, -avgHHSize, -poorhealth, -unhealthydays) %>%
+    select(-fips_st, -adjProviderCoverage, -visitsPerPopT, -visitsPerPopC, -visitsPerPopA, -insured, -poverty, -income, -mcaidElig, -mcareElig, -infantToddler, -child, -adult, -elderly, -hospitalAccess, -physicianAccess, -medcost, -popDensity, -housDensity, -commutInflows_prep, -pass, -fluPos, -H3, -prop_H3_a, -prop_b_all, -protectionPrevSeason, -humidity, -temperature, -avg_pm, -socialOrgs, -prop_oneParentFamHH, -perc_hh_1p, -avgHHSize, -poorhealth, -unhealthydays) %>%
     filter(season %in% 3:9) %>%
     mutate(ID = seq_along(fips))
 

@@ -19,9 +19,9 @@ require(RColorBrewer); require(ggplot2)
 dbCodeStr <- "_ilinDt_Octfit_span0.4_degree2"
 rCode <- "iliSum"
 seasons <- 3:9
-analysesOn <- c('loadData', 'pairwise') 
+analysesOn <- c('loadData', 'dataQuality', 'pairwise') 
 # 'loadData', 'dataQuality', 'pairwise', 'singleVarWrite', 'singleVarPlot'
-type_cleanDataFxns <- '_nofill'
+type_cleanDataFxns <- ''
 # '' or '_nofill
 
 #### SOURCE: clean and import model data #################################
@@ -64,8 +64,6 @@ if("loadData" %in% analysesOn){
   
   # load data frame with all available cleaned variables
   allDat <- prepare_allCov_iliSum_cty(path_list)
-  # importDat <- model6a_iliSum_v2(path_list)
-  # allDat <- remove_case_exceptions(importDat)
   summary(allDat)
   
 } # end loadData
@@ -83,11 +81,11 @@ if("dataQuality" %in% analysesOn){
 #### Pairwise variable comparisons ####################################
 if("pairwise" %in% analysesOn){
   
-  # # full scatterplot matrix
-  # png(sprintf("scatterMx_%s_cty%s%s.png", rCode, dbCodeStr, type_cleanDataFxns), width = w, height = h, units = "in", res = dp)
-  # scatterMx <- pairs_scatterplotMatrix(allDat)
-  # print(scatterMx)
-  # dev.off()
+  # full scatterplot matrix
+  png(sprintf("scatterMx_%s_cty%s%s.png", rCode, dbCodeStr, type_cleanDataFxns), width = w, height = h, units = "in", res = dp)
+  scatterMx <- pairs_scatterplotMatrix(allDat)
+  print(scatterMx)
+  dev.off()
   
   # full correlation matrix
   png(sprintf("corrMx_spearman_%s_cty%s%s.png", rCode, dbCodeStr, type_cleanDataFxns), width = w, height = h, units = "in", res = dp)
