@@ -1,12 +1,12 @@
 
 ## Name: Elizabeth Lee
-## Date: 10/24/15
+## Date: 10/15
 ## Function: write ilic data: ilic_{z, w} = ili_{z, w} / alpha_{z, y} / effPhysCov_{z, y}
 ## ilic --> number of ili cases in zip z in week w, correcting for constant care-seeking rates across zip3s and scaling up for physician coverage; scaling up assumes that the ili/physician ratio is the same for the reported and unreported cases
 ## alpha_{z, y} = (viz_{z, y}/numPhys_{z, y}) / (\bar{viz_y}/\bar{phys_y}) --> correction for general care-seeking behavior
 ## Filenames: physician_coverage/DX_Coverage_by_Flu_Season_20150620.csv; Py_export/iliByallZip_allWeekly_totServ_totAge.csv
 ## Data Source: IMS Health ili dataset and physician coverage dataset
-## Notes: 7/15/16
+## Notes: 1/4/17 rm toggle for agegroup
 ## 
 ## useful commands:
 ## install.packages("pkg", dependencies=TRUE, lib="/usr/local/lib/R/site-library") # in sudo R
@@ -21,8 +21,8 @@ require(readr)
 setwd(dirname(sys.frame(1)$ofile))
 
 #### set these! ####################################
-# 11/10/16 new age group toggle
-agegroup <- "adult" # "adult", "totAge"
+# 11/10/16 new age group toggle; 1/4/17 migrate age group data export to wrote_ILIc_age_data.R
+agegroup <- "totAge" # don't toggle
 
 #### import data ################################
 setwd('../Py_export')
