@@ -4,6 +4,11 @@
 *.csv
 *.zip
 *.ods
+*.sas
+*.txt
+*.TXT
+*.dat
+*.nc
 SQL_export/
 R_export/
 Py_export/
