@@ -306,7 +306,7 @@ cleanO_imsCareseekChild_cty <- function(){
     mutate(visitsPerPopC = visits/pop) %>%
     filter(season >= 3 & season <= 9) %>%
     select(fips, season, visitsPerPopC) %>%
-    arrange(fips, season)
+    arrange(fips, season) %>%
     mutate(visitsPerPopC = ifelse(fips=='15005', NA, visitsPerPopC)) # visits >> pop in fips 15005 (Hawaii)
   
   return(output)
