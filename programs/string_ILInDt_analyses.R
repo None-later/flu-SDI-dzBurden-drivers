@@ -33,7 +33,7 @@ source("source_clean_response_functions_cty.R")
 
 #### set these! ####################################
 spatial.scale <- "county"
-agegroups <- "_totAge" # _totAge, _child, _adult
+agegroups <- "_adult" # _totAge, _child, _adult
 span.list <- seq(0.4, 0.42, by=0.1)
 deg <- 2
 
