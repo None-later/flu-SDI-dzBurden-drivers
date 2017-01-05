@@ -13,7 +13,7 @@ Data: flu table: SDI
 */
 use sdi;
 SELECT year(flu.WEEK), flu.patient_zip3, flu.popstat FROM flu
-	WHERE flu.SERVICE_PLACE = "TOTAL" and (flu.AGEGROUP = "2-4 years" or flu.AGEGROUP = "5-9 years" or flu.AGEGROUP = "10-14 years") AND flu.patient_zip3 <> "TOT"
+	WHERE flu.SERVICE_PLACE = "TOTAL" and (flu.AGEGROUP = "15-19 years" or flu.AGEGROUP = "5-9 years" or flu.AGEGROUP = "10-14 years") AND flu.patient_zip3 <> "TOT"
 	GROUP BY year(flu.WEEK), flu.patient_zip3
 ;
 
