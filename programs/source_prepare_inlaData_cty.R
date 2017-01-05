@@ -229,7 +229,7 @@ model8a_iliSum_v3 <- function(filepathList){
   dummy_df2 <- full_join(dummy_df, sahieIns_cty_df, by = c("year", "fips"))
   
   full_df <- full_join(dummy_df2, saipePov_cty_df, by = c("year", "fips")) %>%
-    full_join(imsCareseek_cty_df, by = c("year", "fips")) %>%
+    full_join(imsCareseek_cty_df, by = c("season", "fips")) %>%
     full_join(censusChPop_cty_df, by = c("year", "fips")) %>%
     full_join(censusAdPop_cty_df, by = c("year", "fips")) %>%
     full_join(ahrfHosp_cty_df, by = c("year", "fips")) %>%
@@ -319,7 +319,7 @@ model8a_iliSum_v4 <- function(filepathList){
   dummy_df2 <- full_join(dummy_df, sahieIns_cty_df, by = c("year", "fips"))
   
   full_df <- full_join(dummy_df2, saipePov_cty_df, by = c("year", "fips")) %>%
-    full_join(imsCareseek_cty_df, by = c("year", "fips")) %>%
+    full_join(imsCareseek_cty_df, by = c("season", "fips")) %>%
     full_join(censusChPop_cty_df, by = c("year", "fips")) %>%
     full_join(censusAdPop_cty_df, by = c("year", "fips")) %>%
     full_join(ahrfHosp_cty_df, by = c("year", "fips")) %>%
@@ -410,7 +410,7 @@ model8a_iliSum_v7 <- function(filepathList){
   dummy_df2 <- full_join(dummy_df, sahieIns_cty_df, by = c("year", "fips"))
   
   full_df <- full_join(dummy_df2, saipePov_cty_df, by = c("year", "fips")) %>%
-    full_join(imsCareseek_cty_df, by = c("year", "fips")) %>%
+    full_join(imsCareseek_cty_df, by = c("season", "fips")) %>%
     full_join(censusChPop_cty_df, by = c("year", "fips")) %>%
     full_join(censusAdPop_cty_df, by = c("year", "fips")) %>%
     full_join(ahrfHosp_cty_df, by = c("year", "fips")) %>%
