@@ -60,17 +60,16 @@ write_loess_fits_ILIn <- function(span.var, degree.var, spatial){
     group_by(fips, Thu.week) %>% 
     summarise(week = first(week), year = first(year), month = first(month), flu.week = first(flu.week), t = first(t), fit.week = first(fit.week), ili = weighted.mean(ili, proportion, na.rm = TRUE)) %>%
     ungroup
-  
+
   # merge with county pop data, re-create incl.lm (pop != NA)
   ilic_df2 <- left_join(ctyILI_df, pop_data, by = c("fips", "year")) %>%
+    mutate(pop = ifelse(pop == 0, NA, pop)) %>%
     mutate(ILIn = ili/pop*10000) %>% # impute county level ili from ILIn
     select(week, Thu.week, year, month, flu.week, t, fit.week, fips, ILIn, pop, ili) %>%
     mutate(incl.lm = ifelse(is.na(pop) | is.na(ILIn), FALSE, TRUE)) %>%
     rename(scale = fips) %>%
     filter(!is.na(scale)) #%>% # it appears that there are 496 scale NAs that are generated
-#     mutate(ili = ifelse(ili < 1, 0, ili)) %>% # 8/17/16 `dataprocessing_backcalculateILI_ili1'
-#     mutate(ILIn = ili/pop*100000)
-  
+
   # create new data for augment
   newbasedata <- ilic_df2 %>% select(Thu.week, t) %>% unique %>% filter(Thu.week < as.Date('2009-05-01')) 
   
