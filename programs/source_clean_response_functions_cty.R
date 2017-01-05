@@ -262,6 +262,7 @@ cleanR_iliPeak_cty_downscaleDB <- function(filepathList){
 ##### SAMPLING EFFORT DATA ##########################################
 cleanO_imsCoverage_cty <- function(){
   # clean IMS Health adjusted physician coverage (database coverage) and visits per physician or visits per population (care-seeking behavior) from zip3 to county level, using overlapping pop bw zip3 & county as a weight for the weighted average
+  # 1/5/17 rm careseek variables from this function, see source_clean_data_functions.R/cleanO_imsCareseekTot-Adult-Child_cty
   print(match.call())
 
   # spatial crosswalk: fips, zip3, proportion (of overlap in zip3 & fips population)
@@ -290,7 +291,7 @@ cleanO_imsCoverage_cty <- function(){
     mutate(visitsPerProvider = ifelse(is.na(sampViz), 0, sampViz/sampProv)) %>% # 9/27/16 for glm: 0 if NA
     left_join(popDat, by = c("fips", "year")) %>%
     mutate(visitsPerPop = ifelse(is.na(sampViz), 0, sampViz/pop)) %>% # 9/27/16 for glm: 0 if NA
-    select(fips, year, adjProviderCoverage, visitsPerProvider, visitsPerPop) %>% 
+    select(fips, year, adjProviderCoverage) %>% # 1/7/16 rm select for careseek terms
     arrange(fips, year)
   return(covDat)
 }

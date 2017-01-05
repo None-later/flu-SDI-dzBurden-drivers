@@ -186,8 +186,8 @@ testing_module <- function(filepathList){
 }
 ################################
 
-model8a_iliSum_v2 <- function(filepathList){
-  # 12/15/16 model 8a_v2
+model8a_iliSum_v3 <- function(filepathList){
+  # 1/5/17 model 8a_v3 (age-specific careseek) -- child population
   # shifted1 iliSum response, all sampling effort, and driver variables
   # with spatial term
   # y1 = log(response+1), E = expected response+1
@@ -202,6 +202,7 @@ model8a_iliSum_v2 <- function(filepathList){
   # IMS Health based tables
   mod_cty_df <- cleanR_iliSum_shift1_cty(filepathList)
   imsCov_cty_df <- cleanO_imsCoverage_cty()
+  imsCareseek_cty_df <- cleanO_imsCareseekChild_cty() # 1/5/17 age-specific visitsPerPop from sdi flu data
   # all county tables
   sahieIns_cty_df <- cleanO_sahieInsured_cty()
   saipePov_cty_df <- cleanX_saipePoverty_cty()
@@ -222,12 +223,13 @@ model8a_iliSum_v2 <- function(filepathList){
   protectedPriorSeas_df <- cleanX_protectedFromPrevSeason_cty(filepathList)
   # graph index IDs
   graphIdx_df <- clean_graphIDx(filepathList, "county")
-
+  
   #### join data ####
   dummy_df <- full_join(mod_cty_df, imsCov_cty_df, by = c("year", "fips"))
   dummy_df2 <- full_join(dummy_df, sahieIns_cty_df, by = c("year", "fips"))
   
   full_df <- full_join(dummy_df2, saipePov_cty_df, by = c("year", "fips")) %>%
+    full_join(imsCareseek_cty_df, by = c("year", "fips")) %>%
     full_join(censusChPop_cty_df, by = c("year", "fips")) %>%
     full_join(censusAdPop_cty_df, by = c("year", "fips")) %>%
     full_join(ahrfHosp_cty_df, by = c("year", "fips")) %>%
@@ -246,7 +248,7 @@ model8a_iliSum_v2 <- function(filepathList){
     full_join(graphIdx_df, by = "fips") %>%
     group_by(season) %>%
     mutate(O_imscoverage = centerStandardize(adjProviderCoverage)) %>%
-    mutate(O_careseek = centerStandardize(visitsPerProvider)) %>%
+    mutate(O_careseek = centerStandardize(visitsPerPopC)) %>%
     mutate(O_insured = centerStandardize(insured)) %>%
     mutate(X_poverty = centerStandardize(poverty)) %>%
     mutate(X_child = centerStandardize(child)) %>%
@@ -266,7 +268,7 @@ model8a_iliSum_v2 <- function(filepathList){
     filter(fips_st %in% continentalOnly) %>%
     filter(!is.na(graphIdx)) %>% # rm data not in graph
     mutate(logE = log(E), y1 = log(y1)) %>% # model response y1 = log(y+1)
-    select(-stateID, -adjProviderCoverage, -visitsPerProvider, -insured, -poverty, -child, -adult, -hospitalAccess, -popDensity, -housDensity, -infantAnyVax, -elderlyAnyVax, -prop_H3_a, -prop_b_all, -protectionPrevSeason, -humidity, -avg_pm, -perc_hh_1p) %>%
+    select(-stateID, -adjProviderCoverage, -visitsPerPopC, -insured, -poverty, -child, -adult, -hospitalAccess, -popDensity, -housDensity, -infantAnyVax, -elderlyAnyVax, -prop_H3_a, -prop_b_all, -protectionPrevSeason, -humidity, -avg_pm, -perc_hh_1p) %>%
     filter(season %in% 3:9) %>%
     mutate(ID = seq_along(fips))
   
@@ -274,10 +276,10 @@ model8a_iliSum_v2 <- function(filepathList){
 }
 ################################
 
-model8a_iliSum_v6 <- function(filepathList){
-  # 12/20/16 model 8a_v6
+model8a_iliSum_v4 <- function(filepathList){
+  # 1/5/17 model 8a_v4 (age-specific careseek) -- adult population
   # shifted1 iliSum response, all sampling effort, and driver variables
-  # with spatial term - state flight passenger
+  # with spatial term
   # y1 = log(response+1), E = expected response+1
   print(match.call())
   print(filepathList)
@@ -290,6 +292,7 @@ model8a_iliSum_v6 <- function(filepathList){
   # IMS Health based tables
   mod_cty_df <- cleanR_iliSum_shift1_cty(filepathList)
   imsCov_cty_df <- cleanO_imsCoverage_cty()
+  imsCareseek_cty_df <- cleanO_imsCareseekAdult_cty() # 1/5/17 age-specific visitsPerPop from sdi flu data
   # all county tables
   sahieIns_cty_df <- cleanO_sahieInsured_cty()
   saipePov_cty_df <- cleanX_saipePoverty_cty()
@@ -309,13 +312,14 @@ model8a_iliSum_v6 <- function(filepathList){
   cdcB_df <- cleanX_cdcFluview_B_region() %>% select(-region)
   protectedPriorSeas_df <- cleanX_protectedFromPrevSeason_cty(filepathList)
   # graph index IDs
-  graphIdx_df <- clean_graphIDx(filepathList, "state")
+  graphIdx_df <- clean_graphIDx(filepathList, "county")
   
   #### join data ####
   dummy_df <- full_join(mod_cty_df, imsCov_cty_df, by = c("year", "fips"))
   dummy_df2 <- full_join(dummy_df, sahieIns_cty_df, by = c("year", "fips"))
   
   full_df <- full_join(dummy_df2, saipePov_cty_df, by = c("year", "fips")) %>%
+    full_join(imsCareseek_cty_df, by = c("year", "fips")) %>%
     full_join(censusChPop_cty_df, by = c("year", "fips")) %>%
     full_join(censusAdPop_cty_df, by = c("year", "fips")) %>%
     full_join(ahrfHosp_cty_df, by = c("year", "fips")) %>%
@@ -331,10 +335,10 @@ model8a_iliSum_v6 <- function(filepathList){
     full_join(narrSpecHum_cty_df, by = c("season", "fips")) %>%
     full_join(wonderPollution_cty_df, by = c("season", "fips")) %>%
     full_join(acsOnePersonHH_cty_df, by = c("fips", "year")) %>%
-    full_join(graphIdx_df, by = "fips_st") %>%
+    full_join(graphIdx_df, by = "fips") %>%
     group_by(season) %>%
     mutate(O_imscoverage = centerStandardize(adjProviderCoverage)) %>%
-    mutate(O_careseek = centerStandardize(visitsPerProvider)) %>%
+    mutate(O_careseek = centerStandardize(visitsPerPopA)) %>%
     mutate(O_insured = centerStandardize(insured)) %>%
     mutate(X_poverty = centerStandardize(poverty)) %>%
     mutate(X_child = centerStandardize(child)) %>%
@@ -352,9 +356,9 @@ model8a_iliSum_v6 <- function(filepathList){
     mutate(X_singlePersonHH = centerStandardize(perc_hh_1p)) %>%
     ungroup %>%
     filter(fips_st %in% continentalOnly) %>%
-    filter(!is.na(graphIdx_st)) %>% # rm data not in graph
+    filter(!is.na(graphIdx)) %>% # rm data not in graph
     mutate(logE = log(E), y1 = log(y1)) %>% # model response y1 = log(y+1)
-    select(-stateID, -adjProviderCoverage, -visitsPerProvider, -insured, -poverty, -child, -adult, -hospitalAccess, -popDensity, -housDensity, -infantAnyVax, -elderlyAnyVax, -prop_H3_a, -prop_b_all, -protectionPrevSeason, -humidity, -avg_pm, -perc_hh_1p) %>%
+    select(-stateID, -adjProviderCoverage, -visitsPerPopA, -insured, -poverty, -child, -adult, -hospitalAccess, -popDensity, -housDensity, -infantAnyVax, -elderlyAnyVax, -prop_H3_a, -prop_b_all, -protectionPrevSeason, -humidity, -avg_pm, -perc_hh_1p) %>%
     filter(season %in% 3:9) %>%
     mutate(ID = seq_along(fips))
   
@@ -363,7 +367,7 @@ model8a_iliSum_v6 <- function(filepathList){
 ################################
 
 model8a_iliSum_v7 <- function(filepathList){
-  # 12/20/16 model 8a_v7
+  # 12/20/16 model 8a_v7 -- total population
   # shifted1 iliSum response, all sampling effort, and driver variables
   # with 2 spatial terms - state flight passenger, county neighbor
   # y1 = log(response+1), E = expected response+1
@@ -378,6 +382,7 @@ model8a_iliSum_v7 <- function(filepathList){
   # IMS Health based tables
   mod_cty_df <- cleanR_iliSum_shift1_cty(filepathList)
   imsCov_cty_df <- cleanO_imsCoverage_cty()
+  imsCareseek_cty_df <- cleanO_imsCareseekTot_cty() # 1/5/17 visitsPerPop from sdi flu data
   # all county tables
   sahieIns_cty_df <- cleanO_sahieInsured_cty()
   saipePov_cty_df <- cleanX_saipePoverty_cty()
@@ -405,6 +410,7 @@ model8a_iliSum_v7 <- function(filepathList){
   dummy_df2 <- full_join(dummy_df, sahieIns_cty_df, by = c("year", "fips"))
   
   full_df <- full_join(dummy_df2, saipePov_cty_df, by = c("year", "fips")) %>%
+    full_join(imsCareseek_cty_df, by = c("year", "fips")) %>%
     full_join(censusChPop_cty_df, by = c("year", "fips")) %>%
     full_join(censusAdPop_cty_df, by = c("year", "fips")) %>%
     full_join(ahrfHosp_cty_df, by = c("year", "fips")) %>%
@@ -424,7 +430,7 @@ model8a_iliSum_v7 <- function(filepathList){
     full_join(graphIdx_st_df, by = "fips_st") %>%
     group_by(season) %>%
     mutate(O_imscoverage = centerStandardize(adjProviderCoverage)) %>%
-    mutate(O_careseek = centerStandardize(visitsPerProvider)) %>%
+    mutate(O_careseek = centerStandardize(visitsPerPopT)) %>%
     mutate(O_insured = centerStandardize(insured)) %>%
     mutate(X_poverty = centerStandardize(poverty)) %>%
     mutate(X_child = centerStandardize(child)) %>%
@@ -444,7 +450,7 @@ model8a_iliSum_v7 <- function(filepathList){
     filter(fips_st %in% continentalOnly) %>%
     filter(!is.na(graphIdx_st)) %>% # rm data not in graph
     mutate(logE = log(E), y1 = log(y1)) %>% # model response y1 = log(y+1)
-    select(-stateID, -adjProviderCoverage, -visitsPerProvider, -insured, -poverty, -child, -adult, -hospitalAccess, -popDensity, -housDensity, -infantAnyVax, -elderlyAnyVax, -prop_H3_a, -prop_b_all, -protectionPrevSeason, -humidity, -avg_pm, -perc_hh_1p) %>%
+    select(-stateID, -adjProviderCoverage, -visitsPerPopT, -insured, -poverty, -child, -adult, -hospitalAccess, -popDensity, -housDensity, -infantAnyVax, -elderlyAnyVax, -prop_H3_a, -prop_b_all, -protectionPrevSeason, -humidity, -avg_pm, -perc_hh_1p) %>%
     filter(season %in% 3:9) %>%
     mutate(ID = seq_along(fips))
   
