@@ -442,6 +442,51 @@ clean_pop_cty_plain <- function(){
     select(fips, year, pop)
   return(output)
 }
+
+################################
+clean_pop_adult_cty_plain <- function(){
+  # clean adult pop (20-69 yo) data at county level -- fips, all years, pop (for write_loess_fits_ILIn_age_cty.R)
+  print(match.call())
+  
+  # import population data from mysql
+  con <- dbConnect(RMySQL::MySQL(), group = "rmysql-fludrivers")
+  dbListTables(con)
+  
+  dbListFields(con, "demog_Census_agePop_county")
+  # sel.statement <- "Select * from demog_Census_agePop_county limit 5"
+  sel.statement <- "SELECT fips, county, agegroup, year, pop FROM demog_Census_agePop_county WHERE scale = 'county' and agegroup = 'adult'"
+  dummy <- dbGetQuery(con, sel.statement)
+  
+  dbDisconnect(con)
+  
+  # clean final dataset
+  output <- tbl_df(dummy) %>% 
+    select(fips, year, pop)
+  return(output)
+}
+
+################################
+clean_pop_child_cty_plain <- function(){
+  # clean child pop (5-19 yo) data at county level -- fips, all years, pop (for write_loess_fits_ILIn_age_cty.R)
+  print(match.call())
+  
+  # import population data from mysql
+  con <- dbConnect(RMySQL::MySQL(), group = "rmysql-fludrivers")
+  dbListTables(con)
+  
+  dbListFields(con, "demog_Census_agePop_county")
+  # sel.statement <- "Select * from demog_Census_agePop_county limit 5"
+  sel.statement <- "SELECT fips, county, agegroup, year, pop FROM demog_Census_agePop_county WHERE scale = 'county' and agegroup = 'child'"
+  dummy <- dbGetQuery(con, sel.statement)
+  
+  dbDisconnect(con)
+  
+  # clean final dataset
+  output <- tbl_df(dummy) %>% 
+    select(fips, year, pop)
+  return(output)
+}
+
 ################################
 clean_pop_st_plain <- function(){
   # clean pop data at state level

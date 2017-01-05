@@ -33,6 +33,7 @@ source("source_clean_response_functions_cty.R")
 
 #### set these! ####################################
 spatial.scale <- "county"
+agegroups <- "_totAge" # _totAge, _child, _adult
 span.list <- seq(0.4, 0.42, by=0.1)
 deg <- 2
 
@@ -44,10 +45,13 @@ if (spatial.scale == "state"){
 } else if (spatial.scale == "zip3"){
   spatial.params <- list(scale = spatial.scale, stringcode = "Zip3", stringabbr = "", serv = "_totServ", servToggle = "") 
   source("write_loess_fits_ILIn.R")
-} else if (spatial.scale == "county"){
-  spatial.params <- list(scale = spatial.scale, stringcode = "County", stringabbr = "_cty", serv = "_totServ", servToggle = "", age = "_adult", ageToggle = "_adult") 
+} else if (spatial.scale == "county" & agegroups == "_totAge"){
+  spatial.params <- list(scale = spatial.scale, stringcode = "County", stringabbr = "_cty", serv = "_totServ", servToggle = "", age = agegroups, ageToggle = "") 
   source("write_loess_fits_ILIn_cty.R")
-}
+} else if (spatial.scale == "county" & (agegroups %in% c("_child", "_adult"))){
+  spatial.params <- list(scale = spatial.scale, stringcode = "County", stringabbr = "_cty", serv = "_totServ", servToggle = "", age = agegroups, ageToggle = agegroups) 
+  source("write_loess_fits_ILIn_age_cty.R")
+}  
 
 # serv = "_totServ", servToggle = ""
 # serv = "_emergency", servToggle = "_emergency"
