@@ -36,7 +36,13 @@ path_abbr_st <- paste0(getwd(), "/state_abbreviations_FIPS.csv")
 path_latlon_cty <- paste0(getwd(), "/cty_pop_latlon.csv")
 
 setwd('./UScounty_shapefiles')
+path_adjMxExport_cty <- paste0(getwd(), "/US_county_adjacency.graph")
 path_graphIdx_cty <- paste0(getwd(), "/US_county_graph_index.csv")
+path_shape_cty <- paste0(getwd(), "/gz_2010_us_050_00_500k") # for dbf metadata only
+
+setwd('../stateFlightpassenger_graph')
+path_graphExport_st <- paste0(getwd(), "/US_statePassenger_edgelist.txt")
+path_graphIdx_st <- paste0(getwd(), "/US_statePassenger_graph_index.csv")
 
 setwd("../../R_export")
 path_response_cty <- paste0(getwd(), sprintf("/dbMetrics_periodicReg%s_analyzeDB_cty.csv", dbCodeStr))
@@ -44,12 +50,15 @@ path_response_cty <- paste0(getwd(), sprintf("/dbMetrics_periodicReg%s_analyzeDB
 # put all paths in a list to pass them around in functions
 path_list <- list(path_abbr_st = path_abbr_st,
                   path_latlon_cty = path_latlon_cty,
+                  path_shape_cty = path_shape_cty,
+                  path_adjMxExport_cty = path_adjMxExport_cty,
                   path_response_cty = path_response_cty, 
-                  path_graphIdx_cty = path_graphIdx_cty)
-
+                  path_graphIdx_cty = path_graphIdx_cty,
+                  path_graphExport_st = path_graphExport_st,
+                  path_graphIdx_st = path_graphIdx_st)
 
 #### Import and process data ####
-modData <- model8a_iliSum_v2(path_list) # with driver & sampling effort variables
+modData <- model8a_iliSum_v7(path_list) # with driver & sampling effort variables
 
 #### export formatting ####
 # diagnostic plot export directories
@@ -79,11 +88,11 @@ plot_countyChoro_predictors <- function(exportPath, pltDat, pltVarTxt, code, zer
   h <- 5; w <- 8; dp <- 300
 
   # merge county data
-  polynameSplit <- tstrsplit(county.fips$polyname, ",", names = c("region", "subregion"))
+  polynameSplit <- tstrsplit(county.fips$polyname, ",")
   ctyMap <- tbl_df(county.fips) %>%
     mutate(fips = substr.Right(paste0("0", fips), 5)) %>%
-    mutate(region = polynameSplit$region) %>%
-    mutate(subregion = polynameSplit$subregion) %>%
+    mutate(region = polynameSplit[[1]]) %>%
+    mutate(subregion = polynameSplit[[2]]) %>%
     full_join(countyMap, by = c("region", "subregion")) %>%
     filter(!is.na(polyname) & !is.na(long)) %>%
     rename(state = region, county = subregion) %>%
