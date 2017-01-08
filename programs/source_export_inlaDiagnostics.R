@@ -50,7 +50,7 @@ plot_diag_scatter_hurdle <- function(path_csvExport, path_plotExport_scatter, li
 
   #### clean data ####
   # calculate yhat residuals for gamma model only
-  if (likelihoodString == "gamma"){
+  if (likelihoodString %in% c("gamma", "poisson")){
     plotDat <- calculate_residuals(plotDat, TRUE)
   }
 
@@ -124,7 +124,7 @@ plot_diag_scatter_hurdle_spatiotemporal <- function(path_csvExport, path_plotExp
   
   #### clean data ####
   # calculate yhat residuals for nonzero model only
-  if (likelihoodString %in% c("gamma", "normal")){
+  if (likelihoodString %in% c("gamma", "normal", "poisson")){
     plotDat <- calculate_residuals(plotDat, TRUE)
   }
   
@@ -250,7 +250,7 @@ importPlot_diag_scatter_predictors_spatiotemporal <- function(path_csvExport, pa
   
   #### clean data ####
   # calculate yhat residuals for gamma model only
-  if (grepl("gamma", likelihoodString)){
+  if (grepl("gamma", likelihoodString) | grepl("poisson", likelihoodString)){
     plotDat <- calculate_residuals(plotDat, TRUE)
   }
   # list of varnames
@@ -695,7 +695,7 @@ importPlot_diag_data_distribution <- function(path_csvExport, path_plotExport_di
   
   #### clean data ####
   # calculate yhat residuals for gamma model only
-  if (grepl("gamma", likelihoodString)){
+  if (grepl("gamma", likelihoodString) | grepl("poisson", likelihoodString)){
     plotDat <- calculate_residuals(plotDat, TRUE)
   }
   # list of varnames

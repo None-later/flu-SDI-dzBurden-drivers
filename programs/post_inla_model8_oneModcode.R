@@ -168,7 +168,7 @@ for (s in seasons){
   }
 
   #### nonzero model figures ####
-  if ("gamma" %in% likStrings | "normal" %in% likStrings){
+  if ("gamma" %in% likStrings | "normal" %in% likStrings | "poisson" %in% likStrings){
     path_csvImport_fittedNz <- paste0(path_csvExport, sprintf("/summaryStatsFitted_%s_%s.csv", likString, modCodeStr))
     mod_nz_import <- read_csv(path_csvImport_fittedNz, col_types = cols(fips = col_character(), ID = col_character(), y1 = col_double())) %>%
       filter(season == s)
