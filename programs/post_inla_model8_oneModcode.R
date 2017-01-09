@@ -70,9 +70,10 @@ if ("binomial" %in% likStrings){
 
 ### model fit ###
 if ("gamma" %in% likStrings | "normal" %in% likStrings | "poisson" %in% likStrings){
-  # correlogram: Moran's I vs. distance
-  path_plotExport_correlogram <- paste0(path_plotExport, sprintf("/diag_correlog_%s_%s", likString, modCodeStr))
-  importPlot_correlogram(path_csvExport, path_plotExport_correlogram, path_list, likString)
+  # 1/8/17 only coded up for iliSum response
+  # # correlogram: Moran's I vs. distance
+  # path_plotExport_correlogram <- paste0(path_plotExport, sprintf("/diag_correlog_%s_%s", likString, modCodeStr))
+  # importPlot_correlogram(path_csvExport, path_plotExport_correlogram, path_list, likString)
 
   # scatter: predicted vs. observed data (yhat - nonzero) + 95%CI vs. y nonzero observed
   path_plotExport_predVsObs <- paste0(path_plotExport, sprintf("/diag_predVsObs_%s_%s.png", likString, modCodeStr))
