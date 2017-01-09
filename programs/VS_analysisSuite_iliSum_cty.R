@@ -16,10 +16,10 @@ require(dplyr); require(tidyr); require(readr) # clean_data_functions dependenci
 require(RColorBrewer); require(ggplot2)
 
 #### set these! ################################
-dbCodeStr <- "_ilinDt_Octfit_span0.4_degree2"
+dbCodeStr <- "_ilinDt_Octfit_adult_span0.4_degree2"
 rCode <- "iliSum"
 seasons <- 3:9
-analysesOn <- c('loadData', 'dataQuality', 'pairwise') 
+analysesOn <- c('pairwise') 
 # 'loadData', 'dataQuality', 'pairwise', 'singleVarWrite', 'singleVarPlot'
 type_cleanDataFxns <- ''
 # '' or '_nofill
@@ -37,16 +37,24 @@ setwd('../reference_data')
 path_latlon_cty <- paste0(getwd(), "/cty_pop_latlon.csv")
 path_abbr_st <- paste0(getwd(), "/state_abbreviations_FIPS.csv")
 
-setwd("../R_export")
+setwd('./UScounty_shapefiles')
+path_adjMxExport_cty <- paste0(getwd(), "/US_county_adjacency.graph")
+path_graphIdx_cty <- paste0(getwd(), "/US_county_graph_index.csv")
+path_shape_cty <- paste0(getwd(), "/gz_2010_us_050_00_500k") # for dbf metadata only
+
+setwd("../../R_export")
 path_response_cty <- paste0(getwd(), sprintf("/dbMetrics_periodicReg%s_analyzeDB_cty.csv", dbCodeStr))
 fname_coefDat <- sprintf("/VS_coefDat_%s_cty%s", rCode, type_cleanDataFxns)
 path_coefDat <- paste0(getwd(), fname_coefDat)
-path_tempDatQuality <- paste0(getwd(), sprintf("/VS_tempDatQuality_%s_cty%s.csv", rCode, type_cleanDataFxns))
+# path_tempDatQuality <- paste0(getwd(), sprintf("/VS_tempDatQuality_%s_cty%s.csv", rCode, type_cleanDataFxns))
 
 # put all paths in a list to pass them around in functions
 path_list <- list(path_abbr_st = path_abbr_st,
                   path_latlon_cty = path_latlon_cty,
-                  path_response_cty = path_response_cty)
+                  path_shape_cty = path_shape_cty,
+                  path_adjMxExport_cty = path_adjMxExport_cty,
+                  path_response_cty = path_response_cty, 
+                  path_graphIdx_cty = path_graphIdx_cty)
 
 setwd(dirname(sys.frame(1)$ofile))
 setwd("../graph_outputs")
@@ -63,7 +71,9 @@ setwd(path_pltExport)
 if("loadData" %in% analysesOn){
   
   # load data frame with all available cleaned variables
-  allDat <- prepare_allCov_iliSum_cty(path_list)
+  # allDat <- prepare_allCov_iliSum_cty(path_list)
+  # allDat <- model8a_iliSum_v3(path_list) # child pop data
+  allDat <- model8a_iliSum_v4(path_list) # adult pop data
   summary(allDat)
   
 } # end loadData
@@ -81,12 +91,12 @@ if("dataQuality" %in% analysesOn){
 #### Pairwise variable comparisons ####################################
 if("pairwise" %in% analysesOn){
   
-  # full scatterplot matrix
-  png(sprintf("scatterMx_%s_cty%s%s.png", rCode, dbCodeStr, type_cleanDataFxns), width = w, height = h, units = "in", res = dp)
-  scatterMx <- pairs_scatterplotMatrix(allDat)
-  print(scatterMx)
-  dev.off()
-  
+  # # full scatterplot matrix
+  # png(sprintf("scatterMx_%s_cty%s%s.png", rCode, dbCodeStr, type_cleanDataFxns), width = w, height = h, units = "in", res = dp)
+  # scatterMx <- pairs_scatterplotMatrix(allDat)
+  # print(scatterMx)
+  # dev.off()
+
   # full correlation matrix
   png(sprintf("corrMx_spearman_%s_cty%s%s.png", rCode, dbCodeStr, type_cleanDataFxns), width = w, height = h, units = "in", res = dp)
   corrMx <- pairs_corrMatrix(allDat)
