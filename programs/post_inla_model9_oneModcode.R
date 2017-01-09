@@ -23,9 +23,9 @@ source("source_clean_response_functions_cty.R") # cty response functions
 #### set these! ################################
 dbCodeStr <- "_ilinDt_Octfit_span0.4_degree2"
 seasons <- c(3:9)
-modCodeStr <- "9a_iliSum_v2-4"
-likString <- "normal"; likStrings <- c(likString)
-source("source_calculate_residuals_shift1.R") # calculate_residuals function depends on model
+modCodeStr <- "9e_epiDur_v2-1"
+likString <- "poisson"; likStrings <- c(likString)
+source("source_calculate_residuals.R") # calculate_residuals function depends on model
 
 #### IMPORT FILEPATHS #################################
 setwd('../reference_data')
@@ -66,10 +66,10 @@ if ("binomial" %in% likStrings){
 }
 
 ### model fit ###
-if ("gamma" %in% likStrings){
-  # correlogram: Moran's I vs. distance
-  path_plotExport_correlogram <- paste0(path_plotExport, sprintf("/diag_correlog_%s_%s", likString, modCodeStr))
-  importPlot_correlogram(path_csvExport, path_plotExport_correlogram, path_list)
+if ("gamma" %in% likStrings | "poisson" %in% likStrings){
+  # # correlogram: Moran's I vs. distance
+  # path_plotExport_correlogram <- paste0(path_plotExport, sprintf("/diag_correlog_%s_%s", likString, modCodeStr))
+  # importPlot_correlogram(path_csvExport, path_plotExport_correlogram, path_list)
 
   # scatter: predicted vs. observed data (yhat - nonzero) + 95%CI vs. y nonzero observed
   path_plotExport_predVsObs <- paste0(path_plotExport, sprintf("/diag_predVsObs_%s_%s.png", likString, modCodeStr))
