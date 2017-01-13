@@ -20,7 +20,7 @@ require(RColorBrewer); require(ggplot2) # export_inlaData_st dependencies
 
 #### set these! ################################
 dbCodeStr <- "_ilinDt_Octfit_adult_span0.4_degree2"
-modCodeStr <- "9a_iliSum_v4-2"; testDataOn <- FALSE
+modCodeStr <- "9a_iliSum_v4-2"
 seasons <- 3:9
 rdmFx_RV <- "nu"
 likString <- "normal"
@@ -58,29 +58,19 @@ path_list <- list(path_abbr_st = path_abbr_st,
 
 
 #### MAIN #################################
-#### test data module ####
-if (testDataOn){
-  modData <- testing_module(path_list) # with driver & sampling effort variables
-  # testing module formula
-  formula <- Y ~ -1 + 
-    f(fips_nonzero, model = "iid") + 
-    f(fips_st_nonzero, model = "iid") + 
-    f(regionID_nonzero, model = "iid") + 
-    intercept_nonzero + O_imscoverage_nonzero + O_careseek_nonzero + X_poverty_nonzero + X_H3_nonzero + offset(logE_nonzero)
-} else{
 #### Import and process data ####
-  modData <- model9a_iliSum_v4(path_list) 
-    #%>%
-    # remove_randomObs_stratifySeas(0.4)
-  
-  formula <- Y ~ -1 + 
-    f(ID_nonzero, model = "iid") +
-    f(fips_nonzero, model = "iid") + 
-    f(graphIdx_nonzero, model = "besag", graph = path_adjMxExport_cty) +
-    f(fips_st_nonzero, model = "iid") + 
-    f(regionID_nonzero, model = "iid") + 
-    intercept_nonzero + O_imscoverage_nonzero + O_careseek_nonzero + O_insured_nonzero + O_imscoverage_nonzero*O_careseek_nonzero + X_poverty_nonzero + X_child_nonzero + X_hospaccess_nonzero + X_popdensity_nonzero + X_housdensity_nonzero + X_vaxcovI_nonzero + X_vaxcovE_nonzero + X_H3A_nonzero + X_B_nonzero + X_priorImmunity_nonzero + X_humidity_nonzero + X_pollution_nonzero + X_singlePersonHH_nonzero + X_B_nonzero*X_child_nonzero + offset(logE_nonzero)
-}
+modData <- model9a_iliSum_v4(path_list) 
+#%>%
+# remove_randomObs_stratifySeas(0.4)
+
+formula <- Y ~ -1 + 
+  f(ID_nonzero, model = "iid") +
+  f(fips_nonzero, model = "iid") + 
+  f(graphIdx_nonzero, model = "besag", graph = path_adjMxExport_cty) +
+  f(fips_st_nonzero, model = "iid") + 
+  f(regionID_nonzero, model = "iid") + 
+  intercept_nonzero + O_imscoverage_nonzero + O_careseek_nonzero + O_insured_nonzero + O_imscoverage_nonzero*O_careseek_nonzero + X_poverty_nonzero + X_child_nonzero + X_hospaccess_nonzero + X_popdensity_nonzero + X_housdensity_nonzero + X_vaxcovI_nonzero + X_vaxcovE_nonzero + X_H3A_nonzero + X_B_nonzero + X_priorImmunity_nonzero + X_humidity_nonzero + X_pollution_nonzero + X_singlePersonHH_nonzero + X_B_nonzero*X_child_nonzero + offset(logE_nonzero)
+
  
 
 #### export formatting ####
