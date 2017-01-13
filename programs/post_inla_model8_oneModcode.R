@@ -24,7 +24,7 @@ source("source_clean_response_functions_cty.R") # cty response functions
 #### set these! ################################
 dbCodeStr <- "_ilinDt_Octfit_adult_span0.4_degree2"
 seasons <- c(3:9)
-modCodeStr <- "8e_epiDur_v4-1"
+modCodeStr <- "8e_epiDur_v4-2"
 likString <- "poisson"; likStrings <- c(likString) 
 source("source_calculate_residuals.R") # calculate_residuals function (source_calculate_residuals_shift1.R for iliSum; source_calculate_residuals.R for epiDur)
 
