@@ -108,7 +108,7 @@ prepare_allCov_iliSum_cty <- function(filepathList){
     full_join(acsAvgHHSize_cty_df, by = c("fips", "year")) %>%
     full_join(brfssPoorHealth_cty_df, by = c("fips", "year")) %>%
     full_join(brfssUnhealthyDays_cty_df, by = c("fips", "year")) %>%
-    group_by(season) %>%
+    # group_by(season) %>% # 1/13/17 data fxn for multi-season models
     mutate(O_imscoverage = centerStandardize(adjProviderCoverage)) %>%
     mutate(O_careseekT = centerStandardize(visitsPerPopT)) %>%
     mutate(O_careseekC = centerStandardize(visitsPerPopC)) %>%
@@ -145,7 +145,7 @@ prepare_allCov_iliSum_cty <- function(filepathList){
     mutate(X_avgHHSize = centerStandardize(avgHHSize)) %>%
     mutate(X_poorHealth = centerStandardize(poorhealth)) %>%
     mutate(X_unhealthyDays = centerStandardize(unhealthydays)) %>%
-    ungroup %>%
+    # ungroup %>% # 1/13/17 data fxn for multi-season models
     filter(fips_st %in% continentalOnly) %>%
     mutate(logE = log(E), logy = log(y1)) %>%
     select(-fips_st, -adjProviderCoverage, -visitsPerPopT, -visitsPerPopC, -visitsPerPopA, -insured, -poverty, -income, -mcaidElig, -mcareElig, -infantToddler, -child, -adult, -elderly, -hospitalAccess, -physicianAccess, -medcost, -popDensity, -housDensity, -commutInflows_prep, -pass, -fluPos, -H3, -prop_H3_a, -prop_b_all, -protectionPrevSeason, -humidity, -temperature, -avg_pm, -socialOrgs, -prop_oneParentFamHH, -perc_hh_1p, -avgHHSize, -poorhealth, -unhealthydays) %>%

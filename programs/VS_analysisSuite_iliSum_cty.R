@@ -16,10 +16,10 @@ require(dplyr); require(tidyr); require(readr) # clean_data_functions dependenci
 require(RColorBrewer); require(ggplot2)
 
 #### set these! ################################
-dbCodeStr <- "_ilinDt_Octfit_adult_span0.4_degree2"
-rCode <- "iliSum"
+dbCodeStr <- "_ilinDt_Octfit_span0.4_degree2"
+rCode <- "iliSum" # epiDur, iliSum
 seasons <- 3:9
-analysesOn <- c('pairwise') 
+analysesOn <- c('loadData', 'pairwise') 
 # 'loadData', 'dataQuality', 'pairwise', 'singleVarWrite', 'singleVarPlot'
 type_cleanDataFxns <- ''
 # '' or '_nofill
@@ -42,6 +42,10 @@ path_adjMxExport_cty <- paste0(getwd(), "/US_county_adjacency.graph")
 path_graphIdx_cty <- paste0(getwd(), "/US_county_graph_index.csv")
 path_shape_cty <- paste0(getwd(), "/gz_2010_us_050_00_500k") # for dbf metadata only
 
+setwd('../stateFlightpassenger_graph')
+path_graphExport_st <- paste0(getwd(), "/US_statePassenger_edgelist.txt")
+path_graphIdx_st <- paste0(getwd(), "/US_statePassenger_graph_index.csv")
+
 setwd("../../R_export")
 path_response_cty <- paste0(getwd(), sprintf("/dbMetrics_periodicReg%s_analyzeDB_cty.csv", dbCodeStr))
 fname_coefDat <- sprintf("/VS_coefDat_%s_cty%s", rCode, type_cleanDataFxns)
@@ -54,7 +58,9 @@ path_list <- list(path_abbr_st = path_abbr_st,
                   path_shape_cty = path_shape_cty,
                   path_adjMxExport_cty = path_adjMxExport_cty,
                   path_response_cty = path_response_cty, 
-                  path_graphIdx_cty = path_graphIdx_cty)
+                  path_graphIdx_cty = path_graphIdx_cty, 
+                  path_graphExport_st = path_graphExport_st,
+                  path_graphIdx_st = path_graphIdx_st)
 
 setwd(dirname(sys.frame(1)$ofile))
 setwd("../graph_outputs")
@@ -71,9 +77,10 @@ setwd(path_pltExport)
 if("loadData" %in% analysesOn){
   
   # load data frame with all available cleaned variables
-  # allDat <- prepare_allCov_iliSum_cty(path_list)
+  allDat <- prepare_allCov_iliSum_cty(path_list)
   # allDat <- model8a_iliSum_v3(path_list) # child pop data
-  allDat <- model8a_iliSum_v4(path_list) # adult pop data
+  # allDat <- model8a_iliSum_v4(path_list) # adult pop data
+  # allDat <- model8e_epiDur_v7(path_list)
   summary(allDat)
   
 } # end loadData
