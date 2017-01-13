@@ -69,7 +69,7 @@ if (testDataOn){
     intercept_nonzero + O_imscoverage_nonzero + O_careseek_nonzero + X_poverty_nonzero + X_H3_nonzero + offset(logE_nonzero)
 } else{
 #### Import and process data ####
-  modData <- model8a_iliSum_v2(path_list) 
+  modData <- model9a_iliSum_v3(path_list) 
     #%>%
     # remove_randomObs_stratifySeas(0.4)
   
