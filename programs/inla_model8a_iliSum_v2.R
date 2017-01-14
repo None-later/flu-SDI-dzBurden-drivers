@@ -20,7 +20,7 @@ require(RColorBrewer); require(ggplot2) # export_inlaData_st dependencies
 
 #### set these! ################################
 dbCodeStr <- "_ilinDt_Octfit_span0.4_degree2"
-modCodeStr <- "8a_iliSum_v2-6_m20"
+modCodeStr <- "8a_iliSum_v2-6_m40"
 rdmFx_RV <- "phi"
 likString <- "normal"
 dig <- 4 # number of digits in the number of elements at this spatial scale (~3000 counties -> 4 digits)
@@ -65,7 +65,7 @@ path_list <- list(path_abbr_st = path_abbr_st,
 #### MAIN #################################
 #### Import and process data ####
 modData <- model8a_iliSum_v7(path_list) %>% 
-  remove_randomObs_stratifySeas(0.2)
+  remove_randomObs_stratifySeas(0.4)
 
 formula <- Y ~ -1 + 
   f(ID_nonzero, model = "iid") +
