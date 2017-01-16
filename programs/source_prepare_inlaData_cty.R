@@ -54,6 +54,24 @@ remove_randomObs_stratifySeas <- function(full_df, proportion){
 }
 ################################
 
+keep_randomSeas <- function(full_df, proportion){
+  # keep x proportion of seasons
+  print(match.call())
+  
+  set.seed(37995)
+  # return list of sampled seasons
+  sample_seasons <- full_df %>%
+    distinct(season) %>%
+    sample_frac(size = proportion) %>% 
+    unlist
+  # return original dataframe including only sample_seasons
+  full_df2 <- full_df %>%
+    filter(season %in% sample_seasons)
+  
+  return(full_df2)
+}
+################################
+
 model8a_iliSum_v3 <- function(filepathList){
   # 1/13/17 model 8a_v3 (age-specific careseek) -- child population
   # multi-season model, shifted1 iliSum response, all sampling effort, and driver variables
