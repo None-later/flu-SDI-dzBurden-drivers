@@ -23,7 +23,7 @@ source("source_clean_response_functions_cty.R") # cty response functions
 
 #### set these! ################################
 dbCodeStr <- "_ilinDt_Octfit_span0.4_degree2"
-seasons <- c(3:7)
+seasons <- c(3:9)
 modCodeStr <- "8a_iliSum_v2-6_c75"
 likString <- "normal"; likStrings <- c(likString) 
 source("source_calculate_residuals_shift1.R") # calculate_residuals function (source_calculate_residuals_shift1.R for iliSum; source_calculate_residuals.R for epiDur)
