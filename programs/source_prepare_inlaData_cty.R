@@ -84,7 +84,7 @@ keep_randomCty <- function(full_df, proportion){
     unlist
   # return original dataframe including only sample_fips
   full_df2 <- full_df %>%
-    mutate(y1 = ifelse(season %in% sample_fips, y1, NA))
+    mutate(y1 = ifelse(fips %in% sample_fips, y1, NA))
   
   return(full_df2)
 }
