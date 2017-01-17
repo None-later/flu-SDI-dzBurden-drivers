@@ -66,7 +66,25 @@ keep_randomSeas <- function(full_df, proportion){
     unlist
   # return original dataframe including only sample_seasons
   full_df2 <- full_df %>%
-    filter(season %in% sample_seasons)
+    mutate(y1 = ifelse(season %in% sample_seasons, y1, NA))
+  
+  return(full_df2)
+}
+################################
+
+keep_randomCty <- function(full_df, proportion){
+  # keep x proportion of counties across all seasons
+  print(match.call())
+  
+  set.seed(7544210)
+  # return list of sampled counties
+  sample_fips <- full_df %>%
+    distinct(fips) %>%
+    sample_frac(size = proportion) %>% 
+    unlist
+  # return original dataframe including only sample_fips
+  full_df2 <- full_df %>%
+    mutate(y1 = ifelse(season %in% sample_fips, y1, NA))
   
   return(full_df2)
 }
