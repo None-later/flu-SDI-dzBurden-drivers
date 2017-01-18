@@ -18,9 +18,9 @@ require(DBI); require(RMySQL) # read tables from mysql database
 
 string_fit_fname <- function(modCodeStr){
   if(substring(modCodeStr, 2, 2) == 'a'){
-    fname <- sprintf("/home/elee/Dropbox/Elizabeth_Bansal_Lab/SDI_Data/dz_burden/R_export/inlaModelData_export/%s/summaryStatsFitted_normal_%s.csv", modCodeStr, modCodeStr)  
+    fname <- paste0(dirname(sys.frame(1)$ofile), "/../R_export/inlaModelData_export/", modCodeStr, "/summaryStatsFitted_normal_", modCodeStr, ".csv")
   } else if (substring(modCodeStr, 2, 2) == 'e'){
-    fname <- sprintf("/home/elee/Dropbox/Elizabeth_Bansal_Lab/SDI_Data/dz_burden/R_export/inlaModelData_export/%s/summaryStatsFitted_poisson_%s.csv", modCodeStr, modCodeStr) 
+    fname <- paste0(dirname(sys.frame(1)$ofile), "/../R_export/inlaModelData_export/", modCodeStr, "/summaryStatsFitted_poisson_", modCodeStr, ".csv")
   }
   return(fname)
 }
