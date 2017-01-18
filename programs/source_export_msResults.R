@@ -16,8 +16,13 @@ require(DBI); require(RMySQL) # read tables from mysql database
 
 #### functions ################################
 
-string_fit_fname <- function(modCodStr){
-  return(sprintf("/home/elee/Dropbox/Elizabeth_Bansal_Lab/SDI_Data/dz_burden/R_export/inlaModelData_export/%s/summaryStatsFitted_normal_%s.csv", modCodStr, modCodStr))
+string_fit_fname <- function(modCodeStr){
+  if(substring(modCodeStr, 2, 2) == 'a'){
+    fname <- sprintf("/home/elee/Dropbox/Elizabeth_Bansal_Lab/SDI_Data/dz_burden/R_export/inlaModelData_export/%s/summaryStatsFitted_normal_%s.csv", modCodeStr, modCodeStr)  
+  } else if (substring(modCodeStr, 2, 2) == 'e'){
+    fname <- sprintf("/home/elee/Dropbox/Elizabeth_Bansal_Lab/SDI_Data/dz_burden/R_export/inlaModelData_export/%s/summaryStatsFitted_poisson_%s.csv", modCodeStr, modCodeStr) 
+  }
+  return(fname)
 }
 
 ################################
@@ -67,10 +72,10 @@ setwd(dirname(sys.frame(1)$ofile))
 setwd("../R_export/msReports")
 sink("msReport.txt", append = FALSE)
 
-SI_modCodeLs <- c("8a_iliSum_v2-6", "8a_iliSum_v3-6", "8a_iliSum_v4-6")
+modCodeLs <- c("8a_iliSum_v2-6", "8a_iliSum_v3-6", "8a_iliSum_v4-6", "8e_epiDur_v2-3")
 qstep <- 0.2
 
-for (code in SI_modCodeLs){
+for (code in modCodeLs){
 	
 	report_observed_predicted_quantile_matches(code, qstep)
 	report_observed_predicted_pearsonCorr(code)
