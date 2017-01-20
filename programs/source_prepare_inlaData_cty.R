@@ -54,15 +54,15 @@ remove_randomObs_stratifySeas <- function(full_df, proportion){
 }
 ################################
 
-keep_randomSeas <- function(full_df, proportion){
+keep_randomSeas <- function(full_df, numSeas){
   # keep x proportion of seasons
   print(match.call())
   
-  set.seed(37995)
+  set.seed(37996)
   # return list of sampled seasons
   sample_seasons <- full_df %>%
     distinct(season) %>%
-    sample_frac(size = proportion) %>% 
+    sample_n(size = numSeas) %>% 
     unlist
   # return original dataframe including only sample_seasons
   full_df2 <- full_df %>%
