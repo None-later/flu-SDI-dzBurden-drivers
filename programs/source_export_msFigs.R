@@ -79,7 +79,7 @@ label_tot_predictors <- function(){
 ################################
 label_seas_predictors <- function(){
   cleanRV <- paste0("S", 3:9)
-  pltLabels <- c("2002-03", "2003-04", "2004-05", "2005-06", "2006-06", "2007-08", "2008-09")
+  pltLabels <- c("2002-03", "2003-04", "2004-05", "2005-06", "2006-07", "2007-08", "2008-09")
   
   dfLabels <- tbl_df(data.frame(RV = cleanRV, pltLabs = pltLabels, stringsAsFactors = FALSE))
   return(dfLabels)
@@ -397,7 +397,7 @@ choro_fitCompare <- function(modCodeLs, pltFormats){
   # plot
   choro <- ggplot() +
     geom_map(data = ctyMap, map = ctyMap, aes(x = long, y = lat, map_id = region)) +
-    geom_map(data = pltDat, map = ctyMap, aes(fill = overlap, map_id = fips), color = "grey50", size = 0.15) +
+    geom_map(data = pltDat, map = ctyMap, aes(fill = overlap, map_id = fips), color = "grey50", size = 0.05) +
     scale_fill_manual(name = "", values = c("1" = "#7b3294", "0" = "grey75"), breaks = c("1", "0"), labels = c("match", "no match"), na.value = "grey75") +
     expand_limits(x = ctyMap$long, y = ctyMap$lat) +
     theme_minimal() +
