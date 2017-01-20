@@ -23,8 +23,8 @@ source("source_clean_response_functions_cty.R") # cty response functions
 
 #### set these! ################################
 dbCodeStr <- "_ilinDt_Octfit_span0.4_degree2"
-seasons <- c(3:9)
-modCodeStr <- "8a_iliSum_v2-6_c80"
+seasons <- c(3,5,7,8)
+modCodeStr <- "8a_iliSum_v2-6_s4"
 likString <- "normal"; likStrings <- c(likString) 
 source("source_calculate_residuals_shift1.R") # calculate_residuals function (source_calculate_residuals_shift1.R for iliSum; source_calculate_residuals.R for epiDur)
 
@@ -55,9 +55,9 @@ setwd(sprintf("../R_export/inlaModelData_export/%s", modCodeStr))
 path_csvExport <- getwd()
 path_csvExport_ids <- paste0(path_csvExport, "/ids_", modCodeStr, ".csv")
 
-# #### results across seasons #################################
-# # coef distributions by season
-# importPlot_coefDistr_RV_spatiotemporal(path_csvExport, path_plotExport_coefDistr)
+#### results across seasons #################################
+# coef distributions by season
+importPlot_coefDistr_RV_spatiotemporal(path_csvExport, path_plotExport_coefDistr)
 
 #### diagnostics across seasons #################################
 
