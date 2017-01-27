@@ -76,7 +76,8 @@ keep_randomCty <- function(full_df, proportion){
   # keep x proportion of counties across all seasons
   print(match.call())
   
-  set.seed(7544210)
+  # set.seed(7544210) # rep 0
+  set.seed(3248880) # rep 1
   # return list of sampled counties
   sample_fips <- full_df %>%
     distinct(fips) %>%
