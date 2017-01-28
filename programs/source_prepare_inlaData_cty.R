@@ -77,7 +77,10 @@ keep_randomCty <- function(full_df, proportion){
   print(match.call())
   
   # set.seed(7544210) # rep 0
-  set.seed(3248880) # rep 1
+  # set.seed(3248880) # rep 1
+  # set.seed(2221009) # rep 2
+  # set.seed(778) # rep 3
+  set.seed(864201111) # rep 4
   # return list of sampled counties
   sample_fips <- full_df %>%
     distinct(fips) %>%
