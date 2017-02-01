@@ -36,7 +36,6 @@ remove_randomObs_stratifySeas <- function(full_df, proportion){
   # remove x proportion of observations from each season
   print(match.call())
   
-  set.seed(8044321)
   # return list of sampled Ids, among observations where !is.na(y1)
   sample_ids <- full_df %>%
     filter(!is.na(y1)) %>%
@@ -58,7 +57,6 @@ keep_randomSeas <- function(full_df, numSeas){
   # keep x proportion of seasons
   print(match.call())
   
-  set.seed(37996)
   # return list of sampled seasons
   sample_seasons <- full_df %>%
     distinct(season) %>%
@@ -76,11 +74,6 @@ keep_randomCty <- function(full_df, proportion){
   # keep x proportion of counties across all seasons
   print(match.call())
   
-  # set.seed(7544210) # rep 0
-  # set.seed(3248880) # rep 1
-  # set.seed(2221009) # rep 2
-  # set.seed(778) # rep 3
-  set.seed(864201111) # rep 4
   # return list of sampled counties
   sample_fips <- full_df %>%
     distinct(fips) %>%

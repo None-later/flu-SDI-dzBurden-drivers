@@ -329,7 +329,7 @@ dot_coefCompare <- function(modCodeLs, pltFormats){
   fullDf <- tbl_df(data.frame(modCodeStr = c(), dbCodeStr = c(), season = c(), RV = c(), effectType = c(), likelihood = c(), mean = c(), sd = c(), q_025 = c(), q_5 = c(), q_975 = c()))
   
   for(modCode in modCodeLs){
-    modDat <- read_csv(string_coef_fname(modCode), col_types = "cci_cccddddd__")
+    modDat <- read_csv(string_coef_fname(modCode), col_types = "ccd_cccddddd__")
     fullDf <- bind_rows(fullDf, modDat)
   }
   
@@ -398,7 +398,7 @@ choro_fitCompare <- function(modCodeLs, pltFormats){
   choro <- ggplot() +
     geom_map(data = ctyMap, map = ctyMap, aes(x = long, y = lat, map_id = region)) +
     geom_map(data = pltDat, map = ctyMap, aes(fill = overlap, map_id = fips), color = "grey50", size = 0.05) +
-    scale_fill_manual(name = "", values = c("1" = "#7b3294", "0" = "grey75"), breaks = c("1", "0"), labels = c("match", "no match"), na.value = "grey75") +
+    scale_fill_manual(name = "", values = c("1" = "grey75", "0" = "#7b3294"), breaks = c("1", "0"), labels = c("match", "no match"), na.value = "grey75") +
     expand_limits(x = ctyMap$long, y = ctyMap$lat) +
     theme_minimal() +
     theme(text = element_text(size = 18), axis.ticks = element_blank(), axis.text = element_blank(), axis.title = element_blank(), panel.grid = element_blank(), legend.position = c(.9,.3)) +

@@ -17,8 +17,9 @@ require(maptools); require(spdep) # prepare_inlaData_st.R dependencies
 require(INLA) # main dependencies
 require(RColorBrewer); require(ggplot2) # export_inlaData_st dependencies
 
-modCodeLs <- c("8a_iliSum_v2-6_c80-4", "8a_iliSum_v2-6_c60-4", "8a_iliSum_v2-6_c40-4", "8a_iliSum_v2-6_c20-4")
-keepLs <- c(0.8, 0.6, 0.4, 0.2)
+modCodeLs <- c("8a_iliSum_v2-6_s6-4", "8a_iliSum_v2-6_s4-4")
+keepLs <- c(6, 4)
+seedLs <- rep(29, 2)
 
 for (i in 1:length(keepLs)){
   
@@ -26,6 +27,7 @@ for (i in 1:length(keepLs)){
   dbCodeStr <- "_ilinDt_Octfit_span0.4_degree2"
   modCodeStr <- modCodeLs[i] # modCodeStr <- "8a_iliSum_v2-6_c60-3"
   keep <- keepLs[i]
+  set.seed(seedLs[i])
   rdmFx_RV <- "phi"
   likString <- "normal"
   dig <- 4 # number of digits in the number of elements at this spatial scale (~3000 counties -> 4 digits)
@@ -70,9 +72,9 @@ for (i in 1:length(keepLs)){
   #### MAIN #################################
   #### Import and process data ####
   modData <- model8a_iliSum_v7(path_list) %>% 
-    keep_randomCty(keep)
-  # keep_randomSeas(4)
-  # remove_randomObs_stratifySeas(0.8)
+    # keep_randomCty(keep)
+    keep_randomSeas(keep)
+    # remove_randomObs_stratifySeas(keep)
   
   formula <- Y ~ -1 +
     f(ID_nonzero, model = "iid") +
