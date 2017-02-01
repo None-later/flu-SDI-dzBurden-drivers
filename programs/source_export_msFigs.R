@@ -155,7 +155,7 @@ choro_stateEffects <- function(modCodeStr){
 
   # plot formatting
   states_map <- map_data("state")
-  h <- 5; w <- 8; dp <- 300
+  h <- 4; w <- 6; dp <- 300
   exportFname <- paste0(string_msFig_folder(), "choro_stGroupEffects_", modCodeStr, ".png")
 
   # import coef data
@@ -209,10 +209,10 @@ forest_coefDistr_fixedEffects <- function(modCodeStr){
   # plot formatting
   ecolLabels <- label_ecol_predictors()
   ecolFname <- paste0(string_msFig_folder(), "forest_coefEcol_", modCodeStr, ".png")
-  ecolFormats <- list(w=6, h=3)
+  ecolFormats <- list(w=6, h=2.75)
   measLabels <- label_meas_predictors()
   measFname <- paste0(string_msFig_folder(), "forest_coefMeas_", modCodeStr, ".png")
-  measFormats <- list(w=2.5, h=3)
+  measFormats <- list(w=2, h=2.75)
   
   # import summary stats data
   fullDf <- read_csv(string_coef_fname(modCodeStr), col_types = "ccd_cccddddd__")

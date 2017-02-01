@@ -21,21 +21,21 @@ source("source_export_msFigs.R")
 ## MAIN ##
 setwd(dirname(sys.frame(1)$ofile))
 
-# multiSeas_modCodeLs <- c("8a_iliSum_v2-6", "8e_epiDur_v2-3")
-# for (code in multiSeas_modCodeLs){
-#   choro_stateEffects(code)
-#   forest_coefDistr_seasEffects(code)
-# }
-# 
-# allCombs_modCodeLs <- c("8a_iliSum_v2-6", "8e_epiDur_v2-3", "8a_iliSum_v3-6", "8a_iliSum_v4-6")
-# for (code in allCombs_modCodeLs){
-#   forest_coefDistr_fixedEffects(code) # multi-season fixed effects
-# }
-# 
-# singleSeas_modCodeLs <- c("9a_iliSum_v2-4", "9e_epiDur_v2-2")
-# for (code in singleSeas_modCodeLs){
-#   forest_coefDistr_fixedEffects_singleSeason(code)
-# }
+multiSeas_modCodeLs <- c("8a_iliSum_v2-6", "8e_epiDur_v2-3")
+for (code in multiSeas_modCodeLs){
+  choro_stateEffects(code)
+  forest_coefDistr_seasEffects(code)
+}
+
+allCombs_modCodeLs <- c("8a_iliSum_v2-6", "8e_epiDur_v2-3", "8a_iliSum_v3-6", "8a_iliSum_v4-6")
+for (code in allCombs_modCodeLs){
+  forest_coefDistr_fixedEffects(code) # multi-season fixed effects
+}
+
+singleSeas_modCodeLs <- c("9a_iliSum_v2-4", "9e_epiDur_v2-2")
+for (code in singleSeas_modCodeLs){
+  forest_coefDistr_fixedEffects_singleSeason(code)
+}
 
 ## DOT PLOTS ###
 repLs <- c("", paste0("-", 4))
@@ -57,9 +57,9 @@ for(rep in repLs){
   dot_coefCompare(missSeq_modCodeLs, missSeq_plotFormats)
 }
 
-# ageSeq_modCodeLs <- c("8a_iliSum_v2-6", "8a_iliSum_v3-6", "8a_iliSum_v4-6")
-# ageSeq_plotFormats <- list(w = 6, h = 3, lvls = ageSeq_modCodeLs, labs = c("total", "children", "adults"), descrip = "ageSeq")
-# dot_coefCompare(ageSeq_modCodeLs, ageSeq_plotFormats)
+ageSeq_modCodeLs <- c("8a_iliSum_v2-6", "8a_iliSum_v3-6", "8a_iliSum_v4-6")
+ageSeq_plotFormats <- list(w = 6, h = 3, lvls = ageSeq_modCodeLs, labs = c("total", "children", "adults"), descrip = "ageSeq")
+dot_coefCompare(ageSeq_modCodeLs, ageSeq_plotFormats)
 
 ## FIT CHOROS ###
 repLs <- c("", paste0("-", 4))
@@ -71,5 +71,4 @@ for (code in pairCodeLs){
     pair_plotFormats <- list(w = 10, h = 5, descrip = paste0("8aV2-6_", pairCode), lvls = pairLs, labs = c("complete", pairCode))
     choro_fitCompare(pairLs, pair_plotFormats)
   }
-  
 }
