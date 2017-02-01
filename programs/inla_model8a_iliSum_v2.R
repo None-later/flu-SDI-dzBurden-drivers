@@ -17,9 +17,11 @@ require(maptools); require(spdep) # prepare_inlaData_st.R dependencies
 require(INLA) # main dependencies
 require(RColorBrewer); require(ggplot2) # export_inlaData_st dependencies
 
-modCodeLs <- c("8a_iliSum_v2-6_s6-4", "8a_iliSum_v2-6_s4-4")
-keepLs <- c(6, 4)
-seedLs <- rep(29, 2)
+reps <- 4
+repLs <- c(rep(5,reps), rep(6,reps), rep(7,reps), rep(8,reps), rep(9,reps))
+modCodeLs <- paste0(rep(c("8a_iliSum_v2-6_m80-", "8a_iliSum_v2-6_m60-", "8a_iliSum_v2-6_m40-", "8a_iliSum_v2-6_m20-"), reps), repLs)
+keepLs <- rep(c(80, 60, 40, 20), reps)
+seedLs <- c(rep(705,reps), rep(9065,reps), rep(8073,reps), rep(4428,reps), rep(997,reps))
 
 for (i in 1:length(keepLs)){
   
@@ -73,8 +75,8 @@ for (i in 1:length(keepLs)){
   #### Import and process data ####
   modData <- model8a_iliSum_v7(path_list) %>% 
     # keep_randomCty(keep)
-    keep_randomSeas(keep)
-    # remove_randomObs_stratifySeas(keep)
+    # keep_randomSeas(keep)
+    remove_randomObs_stratifySeas(keep)
   
   formula <- Y ~ -1 +
     f(ID_nonzero, model = "iid") +
@@ -106,13 +108,13 @@ for (i in 1:length(keepLs)){
   modData_full <- modData
   modData_hurdle <- convert_hurdleModel_nz_spatiotemporal(modData_full)
   
-  starting3 <- inla(formula,
-                    family = "gaussian",
-                    data = modData_hurdle,
-                    control.fixed = list(mean = 0, prec = 1/100), # set prior parameters for regression coefficients
-                    control.predictor = list(compute = TRUE, link = rep(1, nrow(modData_full))),
-                    control.inla = list(correct = TRUE, correct.factor = 10, diagonal = 10, strategy = "gaussian", int.strategy = "eb"), # http://www.r-inla.org/events/newfeaturesinr-inlaapril2015; http://www.r-inla.org/?place=msg%2Fr-inla-discussion-group%2Fuf2ZGh4jmWc%2FA0rdPE5W7uMJ
-                    verbose = TRUE)
+  # starting3 <- inla(formula,
+  #                   family = "gaussian",
+  #                   data = modData_hurdle,
+  #                   control.fixed = list(mean = 0, prec = 1/100), # set prior parameters for regression coefficients
+  #                   control.predictor = list(compute = TRUE, link = rep(1, nrow(modData_full))),
+  #                   control.inla = list(correct = TRUE, correct.factor = 10, diagonal = 10, strategy = "gaussian", int.strategy = "eb"), # http://www.r-inla.org/events/newfeaturesinr-inlaapril2015; http://www.r-inla.org/?place=msg%2Fr-inla-discussion-group%2Fuf2ZGh4jmWc%2FA0rdPE5W7uMJ
+  #                   verbose = TRUE)
   
   # starting4 <- inla(formula,
   #                   family = "gaussian",
@@ -130,7 +132,7 @@ for (i in 1:length(keepLs)){
               control.predictor = list(compute = TRUE, link = rep(1, nrow(modData_full))),
               control.compute = list(dic = TRUE, cpo = TRUE),
               control.inla = list(correct = TRUE, correct.factor = 10, diagonal = 0, tolerance = 1e-8), # http://www.r-inla.org/events/newfeaturesinr-inlaapril2015
-              control.mode = list(result = starting3, restart = TRUE),
+              # control.mode = list(result = starting3, restart = TRUE),
               verbose = TRUE,
               keep = TRUE, debug = TRUE)
   
