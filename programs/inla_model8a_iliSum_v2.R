@@ -20,7 +20,7 @@ require(RColorBrewer); require(ggplot2) # export_inlaData_st dependencies
 reps <- 4
 repLs <- c(rep(5,reps), rep(6,reps), rep(7,reps), rep(8,reps), rep(9,reps))
 modCodeLs <- paste0(rep(c("8a_iliSum_v2-6_m80-", "8a_iliSum_v2-6_m60-", "8a_iliSum_v2-6_m40-", "8a_iliSum_v2-6_m20-"), reps), repLs)
-keepLs <- rep(c(80, 60, 40, 20), reps)
+keepLs <- rep(c(.80, .60, .40, .20), reps)
 seedLs <- c(rep(705,reps), rep(9065,reps), rep(8073,reps), rep(4428,reps), rep(997,reps))
 
 for (i in 1:length(keepLs)){
