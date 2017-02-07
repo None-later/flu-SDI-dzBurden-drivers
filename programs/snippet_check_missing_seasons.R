@@ -17,7 +17,7 @@ setwd(dirname(sys.frame(1)$ofile))
 
 #### set these! ################################
 dbCodeStr <- "_ilinDt_Octfit_span0.4_degree2"
-modCodeStrLs <- c("8a_iliSum_v2-6_s6", "8a_iliSum_v2-6_s4", "8a_iliSum_v2-6_s2", paste0(rep(c("8a_iliSum_v2-6_s6-", "8a_iliSum_v2-6_s4-", "8a_iliSum_v2-6_s2-"), 3), c(rep(1,3), rep(2,3), rep(3,3), rep(4,3)))) 
+modCodeStrLs <- c("8a_iliSum_v2-6_s6", "8a_iliSum_v2-6_s4", "8a_iliSum_v2-6_s2", paste0(rep(c("8a_iliSum_v2-6_s6-", "8a_iliSum_v2-6_s4-", "8a_iliSum_v2-6_s2-"), 3), c(rep(5,3), rep(6,3), rep(7,3), rep(8,3), rep(9,3)))) 
 
 #### IMPORT FILEPATHS #################################
 setwd("../R_export/inlaModelData_export")
