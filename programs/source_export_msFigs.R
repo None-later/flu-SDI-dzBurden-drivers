@@ -86,6 +86,12 @@ label_seas_predictors <- function(){
 }
 
 ################################
+label_base_modCodeStr <- function(repCodeLs){
+  base_modCodeStr <- repCodeLs[which(nchar(repCodeLs) == min(nchar(repCodeLs)))]
+  return(base_modCodeStr)
+}
+
+################################
 calculate_95CI <- function(summDat){
   # primarily for forest plots
   print(match.call())
@@ -147,7 +153,129 @@ import_county_geomMap <- function(){
 
 ################################
 
+#### import functions ################################
+aggregate_coefReplicates <- function(repCodeLs){
+  print(match.call())
+
+  totLabels <- label_tot_predictors()
+  # grab coefData from multiple models
+  fullDf <- tbl_df(data.frame(modCodeStr = c(), dbCodeStr = c(), season = c(), RV = c(), effectType = c(), likelihood = c(), mean = c(), sd = c(), q_025 = c(), q_5 = c(), q_975 = c()))
+  
+  for(repCode in repCodeLs){
+    modDat <- read_csv(string_coef_fname(repCode), col_types = "ccd_cccddddd__")
+    fullDf <- bind_rows(fullDf, modDat)
+  }
+
+  # collapse data from multiple replicates
+  numReps <- length(repCodeLs)
+  base_modCodeStr <- label_base_modCodeStr(repCodeLs)
+  
+  prepDat <- fullDf %>%
+    filter(effectType == 'fixed') %>%
+    filter(!grepl("intercept", RV)) %>%
+    indicate_signif(.) %>%
+    clean_RVnames(.) %>%
+    mutate(RV = factor(RV, levels = totLabels$RV, labels = totLabels$pltLabs)) %>%
+    drop_na(signif2) %>%
+    group_by(RV) %>%
+    summarise(modCodeStr = base_modCodeStr, mn = mean(mean), dotsize = abs(mean(mean)), dotalpha = length(signif2)/numReps) %>%
+    ungroup %>%
+    mutate(signif2 = ifelse(mn < 0, "-1", ifelse(mn > 0, "1", NA))) %>%
+    select(modCodeStr, RV, signif2, dotsize, dotalpha)
+
+  return(prepDat)
+}
+
+################################
+import_fitReplicates <- function(repCodeLs){
+  print(match.call())
+
+  # grab fitData from multiple models
+  fullDf <- tbl_df(data.frame(modCodeStr = c(), season = c(), fips = c(), LB = c(), UB = c()))
+  
+  for(repCode in repCodeLs){
+    modDat <- read_csv(string_fit_fname(repCode), col_types = "c_d_c_dd______")
+    fullDf <- bind_rows(fullDf, modDat)
+  }
+
+  # collapse data from multiple replicates
+  numReps <- length(repCodeLs)
+  base_modCodeStr <- label_base_modCodeStr(repCodeLs)
+  
+  prepDat <- fullDf %>%
+    mutate(LB = mean-(1*sd), UB = mean+(1*sd)) %>%
+    select(modCodeStr, season, fips, LB, UB)
+
+  return(prepDat)
+}
+
+################################
+
+
 #### plot functions ################################
+################################
+choro_obsFit_seasIntensityRR <- function(modCodeStr, pltFormats, filepathList){
+  # plot side-by-side choropleths for the observed and fitted relative risk of seasonal intensity 
+  print(match.call())
+  
+  # plot formatting
+  w <- pltFormats$w; h <- pltFormats$h; dp <- 300
+  numBreaks <- pltFormats$numBreaks
+
+  # import fitted data (on the scale of log(y))
+  outDat <- read_csv(string_fit_fname(modCodeStr), col_types = "c_d_c_dd______") %>%
+    rename(fit_logy = mean) %>%
+    select(modCodeStr, season, fips, fit_logy)
+  
+  # import observed and expected log seasIntensity (shift1)
+  inDat <- cleanR_iliSum_shift1_cty(filepathList) %>%
+    mutate(obs_logy = log(y1), logE = log(E)) %>%
+    select(season, fips, obs_logy, logE)
+  
+  # prepare data for plotting breaks
+  prepDat <- left_join(outDat, inDat, by = c("season", "fips")) %>%
+    mutate(obs_rr = obs_logy-logE, fit_rr = fit_logy-logE) 
+  
+  # set breaks based on distribution of observed data
+  breaks <- seq(floor(min(prepDat$obs_rr, na.rm = TRUE)), ceiling(max(prepDat$obs_rr, na.rm = TRUE)), by = 1)
+  prepDat2 <- prepDat %>%
+    # mutate(observed = as.character(findInterval(obs_rr, breaks, rightmost.closed = TRUE))) %>%
+    # mutate(fitted = as.character(findInterval(fit_rr, breaks, rightmost.closed = TRUE)))
+    mutate(Observed = cut(obs_rr, breaks, right = TRUE, include.lowest = TRUE, ordered_result = TRUE)) %>%
+    mutate(Fitted = cut(fit_rr, breaks, right = TRUE, include.lowest = TRUE, ordered_result = TRUE))
+  factorlvls <- levels(prepDat2$Observed)
+  
+  plotDat <- prepDat2 %>%
+    select(season, fips, Observed, Fitted) %>%
+    gather(fig, bin, Observed:Fitted) %>%
+    mutate(bin = factor(bin, levels = factorlvls, labels = factorlvls, ordered = TRUE))
+  print(levels(plotDat$bin))
+ 
+  seasLs <- plotDat %>% distinct(season) %>% unlist
+  for (s in seasLs){
+   
+    exportFname <- paste0(string_msFig_folder(), "choro_obsFit_seasIntensityRR_S", s, ".png")
+    pltDat <- plotDat %>% filter(season == s)
+
+    # import county mapping info
+    ctyMap <- import_county_geomMap()
+    
+    # plot
+    choro <- ggplot() +
+      geom_map(data = ctyMap, map = ctyMap, aes(x = long, y = lat, map_id = region)) +
+      geom_map(data = pltDat, map = ctyMap, aes(fill = bin, map_id = fips), color = "grey25", size = 0.025) +
+      scale_fill_brewer(name = "Relative Risk", palette = "OrRd", na.value = "grey60", drop = FALSE) +
+      expand_limits(x = ctyMap$long, y = ctyMap$lat) +
+      theme_minimal() +
+      theme(text = element_text(size = 15), axis.ticks = element_blank(), axis.text = element_blank(), axis.title = element_blank(), panel.grid = element_blank(), legend.position = "bottom") +
+      facet_wrap(~fig, nrow=1)
+    
+    ggsave(exportFname, choro, height = h, width = w, dpi = dp)
+     
+  }
+  
+}
+
 ################################
 choro_stateEffects <- function(modCodeStr){
 # draw state choropleth with indicators of group effects
@@ -155,7 +283,7 @@ choro_stateEffects <- function(modCodeStr){
 
   # plot formatting
   states_map <- map_data("state")
-  h <- 4; w <- 6; dp <- 300
+  h <- 2; w <- 3; dp <- 300
   exportFname <- paste0(string_msFig_folder(), "choro_stGroupEffects_", modCodeStr, ".png")
 
   # import coef data
@@ -171,10 +299,10 @@ choro_stateEffects <- function(modCodeStr){
   # plot
   choro <- ggplot(plotDat, aes(map_id = State)) +
     geom_map(aes(fill = signif2), map = states_map, color = "grey50") +
-    scale_fill_manual(name = "Significance", values = c("-1" = "#ca0020", "1" = "#0571b0"), breaks = c("-1", "1"), labels = c("(-)", "(+)"), na.value = "grey75") +
+    scale_fill_manual(name = "Signif.", values = c("-1" = "#ca0020", "1" = "#0571b0"), breaks = c("-1", "1"), labels = c("(-)", "(+)"), na.value = "grey75") +
     expand_limits(x = states_map$long, y = states_map$lat) +
     theme_minimal() +
-    theme(text = element_text(size = 18), axis.ticks = element_blank(), axis.text = element_blank(), axis.title = element_blank(), panel.grid = element_blank(), legend.position = "bottom")
+    theme(text = element_text(size = 12), axis.ticks = element_blank(), axis.text = element_blank(), axis.title = element_blank(), panel.grid = element_blank(), legend.margin = margin(t = 0, r = 0, b = 0, l = 0, unit = "pt"), legend.position = "left")
   
   ggsave(exportFname, choro, height = h, width = w, dpi = dp)  
 }
@@ -186,7 +314,7 @@ forest_coefDistr_seasEffects <- function(modCodeStr){
   # plot formatting
   seasLabels <- label_seas_predictors()
   exportFname <- paste0(string_msFig_folder(), "forest_coefSeas_", modCodeStr, ".png")
-  plotFormats <- list(w=6, h=3)
+  plotFormats <- list(w=4, h=2)
   
   # import season coef data
   importDat <- read_csv(string_coef_fname(modCodeStr), col_types = "ccd_cccddddd__") 
@@ -252,7 +380,7 @@ plot_coefDistr_RV <- function(plotDat, exportFname, pltFormats){
     scale_colour_manual(limits = c(TRUE, FALSE), values = c("#008837", "grey75")) +
     guides(colour = FALSE) +
     theme_bw() + 
-    theme(axis.title.x=element_blank(), axis.text.x=element_text(angle=45, vjust=1, hjust=1), axis.text=element_text(size=12))
+    theme(axis.title.x=element_blank(), axis.text.x=element_text(angle=45, vjust=1, hjust=1), axis.text=element_text(size=12), text = element_text(size = 12))
   ggsave(exportFname, plotOutput, height = h, width = w, dpi = dp)
 }
 
@@ -317,9 +445,159 @@ plot_coefDistr_season <- function(plotDat, exportFname, pltFormats){
 }
 
 ################################
-dot_coefCompare <- function(modCodeLs, pltFormats){
+dot_coefCompareReplicates <- function(baseCodeLs, pltFormats){
+  # replicate comparison
+  print(match.call())
+
+  # plot formatting
+  totLabels <- label_tot_predictors()
+  w <- pltFormats$w; h <- pltFormats$h; dp <- 300
+  exportFname <- paste0(string_msFig_folder(), "dot_coefCompareReplicates_", pltFormats$descrip, ".png")
+
+  # data formatting
+  numReplicates <- pltFormats$numReplicates
+  
+  ## grab coefData from multiple models ##
+  fullDf <- tbl_df(data.frame(modCodeStr = c(), dbCodeStr = c(), season = c(), RV = c(), effectType = c(), likelihood = c(), mean = c(), sd = c(), q_025 = c(), q_5 = c(), q_975 = c()))
+  
+  # import complete model coefData
+  completeCode <- baseCodeLs[which(nchar(baseCodeLs)==min(nchar(baseCodeLs)))]
+  completeDat <- read_csv(string_coef_fname(completeCode), col_types = "ccd_cccddddd__") %>%
+    filter(effectType == 'fixed') %>%
+    filter(!grepl("intercept", RV)) %>%
+    indicate_signif(.) %>%
+    clean_RVnames(.) %>%
+    mutate(RV = factor(RV, levels = totLabels$RV, labels = totLabels$pltLabs)) %>%
+    drop_na(signif2) %>%
+    mutate(dotsize = abs(mean), dotalpha = 1) %>%
+    select(modCodeStr, RV, signif2, dotsize, dotalpha)
+
+  # import replicates for each baseCode
+  baseRepCodeLs <- baseCodeLs[which(nchar(baseCodeLs)!=min(nchar(baseCodeLs)))]
+  for(baseRepCode in baseRepCodeLs){
+    repCodeLs <- c(paste0(baseRepCode, ""), paste(baseRepCode, 1:(numReplicates-1), sep = "-"))
+    modDat <- aggregate_coefReplicates(repCodeLs)
+    fullDf <- bind_rows(fullDf, modDat)
+    print(paste(baseRepCode, "imported"))
+  }
+  
+  # prepare variables for plotting
+  plotDat <- bind_rows(fullDf, completeDat) %>%
+    mutate(modCodeStr = factor(modCodeStr, levels = rev(pltFormats$lvls), labels = rev(pltFormats$labs))) %>%
+    arrange(modCodeStr, RV)
+  
+  # plot
+  plotOutput <- ggplot(plotDat, aes(x = RV, y = modCodeStr)) +
+    geom_point(aes(colour = signif2, size = dotsize, alpha = dotalpha)) +
+    geom_hline(yintercept = length(baseCodeLs)-0.5, size = 0.25) +
+    scale_colour_manual("Signif", values = c("-1" = "#ca0020", "1" = "#0571b0"), breaks = c("-1", "1"), labels = c("(-)", "(+)"), na.value = "white") +
+    scale_size(trans = "exp") +
+    scale_alpha("% Replicates", labels = rev(pltFormats$replabs), breaks = rev(pltFormats$replvls)) +
+    scale_x_discrete(position = "top") +
+    guides(size = FALSE) +
+    theme_bw() +
+    theme(axis.title=element_blank(), axis.text.x=element_text(angle=45, vjust=1, hjust=0), axis.text=element_text(size=12), panel.grid = element_blank(), legend.position="right", legend.margin = margin(1,1,1,1, unit="pt"))
+  ggsave(exportFname, plotOutput, height = h, width = w, dpi = dp)
+  
+}
+
+################################
+choro_fitCompareReplicates <- function(baseCodeLs, pltFormats){
   print(match.call())
   
+  stopifnot(length(baseCodeLs) >= 2L)
+  
+  # plot formatting
+  w <- pltFormats$w; h <- pltFormats$h; dp <- 300
+  seasLabels <- label_seas_predictors()
+  nomatchThresh <- pltFormats$nomatchThresh
+  legendposition <- ifelse(length(baseCodeLs)>=4, "bottom", "left")
+  exportFname <- paste0(string_msFig_folder(), "choro_fitCompareReplicates_", pltFormats$descrip, "_", pltFormats$nomatchThresh*100, ".png")
+
+  # data formatting
+  numReplicates <- pltFormats$numReplicates
+  numSeas <- nrow(seasLabels)
+  repcodelength <- pltFormats$repcodelength
+  
+  ## grab fitData from multiple models ##
+  fullDf <- tbl_df(data.frame(modCodeStr = c(), season = c(), fips = c(), LB = c(), UB = c()))
+  
+  # import complete model fitData
+  completeCode <- baseCodeLs[which(nchar(baseCodeLs)==min(nchar(baseCodeLs)))]
+  completeDat <- read_csv(string_fit_fname(completeCode), col_types = "c_d_c_dd______") %>%
+      mutate(LB = mean-(1*sd), UB = mean+(1*sd)) %>%
+      select(modCodeStr, season, fips, LB, UB)
+
+  # import replicates for each baseCode
+  baseRepCodeLs <- baseCodeLs[which(nchar(baseCodeLs)!=min(nchar(baseCodeLs)))]
+  for (baseRepCode in baseRepCodeLs){
+    repCodeLs <- c(paste0(baseRepCode, ""), paste(baseRepCode, 1:(numReplicates-1), sep = "-"))
+    modDat <- import_fitReplicates(repCodeLs) 
+    fullDf <- bind_rows(fullDf, modDat)
+    print(paste(baseRepCode, "imported"))
+  }
+
+  # clean and organize bound data  
+  prepDat <- bind_rows(fullDf, completeDat) %>%
+    gather(bound, value, LB:UB) %>%
+    mutate(bound_spread = paste(modCodeStr, bound, sep = "_")) %>%
+    arrange(modCodeStr, bound) 
+
+  # create bound dataframe
+  boundLs <- prepDat %>% distinct(bound_spread) %>% unlist
+  boundMx <- matrix(boundLs, ncol=2, byrow = TRUE)
+
+  # identify overlaps with complete model
+  spreadDat <- prepDat %>%
+    select(-bound, -modCodeStr) %>%
+    spread(bound_spread, value) 
+
+  # indicate overlap with all replicates
+  overlapDat <- spreadDat
+  for (i in 2:nrow(boundMx)){
+    newcol <- paste0("o_", substring(boundMx[i,1], 16, nchar(boundMx[i,1])-3))
+    overlapDat <- do.call(overlapping_intervals, list(df = overlapDat, intervalA_LB = boundMx[1,1], intervalA_UB = boundMx[1,2], intervalB_LB = boundMx[i,1], intervalB_UB = boundMx[i,2])) %>%
+      rename_(.dots = setNames("overlap", newcol))
+  }
+  
+  # summarise across replicates and seasons
+  onlyOverlapDat <- overlapDat %>%
+    select(season, fips, contains("o_")) %>%
+    gather(repcode, overlap, contains("o_")) %>%
+    mutate(repgroup = substring(repcode, 1, repcodelength)) %>%
+    group_by(fips, repgroup) %>%
+    summarise(choroalpha = ((numReplicates*numSeas)-sum(as.numeric(overlap)))/(numReplicates*numSeas)) %>% # proportion replicate-seasons without overlaps
+    ungroup %>%
+    mutate(chorofill = ifelse(choroalpha >= nomatchThresh, "1", "0")) # 0 = overlaps, 1 = proportion of no overlaps is >= nomatchThresh
+
+  # prepare data for plotting
+  plotDat <- onlyOverlapDat %>% 
+    mutate(modCodeStr = paste0(completeCode, substring(repgroup, 2, nchar(repgroup)))) %>%
+    mutate(modCodeStr = factor(modCodeStr, levels = pltFormats$lvls, labels = pltFormats$labs)) %>%
+    select(modCodeStr, fips, chorofill, choroalpha)
+
+  # import county mapping info
+  ctyMap <- import_county_geomMap()
+  
+  # plot
+  choro <- ggplot() +
+    geom_map(data = ctyMap, map = ctyMap, aes(x = long, y = lat, map_id = region)) +
+    geom_map(data = plotDat, map = ctyMap, aes(fill = chorofill, map_id = fips), color = "grey50", size = 0.025) +
+    scale_fill_manual(name = "", values = c("1" = "#7b3294", "0" = "grey75"), breaks = c("1", "0"), labels = c("failure to match", paste0("match"))) +
+    expand_limits(x = ctyMap$long, y = ctyMap$lat) +
+    theme_minimal() +
+    theme(text = element_text(size = 16), axis.ticks = element_blank(), axis.text = element_blank(), axis.title = element_blank(), panel.grid = element_blank(), legend.margin = margin(t = 0, r = 0, b = 0, l = 0, unit = "pt"), legend.position = legendposition) +
+    facet_wrap(~modCodeStr, nrow=1)
+  
+  ggsave(exportFname, choro, height = h, width = w, dpi = dp)
+  
+}
+
+################################
+dot_coefCompare <- function(modCodeLs, pltFormats){
+  # direct comparison
+  print(match.call())
+
   # plot formatting
   totLabels <- label_tot_predictors()
   w <- pltFormats$w; h <- pltFormats$h; dp <- 300
