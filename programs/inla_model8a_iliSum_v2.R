@@ -17,11 +17,18 @@ require(maptools); require(spdep) # prepare_inlaData_st.R dependencies
 require(INLA) # main dependencies
 require(RColorBrewer); require(ggplot2) # export_inlaData_st dependencies
 
-reps <- 4
-repLs <- c(rep(5,reps), rep(6,reps), rep(7,reps), rep(8,reps), rep(9,reps))
-modCodeLs <- paste0(rep(c("8a_iliSum_v2-6_m80-", "8a_iliSum_v2-6_m60-", "8a_iliSum_v2-6_m40-", "8a_iliSum_v2-6_m20-"), reps), repLs)
-keepLs <- rep(c(.80, .60, .40, .20), reps)
-seedLs <- c(rep(705,reps), rep(9065,reps), rep(8073,reps), rep(4428,reps), rep(997,reps))
+ncodes <- 4
+nreps <- 1
+repLs <- c(rep(9,ncodes))
+modCodeLs <- paste0(rep(c("8a_iliSum_v2-6_c80-", "8a_iliSum_v2-6_c60-", "8a_iliSum_v2-6_c40-", "8a_iliSum_v2-6_c20-"), nreps), repLs)
+keepLs <- rep(c(.80, .60, .40, .20), nreps)
+seedLs <- c(rep(998,ncodes))
+# ncodes <- 3
+# nreps <- 5
+# repLs <- c(rep(5,ncodes), rep(6,ncodes), rep(7,ncodes), rep(8,ncodes), rep(9,ncodes))
+# modCodeLs <- paste0(rep(c("8a_iliSum_v2-6_s6-", "8a_iliSum_v2-6_s4-", "8a_iliSum_v2-6_s2-"), nreps), repLs)
+# keepLs <- rep(c(6, 4, 2), nreps)
+# seedLs <- c(rep(707,ncodes), rep(9067,ncodes), rep(8075,ncodes), rep(4430,ncodes), rep(999,ncodes))
 
 for (i in 1:length(keepLs)){
   
@@ -74,9 +81,9 @@ for (i in 1:length(keepLs)){
   #### MAIN #################################
   #### Import and process data ####
   modData <- model8a_iliSum_v7(path_list) %>% 
-    # keep_randomCty(keep)
+    keep_randomCty(keep)
     # keep_randomSeas(keep)
-    remove_randomObs_stratifySeas(keep)
+    # remove_randomObs_stratifySeas(keep)
   
   formula <- Y ~ -1 +
     f(ID_nonzero, model = "iid") +
