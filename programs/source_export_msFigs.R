@@ -28,6 +28,10 @@ string_coef_fname <- function(modCodeStr){
     return(paste0(dirname(sys.frame(1)$ofile), "/../R_export/inlaModelData_export/", modCodeStr, "/summaryStats_", modCodeStr, ".csv"))
 }
 ################################
+string_ids_fname <- function(modCodeStr){
+    return(paste0(dirname(sys.frame(1)$ofile), "/../R_export/inlaModelData_export/", modCodeStr, "/ids_", modCodeStr, ".csv"))
+}
+################################
 stringLs_coef_fname <- function(modCodeStr){
   searchDir <- paste0(dirname(sys.frame(1)$ofile), "/../R_export/inlaModelData_export/", modCodeStr, "/")
   readfile_list <- grep("summaryStats_", list.files(path = searchDir, full.names = TRUE), value = TRUE)
@@ -132,26 +136,7 @@ name_intervals <- function(modLabs){
 }
 
 ################################
-import_county_geomMap <- function(){
-  print(match.call())
-  
-  countyMap <- map_data("county")
-  data(county.fips)
-  polynameSplit <- tstrsplit(county.fips$polyname, ",")
-  county_geomMap <- tbl_df(county.fips) %>%
-    mutate(fips = substr.Right(paste0("0", fips), 5)) %>%
-    mutate(region = polynameSplit[[1]]) %>%
-    mutate(subregion = polynameSplit[[2]]) %>%
-    full_join(countyMap, by = c("region", "subregion")) %>%
-    filter(!is.na(polyname) & !is.na(long)) %>%
-    rename(state = region, county = subregion) %>%
-    rename(region = fips) %>%
-    select(-polyname)
-  
-  return(county_geomMap)
-}
 
-################################
 
 #### import functions ################################
 aggregate_coefReplicates <- function(repCodeLs){
@@ -210,22 +195,13 @@ import_fitReplicates <- function(repCodeLs){
 }
 
 ################################
-
-
-#### plot functions ################################
-################################
-choro_obsFit_seasIntensityRR <- function(modCodeStr, pltFormats, filepathList){
-  # plot side-by-side choropleths for the observed and fitted relative risk of seasonal intensity 
+import_obsFit_seasIntensityRR <- function(modCodeStr, filepathList){
   print(match.call())
   
-  # plot formatting
-  w <- pltFormats$w; h <- pltFormats$h; dp <- 300
-  numBreaks <- pltFormats$numBreaks
-
   # import fitted data (on the scale of log(y))
   outDat <- read_csv(string_fit_fname(modCodeStr), col_types = "c_d_c_dd______") %>%
-    rename(fit_logy = mean) %>%
-    select(modCodeStr, season, fips, fit_logy)
+    rename(fit_logy = mean, fit_sd = sd) %>%
+    select(modCodeStr, season, fips, fit_logy, fit_sd)
   
   # import observed and expected log seasIntensity (shift1)
   inDat <- cleanR_iliSum_shift1_cty(filepathList) %>%
@@ -233,8 +209,66 @@ choro_obsFit_seasIntensityRR <- function(modCodeStr, pltFormats, filepathList){
     select(season, fips, obs_logy, logE)
   
   # prepare data for plotting breaks
-  prepDat <- left_join(outDat, inDat, by = c("season", "fips")) %>%
-    mutate(obs_rr = obs_logy-logE, fit_rr = fit_logy-logE) 
+  obsFitDat <- left_join(outDat, inDat, by = c("season", "fips")) %>%
+    mutate(obs_rr = obs_logy-logE, fit_rr = fit_logy-logE) %>%
+    mutate(resid = (obs_logy - fit_logy)/fit_sd)
+  
+  return(obsFitDat)
+}
+
+################################
+import_obsFit_epiDuration <- function(modCodeStr, filepathList){
+  print(match.call())
+  
+  # import fitted epiDur data 
+  outDat <- read_csv(string_fit_fname(modCodeStr), col_types = "c_d_c_dd______") %>%
+    rename(fit_y = mean, fit_sd = sd) %>%
+    select(modCodeStr, season, fips, fit_y, fit_sd)
+  
+  # import observed epidemic duration
+  inDat <- cleanR_epiDur_cty(filepathList) %>%
+    rename(obs_y = y1) %>%
+    select(season, fips, obs_y)
+  
+  # prepare data for plotting breaks
+  obsFitDat <- left_join(outDat, inDat, by = c("season", "fips")) %>%
+    mutate(resid = (obs_y - fit_y)/fit_sd)
+  
+  return(obsFitDat)
+}
+
+################################
+import_county_geomMap <- function(){
+  print(match.call())
+  
+  countyMap <- map_data("county")
+  data(county.fips)
+  polynameSplit <- tstrsplit(county.fips$polyname, ",")
+  county_geomMap <- tbl_df(county.fips) %>%
+    mutate(fips = substr.Right(paste0("0", fips), 5)) %>%
+    mutate(region = polynameSplit[[1]]) %>%
+    mutate(subregion = polynameSplit[[2]]) %>%
+    full_join(countyMap, by = c("region", "subregion")) %>%
+    filter(!is.na(polyname) & !is.na(long)) %>%
+    rename(state = region, county = subregion) %>%
+    rename(region = fips) %>%
+    select(-polyname)
+  
+  return(county_geomMap)
+}
+
+
+
+#### plot functions ################################
+choro_obsFit_seasIntensityRR_oneSeason <- function(modCodeStr, pltFormats, filepathList){
+  # plot side-by-side choropleths for the observed and fitted relative risk of seasonal intensity 
+  print(match.call())
+  
+  # plot formatting
+  w <- pltFormats$w; h <- pltFormats$h; dp <- 300
+
+  # import and clean observed and fitted seasonal intensity RR 
+  prepDat <- import_obsFit_seasIntensityRR(modCodeStr, filepathList)
   
   # set breaks based on distribution of observed data
   breaks <- seq(floor(min(prepDat$obs_rr, na.rm = TRUE)), ceiling(max(prepDat$obs_rr, na.rm = TRUE)), by = 1)
@@ -277,6 +311,345 @@ choro_obsFit_seasIntensityRR <- function(modCodeStr, pltFormats, filepathList){
 }
 
 ################################
+choro_obsFit_seasIntensityRR_multiSeason <- function(modCodeStr, pltFormats, filepathList){
+  # plot side-by-side choropleths for the observed and fitted relative risk of seasonal intensity (multiple years)
+  print(match.call())
+  
+  # plot formatting
+  w <- pltFormats$w; h <- pltFormats$h; dp <- 300
+  seasDf <- label_seas_predictors()
+  popCode <- pltFormats$popCode
+  
+  # import and clean observed and fitted seasonal intensity RR 
+  prepDat <- import_obsFit_seasIntensityRR(modCodeStr, filepathList)
+  
+  # set breaks based on distribution of observed data
+  breaks <- seq(floor(min(prepDat$obs_rr, na.rm = TRUE)), ceiling(max(prepDat$obs_rr, na.rm = TRUE)), by = 1)
+  prepDat2 <- prepDat %>%
+    # mutate(observed = as.character(findInterval(obs_rr, breaks, rightmost.closed = TRUE))) %>%
+    # mutate(fitted = as.character(findInterval(fit_rr, breaks, rightmost.closed = TRUE)))
+    mutate(Observed = cut(obs_rr, breaks, right = TRUE, include.lowest = TRUE, ordered_result = TRUE)) %>%
+    mutate(Fitted = cut(fit_rr, breaks, right = TRUE, include.lowest = TRUE, ordered_result = TRUE))
+  factorlvls <- levels(prepDat2$Observed)
+   
+  prepDat3 <- prepDat2 %>%
+    select(season, fips, Observed, Fitted) %>%
+    gather(fig, bin, Observed:Fitted) %>%
+    mutate(bin = factor(bin, levels = factorlvls, labels = factorlvls, ordered = TRUE)) %>%
+    mutate(season = paste0("S", season)) %>%
+    mutate(season = factor(season, levels = seasDf$RV, labels = seasDf$pltLabs)) 
+  
+  # control flow to remove a single season if necessary
+  if(is.null(pltFormats$rmSeas)){
+    plotDat <- prepDat3
+  } else{
+    plotDat <- prepDat3 %>%
+      filter(season != pltFormats$rmSeas)
+  }
+  
+  print(levels(plotDat$bin))
+  
+  exportFname <- paste0(string_msFig_folder(), "choro_obsFit_seasIntensityRR_multiSeason", popCode, ".png")
+  
+  # import county mapping info
+  ctyMap <- import_county_geomMap()
+  
+  # plot
+  choro <- ggplot() +
+    geom_map(data = ctyMap, map = ctyMap, aes(x = long, y = lat, map_id = region)) +
+    geom_map(data = plotDat, map = ctyMap, aes(fill = bin, map_id = fips), color = "grey25", size = 0.025) +
+    scale_fill_brewer(name = "Relative Risk", palette = "OrRd", na.value = "grey60", drop = FALSE) +
+    expand_limits(x = ctyMap$long, y = ctyMap$lat) +
+    theme_minimal() +
+    theme(text = element_text(size = 14), axis.ticks = element_blank(), axis.text = element_blank(), axis.title = element_blank(), panel.grid = element_blank(), legend.position = "bottom", legend.margin = margin(), legend.box.margin = margin()) +
+    facet_grid(season~fig)
+  
+  ggsave(exportFname, choro, height = h, width = w, dpi = dp)
+  
+  
+}
+################################
+forest_coefDistr_stateEffects <- function(modCodeStr){
+  print(match.call())
+  
+  # plot formatting
+  stLabels <- read_csv(string_ids_fname(modCodeStr), col_types = "____c__c") %>% distinct(graphIdx_st, st)
+  exportFname <- paste0(string_msFig_folder(), "forest_coefState_", modCodeStr, ".png")
+  plotFormats <- list(w=6, h=2)
+
+  # import season coef data
+  importDat <- read_csv(string_coef_fname(modCodeStr), col_types = "ccd_cccddddd__") 
+  coefDat <- importDat %>%
+    filter(effectType == 'structured_st') %>%
+    clean_RVnames(.) %>%
+    mutate(RV = factor(RV, levels = stLabels$graphIdx_st, labels = stLabels$st))
+  
+  # prepare data for plotting
+  plotDat <- calculate_95CI(coefDat) 
+  
+  # plot 
+  plot_coefDistr_RV(plotDat, exportFname, plotFormats)
+}
+
+################################
+scatter_obsFit_seasIntensityRR_multiSeason <- function(modCodeStr, pltFormats, filepathList){
+  # scatterplot of observed vs fitted seasonal intensity RR values, by season
+  print(match.call())
+  
+  # plot formatting
+  w <- pltFormats$w; h <- pltFormats$h; dp <- 300
+  seasDf <- label_seas_predictors()
+  
+  # import and clean observed and fitted seasonal intensity RR 
+  plotDat <- import_obsFit_seasIntensityRR(modCodeStr, filepathList) %>%
+    rename(Observed = obs_rr, Fitted = fit_rr) %>%
+    mutate(season = paste0("S", season)) %>%
+    mutate(season = factor(season, levels = seasDf$RV, labels = seasDf$pltLabs)) 
+
+  exportFname <- paste0(string_msFig_folder(), "scatter_obsFit_seasIntensityRR_multiSeason", ".png")
+  
+  # plot
+  plotOutput <- ggplot(plotDat, aes(x = Observed, y = Fitted)) +
+    geom_point(alpha = 0.7) + 
+    geom_abline(yintercept = 0, slope = 1, colour = "grey50") +
+    scale_x_continuous(limits = c(-3,2)) +
+    scale_y_continuous(limits = c(-3,2)) +
+    theme_bw() + 
+    theme(text = element_text(size = 13), legend.margin = margin(), legend.position = "bottom") +
+    facet_wrap(~season, nrow = 2)
+  
+  ggsave(exportFname, plotOutput, height = h, width = w, dpi = dp)
+}
+################################
+
+scatter_residFit_logSeasIntensity_multiSeason <- function(modCodeStr, pltFormats, filepathList){
+  # scatterplot of residuals vs fitted log seasonal intensity, by season
+  print(match.call())
+  
+  # plot formatting
+  w <- pltFormats$w; h <- pltFormats$h; dp <- 300
+  seasDf <- label_seas_predictors()
+  
+  # import and clean observed and fitted seasonal intensity RR 
+  plotDat <- import_obsFit_seasIntensityRR(modCodeStr, filepathList) %>%
+    rename(Residuals = resid, Fitted = fit_logy) %>%
+    mutate(season = paste0("S", season)) %>%
+    mutate(season = factor(season, levels = seasDf$RV, labels = seasDf$pltLabs)) 
+  print(summary(plotDat))
+
+  exportFname <- paste0(string_msFig_folder(), "scatter_residFit_seasIntensityRR_multiSeason", ".png")
+  
+  # plot
+  plotOutput <- ggplot(plotDat, aes(x = Fitted, y = Residuals)) +
+    geom_point(alpha = 0.7) + 
+    geom_hline(yintercept = 0, colour = "grey50") +
+    theme_bw() + 
+    theme(text = element_text(size = 13), legend.margin = margin(), legend.position = "bottom") +
+    facet_wrap(~season, nrow = 2, scales = "free")
+  
+  ggsave(exportFname, plotOutput, height = h, width = w, dpi = dp)
+}
+################################
+choro_obsFit_epiDuration_multiSeason <- function(modCodeStr, pltFormats, filepathList){
+  # plot side-by-side choropleths for the observed and fitted epidemic duration (multiple years)
+  print(match.call())
+  
+  # plot formatting
+  w <- pltFormats$w; h <- pltFormats$h; dp <- 300
+  seasDf <- label_seas_predictors()
+  popCode <- pltFormats$popCode
+  
+  # import and clean observed and fitted seasonal intensity RR 
+  prepDat <- import_obsFit_epiDuration(modCodeStr, filepathList)
+  
+  # set breaks based on distribution of observed data
+  breaks <- seq(floor(min(prepDat$obs_y, na.rm = TRUE)), ceiling(max(prepDat$obs_y, na.rm = TRUE)), by = 3)
+  prepDat2 <- prepDat %>%
+    mutate(Observed = cut(obs_y, breaks, right = TRUE, include.lowest = TRUE, ordered_result = TRUE)) %>%
+    mutate(Fitted = cut(fit_y, breaks, right = TRUE, include.lowest = TRUE, ordered_result = TRUE))
+  factorlvls <- levels(prepDat2$Observed)
+   
+  prepDat3 <- prepDat2 %>%
+    select(season, fips, Observed, Fitted) %>%
+    gather(fig, bin, Observed:Fitted) %>%
+    mutate(bin = factor(bin, levels = factorlvls, labels = factorlvls, ordered = TRUE)) %>%
+    mutate(season = paste0("S", season)) %>%
+    mutate(season = factor(season, levels = seasDf$RV, labels = seasDf$pltLabs)) 
+  
+  # control flow to remove a single season if necessary
+  if(is.null(pltFormats$rmSeas)){
+    plotDat <- prepDat3
+  } else{
+    plotDat <- prepDat3 %>%
+      filter(season != pltFormats$rmSeas)
+  }
+  
+  print(levels(plotDat$bin))
+  
+  exportFname <- paste0(string_msFig_folder(), "choro_obsFit_epiDuration_multiSeason", popCode, ".png")
+  
+  # import county mapping info
+  ctyMap <- import_county_geomMap()
+  
+  # plot
+  choro <- ggplot() +
+    geom_map(data = ctyMap, map = ctyMap, aes(x = long, y = lat, map_id = region)) +
+    geom_map(data = plotDat, map = ctyMap, aes(fill = bin, map_id = fips), color = "grey25", size = 0.025) +
+    scale_fill_brewer(name = "Duration (Weeks)", palette = "OrRd", na.value = "grey60", drop = FALSE) +
+    expand_limits(x = ctyMap$long, y = ctyMap$lat) +
+    theme_minimal() +
+    theme(text = element_text(size = 12), axis.ticks = element_blank(), axis.text = element_blank(), axis.title = element_blank(), panel.grid = element_blank(), legend.position = "bottom", legend.margin = margin(), legend.box.margin = margin()) +
+    facet_grid(season~fig)
+  
+  ggsave(exportFname, choro, height = h, width = w, dpi = dp)
+  
+  
+}
+################################
+
+scatter_obsFit_epiDuration_multiSeason <- function(modCodeStr, pltFormats, filepathList){
+  # scatterplot of observed vs fitted epidemic duration, by season
+  print(match.call())
+  
+  # plot formatting
+  w <- pltFormats$w; h <- pltFormats$h; dp <- 300
+  seasDf <- label_seas_predictors()
+  
+  # import and clean observed and fitted seasonal intensity RR 
+  plotDat <- import_obsFit_epiDuration(modCodeStr, filepathList) %>%
+    rename(Observed = obs_y, Fitted = fit_y) %>%
+    mutate(season = paste0("S", season)) %>%
+    mutate(season = factor(season, levels = seasDf$RV, labels = seasDf$pltLabs)) 
+
+  exportFname <- paste0(string_msFig_folder(), "scatter_obsFit_epiDuration_multiSeason", ".png")
+  
+  # plot
+  plotOutput <- ggplot(plotDat, aes(x = Observed, y = Fitted)) +
+    geom_point(alpha = 0.7) + 
+    geom_abline(yintercept = 0, slope = 1, colour = "grey50") +
+    scale_x_continuous(limits = c(0,25)) +
+    scale_y_continuous(limits = c(0,25)) +
+    theme_bw() + 
+    theme(text = element_text(size = 13), legend.margin = margin(), legend.position = "bottom") +
+    facet_wrap(~season, nrow = 2)
+  
+  ggsave(exportFname, plotOutput, height = h, width = w, dpi = dp)
+}
+################################
+
+scatter_residFit_epiDuration_multiSeason <- function(modCodeStr, pltFormats, filepathList){
+  # scatterplot of residuals vs fitted epidemic duration, by season
+  print(match.call())
+  
+  # plot formatting
+  w <- pltFormats$w; h <- pltFormats$h; dp <- 300
+  seasDf <- label_seas_predictors()
+  
+  # import and clean observed and fitted seasonal intensity RR 
+  plotDat <- import_obsFit_epiDuration(modCodeStr, filepathList) %>%
+    rename(Residuals = resid, Fitted = fit_y) %>%
+    mutate(season = paste0("S", season)) %>%
+    mutate(season = factor(season, levels = seasDf$RV, labels = seasDf$pltLabs)) 
+  print(summary(plotDat))
+
+  exportFname <- paste0(string_msFig_folder(), "scatter_residFit_epiDuration_multiSeason", ".png")
+  
+  # plot
+  plotOutput <- ggplot(plotDat, aes(x = Fitted, y = Residuals)) +
+    geom_point(alpha = 0.7) + 
+    geom_hline(yintercept = 0, colour = "grey50") +
+    theme_bw() + 
+    theme(text = element_text(size = 13), legend.margin = margin(), legend.position = "bottom") +
+    facet_wrap(~season, nrow = 2, scales = "free")
+  
+  ggsave(exportFname, plotOutput, height = h, width = w, dpi = dp)
+}
+################################
+scatter_obsFit_seasInt_epiDur_multiSeason <- function(modCodeLs, pltFormats, filepathList){
+  # scatterplot of observed seasonal intensity RR vs. observed epidemic duration, by season
+  print(match.call())
+  
+  stopifnot(length(modCodeLs) == 2L)
+
+  # plot formatting
+  w <- pltFormats$w; h <- pltFormats$h; dp <- 300
+  seasDf <- label_seas_predictors()
+  modLabs <- pltFormats$modLabs
+  
+  # import and clean observed & fitted seasonal intensity RR 
+  seasIntDat <- import_obsFit_seasIntensityRR(modCodeLs[1], filepathList) %>%
+    rename(Observed = obs_rr, Fitted = fit_rr) %>%
+    select(modCodeStr, season, fips, Observed, Fitted)
+
+  # import and clean observed & fitted epidemic duration
+  epiDurDat <- import_obsFit_epiDuration(modCodeLs[2], filepathList) %>%
+    rename(Observed = obs_y, Fitted = fit_y) %>%
+    select(modCodeStr, season, fips, Observed, Fitted) 
+
+  plotDat <- bind_rows(seasIntDat, epiDurDat) %>%
+    mutate(modCodeStr = factor(modCodeStr, levels = modCodeLs, labels = modLabs)) %>%
+    gather(valueType, value, Observed:Fitted) %>%
+    spread(modCodeStr, value) %>%
+    mutate(season = paste0("S", season)) %>%
+    mutate(season = factor(season, levels = seasDf$RV, labels = seasDf$pltLabs))
+
+  exportFname <- paste0(string_msFig_folder(), "scatter_obs_seasInt_epiDur_multiSeason", ".png")
+  
+  # plot
+  plotOutput <- ggplot(plotDat, aes(x = seasIntensity, y = epiDuration)) +
+    geom_point(alpha = 0.7) + 
+    scale_x_continuous("Seasonal Intensity (Relative Risk)") +
+    scale_y_continuous("Epidemic Duration (Weeks)") +
+    theme_bw() + 
+    theme(text = element_text(size = 13), legend.margin = margin(), legend.position = "bottom") +
+    facet_grid(season~valueType)
+  
+  ggsave(exportFname, plotOutput, height = h, width = w, dpi = dp)
+}
+###############################
+
+scatter_obsFit_seasIntensityRR_multiSeason_age <- function(modCodeLs, pltFormats, filepathList){
+  # scatterplot of observed vs fitted seasonal intensity RR values, colored by season, panels for age groups
+  print(match.call())
+  
+  # plot formatting
+  w <- pltFormats$w; h <- pltFormats$h; dp <- 300
+  seasDf <- label_seas_predictors()
+  ageLabs <- pltFormats$ageLabs
+  
+  # import and clean observed and fitted seasonal intensity RR for multiple modCodes
+  prepDat <- data.frame()
+  for (modCodeStr in modCodeLs){
+    dummyDat <- import_obsFit_seasIntensityRR(modCodeStr, filepathList) %>%
+    mutate(modCodeStr = modCodeStr)
+    prepDat <- bind_rows(prepDat, dummyDat)
+  }
+
+  # add labels
+  plotDat <- prepDat %>%
+    rename(Observed = obs_rr, Fitted = fit_rr) %>%
+    mutate(season = paste0("S", season)) %>%
+    mutate(season = factor(season, levels = seasDf$RV, labels = seasDf$pltLabs)) %>%
+    mutate(modCodeStr = factor(modCodeStr, levels = modCodeLs, labels = ageLabs))
+  print(summary(plotDat))
+  
+  exportFname <- paste0(string_msFig_folder(), "scatter_obsFit_seasIntensityRR_multiSeason_age", ".png")
+  
+  # plot
+  plotOutput <- ggplot(plotDat, aes(x = Observed, y = Fitted)) +
+    geom_point(aes(colour = season), alpha = 0.7) +
+    geom_abline(yintercept = 0, slope = 1, colour = "grey50") +
+    scale_colour_tableau('tableau10medium') +
+    # scale_x_continuous(limits = c(-5,5)) +
+    # scale_y_continuous(limits = c(-5,5)) +
+    theme_bw() + 
+    theme(text = element_text(size = 13), legend.margin = margin(), legend.position = "bottom") +
+    facet_wrap(~modCodeStr, nrow = 1, scales = "free")
+  
+  ggsave(exportFname, plotOutput, height = h, width = w, dpi = dp)
+}
+################################
+
 choro_stateEffects <- function(modCodeStr){
 # draw state choropleth with indicators of group effects
   print(match.call())
@@ -380,7 +753,8 @@ plot_coefDistr_RV <- function(plotDat, exportFname, pltFormats){
     scale_colour_manual(limits = c(TRUE, FALSE), values = c("#008837", "grey75")) +
     guides(colour = FALSE) +
     theme_bw() + 
-    theme(axis.title.x=element_blank(), axis.text.x=element_text(angle=45, vjust=1, hjust=1), axis.text=element_text(size=12), text = element_text(size = 12))
+    theme(axis.title.x=element_blank(), axis.text.x=element_text(angle=45, vjust=1, hjust=1), axis.text=element_text(size=14), text = element_text(size = 14))
+
   ggsave(exportFname, plotOutput, height = h, width = w, dpi = dp)
 }
 

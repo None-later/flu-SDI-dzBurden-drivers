@@ -37,23 +37,58 @@ setwd(dirname(sys.frame(1)$ofile))
 
 ## PLOTS ##
 ###############################################################################
-multiSeas_modCodeLs <- c("8a_iliSum_v2-6")
-obsFit_plotFormats <- list(w = 7, h = 3.5)
-for (code in multiSeas_modCodeLs){
-  choro_obsFit_seasIntensityRR(code, obsFit_plotFormats, path_list)
-}
+### SEASONAL INTENSITY - total population ###################
+# obsFit_plotFormats_one <- list(w = 7, h = 3.5)
+# choro_obsFit_seasIntensityRR_oneSeason("8a_iliSum_v2-6", obsFit_plotFormats_one, path_list)
 
-# multiSeas_modCodeLs <- c("8a_iliSum_v2-6", "8e_epiDur_v2-3")
-# for (code in multiSeas_modCodeLs){
-#   choro_stateEffects(code)
-#   forest_coefDistr_seasEffects(code)
-# }
+# obsFit_plotFormats_multi <- list(w = 5, h = 8, rmSeas = "2006-07", popCode = "")
+# choro_obsFit_seasIntensityRR_multiSeason("8a_iliSum_v2-6", obsFit_plotFormats_multi, path_list)
 
+# obsFit_plotFormats_scatter <- list(w = 6, h = 4)
+# scatter_obsFit_seasIntensityRR_multiSeason("8a_iliSum_v2-6", obsFit_plotFormats_scatter, path_list)
+# scatter_residFit_logSeasIntensity_multiSeason("8a_iliSum_v2-6", obsFit_plotFormats_scatter, path_list)
+
+# forest_coefDistr_stateEffects("8a_iliSum_v6-3")
+
+###############################################################################
+### EPIDEMIC DURATION - total population ###################
+# obsFit_plotFormats_multi_epiDur <- list(w = 5, h = 9, popCode = "")
+# choro_obsFit_epiDuration_multiSeason("8e_epiDur_v2-3", obsFit_plotFormats_multi_epiDur, path_list)
+
+# obsFit_plotFormats_scatter <- list(w = 6, h = 4)
+# scatter_obsFit_epiDuration_multiSeason("8e_epiDur_v2-3", obsFit_plotFormats_scatter, path_list)
+# scatter_residFit_epiDuration_multiSeason("8e_epiDur_v2-3", obsFit_plotFormats_scatter, path_list)
+
+###############################################################################
+### EPIDEMIC DURATION vs. SEASONAL INTENSITY ###################
+pltFormats_epiDur_seasInt <- list(w = 5, h = 8, modLabs = c("seasIntensity", "epiDuration"))
+scatter_obsFit_seasInt_epiDur_multiSeason(c("8a_iliSum_v2-6", "8e_epiDur_v2-3"), pltFormats_epiDur_seasInt, path_list)
+
+###############################################################################
+### SEASONAL INTENSITY - age-specific population ###################
+
+# obsFit_plotFormats_scatter_age <- list(w = 6, h = 3, ageLabs = c("Children", "Adults"))
+# scatter_obsFit_seasIntensityRR_multiSeason_age(c("8a_iliSum_v3-6", "8a_iliSum_v4-6"), obsFit_plotFormats_scatter_age, path_list)
+
+# # not in appendix
+# obsFit_plotFormats_child <- list(w = 5, h = 9, popCode = "_child")
+# choro_obsFit_seasIntensityRR_multiSeason("8a_iliSum_v3-6", obsFit_plotFormats_child, path_list)
+# obsFit_plotFormats_adult <- list(w = 5, h = 9, popCode = "_adult")
+# choro_obsFit_seasIntensityRR_multiSeason("8a_iliSum_v4-6", obsFit_plotFormats_adult, path_list)
+
+
+###############################################################################
+### MULTI-SEASON MODELS ###################
 # allCombs_modCodeLs <- c("8a_iliSum_v2-6", "8e_epiDur_v2-3", "8a_iliSum_v3-6", "8a_iliSum_v4-6")
 # for (code in allCombs_modCodeLs){
+#   choro_stateEffects(code)
+#   forest_coefDistr_seasEffects(code)
 #   forest_coefDistr_fixedEffects(code) # multi-season fixed effects
 # }
 
+
+###############################################################################
+### FOREST PLOTS - Single season ###################
 # singleSeas_modCodeLs <- c("9a_iliSum_v2-4", "9e_epiDur_v2-2")
 # for (code in singleSeas_modCodeLs){
 #   forest_coefDistr_fixedEffects_singleSeason(code)
@@ -77,6 +112,8 @@ for (code in multiSeas_modCodeLs){
 # seasPlotFormats <- list(w = 6, h = 3, lvls = baseSeasSeq, labs = c("complete", "missing 1", "missing 3","missing 5"), replvls = c(.25, .5, .75, 1), replabs = c("25", "50", "75", "100"), descrip = "seasSeq", numReplicates = 10)
 # dot_coefCompareReplicates(baseSeasSeq, seasPlotFormats)
 
+
+###############################################################################
 ### FIT CHOROS - Replicate comparison ###################
 # ## missing county sequence
 # baseCtySeq <- c("8a_iliSum_v2-6", "8a_iliSum_v2-6_c40", "8a_iliSum_v2-6_c20")
@@ -121,6 +158,7 @@ for (code in multiSeas_modCodeLs){
 # dot_coefCompare(ageSeq_modCodeLs, ageSeq_plotFormats)
 
 
+###############################################################################
 # ### FIT CHOROS - Direct comparison ###################
 # repLs <- c("", paste0("-", 4))
 # pairCodeLs <- c("c80", "c60", "c40", "c20", "s6", "s4", "s2", "m20", "m40", "m60", "m80")
