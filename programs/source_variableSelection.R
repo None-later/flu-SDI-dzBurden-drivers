@@ -34,12 +34,21 @@ pairs_corrMatrix <- function(full_df){
   # return correlation matrix for all variables pooled across states & seasons
   print(match.call())
   
-  datOnly <- full_df %>% 
-    mutate(logy = log(y)) %>%
-    select(y, logy, logE, contains("_")) %>%
-    filter(y > 0)
+  rvLabs <- label_tot_predictors()
   
-  return(ggcorr(datOnly, method = c("pairwise", "spearman"), label = TRUE))
+  datOnly <- full_df %>%
+    mutate(fipsSeas = paste(fips, season, sep="-")) %>%
+    select(fipsSeas, contains("_")) %>%
+    select(-fips_st, -graphIdx_st) %>%
+    gather(RV, value, contains("_")) %>%
+    clean_RVnames(.) %>%
+    left_join(rvLabs, by = "RV") %>%
+    select(-RV) %>%
+    mutate(pltLabs = factor(pltLabs, levels = rvLabs$pltLabs)) %>%
+    spread(pltLabs, value, drop = TRUE) %>%
+    select(-fipsSeas)
+
+  return(ggcorr(datOnly, method = c("pairwise", "spearman"), label = TRUE, high = "#3B9AB2", low = "#F21A00", legend.position = "bottom", layout.exp = 1, hjust = 0.85))
 }
 
 
@@ -51,7 +60,6 @@ subset_singleVariable_data <- function(full_df, s, covariate){
   # subset data according to season and covariate in function arguments
   mod_df <- full_df %>%
     filter(season == s & !is.na(lat) & !is.na(lon)) %>%
-#     mutate(logy = centerStandardize(logy)) %>%
     rename_(varInterest = covariate) %>%
     mutate(fips_st = substr(fips, 1, 2)) %>%
     rename(regionID = region) %>%
@@ -66,21 +74,29 @@ model_singleVariable_inla <- function(mod_df, respCode, s, covariate){
   # inla model for single response and covariate, output fixed effect coeff
   print(match.call())
   
-  formula <- logy ~ 1 + varInterest + f(fips_st, model = "iid") + f(regionID, model = "iid") + f(ID, model = "iid") + offset(logE)
+  formula <- Y ~ -1 +
+    f(ID_nonzero, model = "iid") +
+    f(fips_nonzero, model = "iid") +
+    f(graphIdx_nonzero, model = "besag", graph = path_adjMxExport_cty) +
+    f(fips_st_nonzero, model = "iid") +
+    f(regionID_nonzero, model = "iid") +
+    f(season_nonzero, model = "iid") +
+    intercept_nonzero + varInterest + offset(logE_nonzero)
 
-  starting1 <- inla(formula, family = "gaussian", data = mod_df, 
-              # control.family = list(link = 'log'),
-              control.predictor = list(compute = TRUE), # compute summary statistics on fitted values
-              control.compute = list(dic = TRUE),
-              control.inla = list(correct = TRUE, correct.factor = 10, diagonal = 1000, strategy = "gaussian", int.strategy = "eb")
-              ) 
+  # starting1 <- inla(formula, family = "gaussian", data = mod_df, 
+  #             # control.family = list(link = 'log'),
+  #             control.predictor = list(compute = TRUE), # compute summary statistics on fitted values
+  #             control.compute = list(dic = TRUE),
+  #             control.inla = list(correct = TRUE, correct.factor = 10, diagonal = 1000, strategy = "gaussian", int.strategy = "eb")
+  #             ) 
   mod <- inla(formula, family = "gaussian", data = mod_df, 
-                # control.family = list(link = 'log'),
-                control.predictor = list(compute = TRUE), # compute summary statistics on fitted values
-                control.compute = list(dic = TRUE),
-                control.inla = list(correct = TRUE, correct.factor = 10, diagonal = 0,  tolerance = 1e-6),
-                control.mode = list(result = starting1, restart = TRUE)
-                ) 
+                control.fixed = list(mean = 0, prec = 1/100), # set prior parameters for regression coefficients
+              control.predictor = list(compute = TRUE),
+              control.compute = list(dic = TRUE, cpo = TRUE),
+              control.inla = list(correct = TRUE, correct.factor = 10, diagonal = 0, tolerance = 1e-8), # http://www.r-inla.org/events/newfeaturesinr-inlaapril2015
+              # control.mode = list(result = starting3, restart = TRUE),
+              verbose = TRUE,
+              keep = TRUE) 
   
   names(mod$summary.fixed) <- c("mean", "sd", "q_025", "q_5", "q_975", "mode", "kld")
   modOutput <- tbl_df(mod$summary.fixed) %>%
@@ -90,21 +106,20 @@ model_singleVariable_inla <- function(mod_df, respCode, s, covariate){
     select(RV, mean, sd, LB, UB) 
   
   # data to save
-  coefRow <- list(respCode = respCode, singleCov = covariate, season = s, exportDate = as.character(Sys.Date()), coefMean = modOutput$mean, coefSd = modOutput$sd, coefLB = modOutput$LB, coefUB = modOutput$UB, DIC = mod$dic$dic)
+  coefRow <- list(respCode = respCode, RV = covariate, exportDate = as.character(Sys.Date()), mean = modOutput$mean, sd = modOutput$sd, LB = modOutput$LB, UB = modOutput$UB, DIC = mod$dic$dic)
   
   return(coefRow)
 }
 
 #### functions for single variable coef plotting ################################
-plot_singleVarCoef_time <- function(coefDat){
+plot_singleVarCoef <- function(coefDat){
   # plot all coef modes, Q.025 - Q0.975 over time
   print(match.call())
   
-  figure <- ggplot(coefDat, aes(x = season, y = coefMean, group = singleCov)) +
-    geom_pointrange(aes(ymin = coefLB, ymax = coefUB)) +
+  figure <- ggplot(coefDat, aes(x = RV, y = mean)) +
+    geom_pointrange(aes(ymin = LB, ymax = UB)) +
     geom_hline(yintercept = 0) +
-    facet_wrap(~singleCov, scales = "free_y") +
-    ylab("coefMean (95%CI)")
+    ylab("posterior mean (95%CI)")
   
   return(figure)
 }

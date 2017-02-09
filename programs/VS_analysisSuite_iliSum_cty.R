@@ -19,7 +19,7 @@ require(RColorBrewer); require(ggplot2)
 dbCodeStr <- "_ilinDt_Octfit_span0.4_degree2"
 rCode <- "iliSum" # epiDur, iliSum
 seasons <- 3:9
-analysesOn <- c('loadData', 'pairwise') 
+analysesOn <- c('loadData', 'singleVarWrite', 'singleVarPlot') 
 # 'loadData', 'dataQuality', 'pairwise', 'singleVarWrite', 'singleVarPlot'
 type_cleanDataFxns <- ''
 # '' or '_nofill
@@ -31,6 +31,8 @@ source(sprintf("source_clean_data_functions%s.R", type_cleanDataFxns)) # functio
 source("source_variableSelection_cty.R") # functions for variable selection analyses specific to county scale
 source("source_variableSelection.R") # functions for variable selection, generally
 source("source_prepare_inlaData_cty.R") # import prepared inla data
+source("source_export_inlaDiagnostics.R") # clean_RVnames
+source("source_export_msFigs.R") # label_tot_predictors
 
 #### FILEPATHS #################################
 setwd('../reference_data')
@@ -67,7 +69,7 @@ setwd("../graph_outputs")
 path_pltExport <- paste0(getwd(), "/VS_analysisSuite_iliSum_cty")
 
 #### PLOT FORMATTING ################################
-w <- 13; h <- 13; dp <- 200
+w <- 7.5; h <- 7.5; dp <- 300
 w2 <- 7; h2 <- 7
 setwd(path_pltExport)
 
@@ -77,7 +79,8 @@ setwd(path_pltExport)
 if("loadData" %in% analysesOn){
   
   # load data frame with all available cleaned variables
-  allDat <- prepare_allCov_iliSum_cty(path_list)
+  # allDat <- prepare_allCov_iliSum_cty(path_list) # VS all variables
+  allDat <- model8a_iliSum_v7(path_list) # total pop data
   # allDat <- model8a_iliSum_v3(path_list) # child pop data
   # allDat <- model8a_iliSum_v4(path_list) # adult pop data
   # allDat <- model8e_epiDur_v7(path_list)
@@ -115,40 +118,32 @@ if("pairwise" %in% analysesOn){
 #### Single variable models - Write to file ####################################
 if("singleVarWrite" %in% analysesOn){
   
-  num <- 6
-  varlist <- grep("[OX]{1}[_]{1}", names(allDat), value = TRUE)  # grab all varnames
+  modDat <- convert_hurdleModel_nz_spatiotemporal(allDat)
+  
+  num <- 1
+  varlist <- grep("[OX]{1}[_]{1}", names(modDat), value = TRUE)  # grab all varnames
   indexes <- seq(1, length(varlist), by=num)
 
-  for(i in indexes){
-    # 6/2/16: grab list of variables to export model data in pieces -- kept crashing before
-    if((i+num-1) > length(varlist)){
-      varsublist <- varlist[i:length(varlist)]
-    } else{
-      varsublist <- varlist[i:(i+num-1)]
-    }
+  # for(i in indexes){
+  #   # 6/2/16: grab list of variables to export model data in pieces -- kept crashing before
+  #   if((i+num-1) > length(varlist)){
+  #     varsublist <- varlist[i:length(varlist)]
+  #   } else{
+  #     varsublist <- varlist[i:(i+num-1)]
+  #   }
     # generate empty data frame to store coefficient data
-    coefDat <- tbl_df(data.frame(respCode = c(), singleCov = c(), season = c(), exportDate = c(), coefMode = c(), coefQ025 = c(), coefQ975 = c(), DIC = c()))
-    
+    coefDat <- tbl_df(data.frame(respCode = c(), RV = c(), exportDate = c(), mean = c(), sd = c(), LB = c(), UB = c(), DIC = c()))
     # loop through all variables and seasons
-    for (varInterest in varsublist){
-      for (s in seasons){
-        modDat <- subset_singleVariable_data(allDat, s, varInterest)
-        if (all(is.na(modDat$varInterest))){
-          print(sprintf("%s is all NA for season %s", varInterest, s))
-          next
-        }
-        # save row of model data
-        else{
-          coefRow <- model_singleVariable_inla(modDat, rCode, s, varInterest) # N.B. model includes intercept
-          # append to model data object
-          coefDat <- bind_rows(coefDat, coefRow)
-        } # end else
-      } # end for seasons
+    for (varInterest in varlist){
+      modDat[['varInterest']] <- modDat[[varInterest]]
+      coefRow <- model_singleVariable_inla(modDat, rCode, s, varInterest) # N.B. model includes intercept
+      # append to model data object
+      coefDat <- bind_rows(coefDat, coefRow)
     } # end for varlist
     
     # write to file in parts
     write_csv(coefDat, sprintf("%s_pt%s.csv", path_coefDat, which(indexes == i))) 
-  }
+  # }
 
 } # end singleVarWrite
 
@@ -163,17 +158,17 @@ if("singleVarPlot" %in% analysesOn){
   fnamels <- grep(pattern, allFiles, value = TRUE)
   
   # bind all of the data pieces together
-  coefDat <- tbl_df(data.frame(respCode = c(), singleCov = c(), season = c(), exportDate = c(), coefMode = c(), coefQ025 = c(), coefQ975 = c(), DIC = c()))
+  coefDat <- tbl_df(data.frame(respCode = c(), RV = c(), exportDate = c(), mean = c(), sd = c(), LB = c(), UB = c(), DIC = c()))
   for (fname in fnamels){
     newDat <- read_csv(fname)
     coefDat <- bind_rows(coefDat, newDat)
   }
   
-  varlist <- coefDat %>% select(singleCov) %>% unique %>% unlist
+  varlist <- coefDat %>% distinct(RV) %>% unlist
   
   setwd(path_pltExport)
-  plt_coefTime <- plot_singleVarCoef_time(coefDat)
-  ggsave(sprintf("singleVar_coefSeason_%s_cty%s.png", rCode, type_cleanDataFxns), width = w2, height = h2, dpi = dp)
+  plt_coefTime <- plot_singleVarCoef(coefDat)
+  ggsave(sprintf("singleVarCoef_%s_cty%s.png", rCode, type_cleanDataFxns), width = w2, height = h2, dpi = dp)
 }
 
 
