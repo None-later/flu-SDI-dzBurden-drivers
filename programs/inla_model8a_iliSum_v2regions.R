@@ -17,8 +17,9 @@ require(maptools); require(spdep) # prepare_inlaData_st.R dependencies
 require(INLA) # main dependencies
 require(RColorBrewer); require(ggplot2) # export_inlaData_st dependencies
 
-regLs <- 1:10
-modCodeLs <- paste0("8a_iliSum_v2-6_R", regLs)[1]
+labLs <- c("1&2", "9&10")
+regLs <- list(c(1,2), c(9,10))
+modCodeLs <- paste0("8a_iliSum_v2-6_R", labLs)
 
 
 for (i in 1:length(modCodeLs)){
@@ -26,7 +27,7 @@ for (i in 1:length(modCodeLs)){
   #### set these! ################################
   dbCodeStr <- "_ilinDt_Octfit_span0.4_degree2"
   modCodeStr <- modCodeLs[i] 
-  regNum <- regLs[i]
+  regNum <- regLs[[i]]
   rdmFx_RV <- "phi"
   likString <- "normal"
   dig <- 4 # number of digits in the number of elements at this spatial scale (~3000 counties -> 4 digits)

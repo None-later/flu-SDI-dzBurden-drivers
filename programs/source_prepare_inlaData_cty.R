@@ -32,12 +32,12 @@ remove_case_exceptions <- function(full_df){
 }
 ################################
 
-filter_region <- function(full_df, regionNum){
+filter_region <- function(full_df, regionLs){
   # filter model data from a given region number
   print(match.call())
   
   full_df2 <- full_df %>%
-    filter(regionID == regionNum)
+    filter(regionID %in% regionLs)
   
   return(full_df2)
 }

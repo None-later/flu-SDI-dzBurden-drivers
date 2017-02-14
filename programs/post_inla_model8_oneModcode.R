@@ -24,9 +24,9 @@ source("source_clean_response_functions_cty.R") # cty response functions
 #### set these! ################################
 dbCodeStr <- "_ilinDt_Octfit_span0.4_degree2"
 seasons <- c(3:9)
-# seasLs <- list(c(3:4,6:9), c(3:4,6,9), c(7,9), c(3,5:9), c(5,7:9), c(7,9), c(3:8), c(5:8), c(5:6), c(3:4,6:9), c(3:4,8:9), c(3:4)) # seasLs for historical season sequence
-seasLs <- list(c(3:8), c(3:5,8), c(3,5), c(3:8), c(5:8), c(5,7), c(3:6,7:9), c(4:5,7,9), c(5,9), c(3:5,7:9), c(5,7:9), c(7:8), c(3,5:9), c(3,5:6,8), c(5:6)) # starting s6-5
-modCodeStrLs <- paste0(rep(c("8a_iliSum_v2-6_s6-", "8a_iliSum_v2-6_s4-", "8a_iliSum_v2-6_s2-"), 5), c(rep(5,3), rep(6,3), rep(7,3), rep(8,3), rep(9,3)))
+# seasLs <- list(c(3:4,6:9), c(3:4,6,9), c(7,9), c(3,5:9), c(5,7:9), c(7,9), c(3:8), c(5:8), c(5:6), c(3:4,6:9), c(3:4,8:9), c(3:4), c(3:8), c(3:5,8), c(3,5), c(3:8), c(5:8), c(5,7), c(3:6,7:9), c(4:5,7,9), c(5,9), c(3:5,7:9), c(5,7:9), c(7:8), c(3,5:9), c(3,5:6,8), c(5:6)) # seasLs for historical season sequence
+# modCodeStrLs <- paste0(rep(c("8a_iliSum_v2-6_s6-", "8a_iliSum_v2-6_s4-", "8a_iliSum_v2-6_s2-"), 5), c(rep(5,3), rep(6,3), rep(7,3), rep(8,3), rep(9,3)))
+modCodeStrLs <- paste0("8a_iliSum_v2-6_R", 2:10)
 likString <- "normal"; likStrings <- c(likString) 
 source("source_calculate_residuals_shift1.R") # calculate_residuals function (source_calculate_residuals_shift1.R for iliSum; source_calculate_residuals.R for epiDur)
 
@@ -44,7 +44,7 @@ path_list <- list(path_abbr_st = path_abbr_st,
                   path_response_cty = path_response_cty)
 
 for (i in 1:length(modCodeStrLs)){
-  seasons <- seasLs[[i]]
+  # seasons <- seasLs[[i]]
   modCodeStr <- modCodeStrLs[i]
   
   #### EXPORT FILEPATHS #################################
