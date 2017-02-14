@@ -19,7 +19,7 @@ require(RColorBrewer); require(ggplot2)
 dbCodeStr <- "_ilinDt_Octfit_span0.4_degree2"
 rCode <- "iliSum" # epiDur, iliSum
 seasons <- 3:9
-analysesOn <- c('loadData', 'singleVarWrite', 'singleVarPlot') 
+analysesOn <- c('singleVarPlot') 
 # 'loadData', 'dataQuality', 'pairwise', 'singleVarWrite', 'singleVarPlot'
 type_cleanDataFxns <- ''
 # '' or '_nofill
@@ -70,7 +70,7 @@ path_pltExport <- paste0(getwd(), "/VS_analysisSuite_iliSum_cty")
 
 #### PLOT FORMATTING ################################
 w <- 7.5; h <- 7.5; dp <- 300
-w2 <- 7; h2 <- 7
+w2 <- 6; h2 <- 3
 setwd(path_pltExport)
 
 #### MAIN #################################################################
@@ -142,7 +142,7 @@ if("singleVarWrite" %in% analysesOn){
     } # end for varlist
     
     # write to file in parts
-    write_csv(coefDat, sprintf("%s_pt%s.csv", path_coefDat, which(indexes == i))) 
+    write_csv(coefDat, sprintf("%s_pt%s.csv", path_coefDat, 1)) 
   # }
 
 } # end singleVarWrite
@@ -164,10 +164,15 @@ if("singleVarPlot" %in% analysesOn){
     coefDat <- bind_rows(coefDat, newDat)
   }
   
-  varlist <- coefDat %>% distinct(RV) %>% unlist
+  totLabels <- label_tot_predictors()
+  coefDat2 <- coefDat %>% 
+    calculate_95CI(.) %>%
+    clean_RVnames(.) %>%
+    mutate(RV = factor(RV, levels = totLabels$RV, labels = totLabels$pltLabs))
   
   setwd(path_pltExport)
-  plt_coefTime <- plot_singleVarCoef(coefDat)
+  plt_coefTime <- plot_singleVarCoef(coefDat2)
+
   ggsave(sprintf("singleVarCoef_%s_cty%s.png", rCode, type_cleanDataFxns), width = w2, height = h2, dpi = dp)
 }
 

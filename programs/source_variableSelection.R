@@ -116,10 +116,13 @@ plot_singleVarCoef <- function(coefDat){
   # plot all coef modes, Q.025 - Q0.975 over time
   print(match.call())
   
-  figure <- ggplot(coefDat, aes(x = RV, y = mean)) +
+  figure <- ggplot(coefDat, aes(x = RV, y = mean, colour = signif)) +
     geom_pointrange(aes(ymin = LB, ymax = UB)) +
     geom_hline(yintercept = 0) +
-    ylab("posterior mean (95%CI)")
+    scale_y_continuous("posterior mean (95%CI)") +
+    scale_colour_manual(limits = c(TRUE, FALSE), values = c("red", "grey75")) +
+    theme_bw() + 
+    theme(axis.title.x=element_blank(), axis.text.x=element_text(angle=45, vjust=1, hjust=1), axis.text=element_text(size=12), text = element_text(size = 12), legend.margin = margin())
   
   return(figure)
 }
