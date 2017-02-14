@@ -32,6 +32,17 @@ remove_case_exceptions <- function(full_df){
 }
 ################################
 
+filter_region <- function(full_df, regionNum){
+  # filter model data from a given region number
+  print(match.call())
+  
+  full_df2 <- full_df %>%
+    filter(regionID == regionNum)
+  
+  return(full_df2)
+}
+################################
+
 remove_randomObs_stratifySeas <- function(full_df, proportion){
   # remove x proportion of observations from each season
   print(match.call())
