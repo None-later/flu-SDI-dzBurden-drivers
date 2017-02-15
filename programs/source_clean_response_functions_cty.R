@@ -489,23 +489,3 @@ clean_pop_child_cty_plain <- function(){
 }
 
 ################################
-clean_pop_st_plain <- function(){
-  # clean pop data at state level
-  print(match.call())
-  
-  # import population data from mysql
-  con <- dbConnect(RMySQL::MySQL(), group = "rmysql-fludrivers")
-  dbListTables(con)
-  
-  dbListFields(con, "demog_Census_agePop_state")
-  # sel.statement <- "Select * from demog_Census_agePop_state limit 5"
-  sel.statement <- "SELECT fips as fips_st, agegroup, year, pop FROM demog_Census_agePop_state WHERE scale = 'state' and agegroup = 'total'"
-  dummy <- dbGetQuery(con, sel.statement)
-  
-  dbDisconnect(con)
-  
-  # clean final dataset
-  output <- tbl_df(dummy) %>% 
-    select(fips_st, year, pop)
-  return(output)
-}
