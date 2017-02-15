@@ -17,8 +17,8 @@ require(maptools); require(spdep) # prepare_inlaData_st.R dependencies
 require(INLA) # main dependencies
 require(RColorBrewer); require(ggplot2) # export_inlaData_st dependencies
 
-labLs <- c("1&2", "9&10")
-regLs <- list(c(1,2), c(9,10))
+labLs <- c("8&9&10")
+regLs <- list(c(8,9,10))
 modCodeLs <- paste0("8a_iliSum_v2-6_R", labLs)
 
 
