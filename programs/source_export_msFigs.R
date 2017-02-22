@@ -46,13 +46,29 @@ string_refData_folder <- function(){
     return(paste0(dirname(sys.frame(1)$ofile), "/../reference_data/"))
 }
 ################################
+string_cdcData_folder <- function(){
+  return(paste0(dirname(sys.frame(1)$ofile), "/../../../CDC_Source/Import_Data/"))
+}
+################################
 import_stAbbr <- function(){
   print(match.call())
   returnDat <- read_csv(paste0(string_refData_folder(), "state_abbreviations_FIPS_region.csv"), col_types = "cc__") %>%
     mutate(State = tolower(State))
   return(returnDat)
 }
-
+################################
+import_cdcRegILI <- function(){
+  print(match.call())
+  returnDat <- read_csv(paste0(string_cdcData_folder(), "all_cdc_source_data_HHSRegion.csv"), col_types = cols_only(uqidR = "c", reg = "i", yr = "i", wk = "i", num_samples = "i", season = "i", ilitot = "i", patients = "i", providers = "i", ili_5.24 = "i", ili_25.64 = "i")) %>%
+    filter(season >= 3 & season <= 9) %>%
+    group_by(season, reg) %>%
+    summarise(ilitot = sum(ilitot, na.rm = TRUE), ili_5.24 = sum(ili_5.24, na.rm = TRUE), ili_25.64 = sum(ili_25.64, na.rm = TRUE), patients = sum(patients, na.rm = TRUE)) %>%
+    mutate(tot_unwt_pct = ilitot/patients*100) %>%
+    mutate(ch_unwt_totPct = ili_5.24/patients*100) %>%
+    mutate(ad_unwt_totPct = ili_25.64/patients*100) %>%
+    ungroup
+  return(returnDat)
+}
 ################################
 label_ecol_predictors <- function(){
     cleanRV <- c("humidity", "pollution", "popdensity", "housdensity", "child", "adult", "vaxcovI", "vaxcovE", "priorImmunity", "H3A", "B", "adult:H3A", "child:B", "hospaccess", "singlePersonHH", "poverty")
@@ -257,6 +273,38 @@ import_county_geomMap <- function(){
   return(county_geomMap)
 }
 
+################################
+import_regionValidation <- function(modCodeStr, iFormats){
+  print(match.call())
+  
+  # import cw for fips-region
+  cw <- read_csv(string_ids_fname(modCodeStr), col_types = cols_only(fips = "c", regionID = "d")) %>%
+    distinct(fips, regionID) %>%
+    rename(reg = regionID)
+  
+  cdcDat <- import_cdcRegILI() 
+  fitDat <- read_csv(string_fit_fname(modCodeStr), col_types = "c_d_c_dd______") %>%
+    mutate(LB = mean-(2*sd), UB = mean+(2*sd))
+  
+  fullDat <- left_join(fitDat, cw, by = "fips") %>%
+    left_join(cdcDat, by = c("reg", "season")) 
+  
+  if(iFormats$age == "total"){
+    returnDat <- fullDat %>%
+      select(season, fips, reg, mean, LB, UB, tot_unwt_pct) %>%
+      rename(ili_unwt_pct = tot_unwt_pct)
+  } else if(iFormats$age == "child"){
+    returnDat <- fullDat %>%
+      select(season, fips, reg, mean, LB, UB, ch_unwt_totPct) %>%
+      rename(ili_unwt_pct = ch_unwt_totPct)
+  } else if(iFormats$age == "adult"){
+    returnDat <- fullDat %>%
+      select(season, fips, reg, mean, LB, UB, ad_unwt_totPct) %>%
+      rename(ili_unwt_pct = ad_unwt_totPct)
+  }
+  
+  return(returnDat)
+}
 
 
 #### plot functions ################################
@@ -1058,7 +1106,32 @@ choro_fitCompare <- function(modCodeLs, pltFormats){
   
   ggsave(exportFname, choro, height = h, width = w, dpi = dp)
 }
+################################
 
+scatter_regionValidation <- function(modCodeStr, pltFormats){
+  print(match.call())
+  
+  # plot formatting
+  w <- pltFormats$w; h <- pltFormats$h; dp <- 300
+  seasDf <- label_seas_predictors()
+  exportFname <- paste0(string_msFig_folder(), "scatter_regionValidation_", pltFormats$age, ".png")
+  
+  plotDat <- import_regionValidation(modCodeStr, pltFormats) %>%
+    mutate(season = paste0("S", season)) %>%
+    mutate(season = factor(season, levels = seasDf$RV, labels = seasDf$pltLabs))
+  
+  # plot
+  plotOutput <- ggplot(plotDat, aes(x = ili_unwt_pct, y = mean)) +
+    geom_point(alpha = 0.7) +
+    # geom_errorbar(aes(ymin = LB, ymax = UB), alpha = 0.7) +
+    scale_x_continuous("ILI % of Patients") +
+    scale_y_continuous("Fitted Mean") +
+    theme_bw() +
+    theme(text = element_text(size = 13)) +
+    facet_wrap(~season, nrow = 2, scales = "fixed")
+  
+  ggsave(exportFname, plotOutput, height = h, width = w, dpi = dp)
+}
 
-
+################################
 

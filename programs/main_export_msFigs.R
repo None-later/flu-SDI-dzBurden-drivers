@@ -61,14 +61,22 @@ setwd(dirname(sys.frame(1)$ofile))
 
 ###############################################################################
 ### EPIDEMIC DURATION vs. SEASONAL INTENSITY ###################
-pltFormats_epiDur_seasInt <- list(w = 5, h = 8, modLabs = c("seasIntensity", "epiDuration"))
-scatter_obsFit_seasInt_epiDur_multiSeason(c("8a_iliSum_v2-6", "8e_epiDur_v2-3"), pltFormats_epiDur_seasInt, path_list)
+# pltFormats_epiDur_seasInt <- list(w = 5, h = 8, modLabs = c("seasIntensity", "epiDuration"))
+# scatter_obsFit_seasInt_epiDur_multiSeason(c("8a_iliSum_v2-6", "8e_epiDur_v2-3"), pltFormats_epiDur_seasInt, path_list)
 
 ###############################################################################
 ### SEASONAL INTENSITY - age-specific population ###################
 
 # obsFit_plotFormats_scatter_age <- list(w = 6, h = 3, ageLabs = c("Children", "Adults"))
 # scatter_obsFit_seasIntensityRR_multiSeason_age(c("8a_iliSum_v3-6", "8a_iliSum_v4-6"), obsFit_plotFormats_scatter_age, path_list)
+
+modCodeLs_regionValidation <- c("8a_iliSum_v2-6", "8a_iliSum_v3-6", "8a_iliSum_v4-6")
+ageVec <- c("total", "child", "adult")
+for (i in 1:length(modCodeLs_regionValidation)){
+	plotFormats_scatter_regionValidation <- list(w = 6, h = 4, age = ageVec[i])
+  scatter_regionValidation(modCodeLs_regionValidation[i], plotFormats_scatter_regionValidation)
+}
+
 
 # # not in appendix
 # obsFit_plotFormats_child <- list(w = 5, h = 9, popCode = "_child")
@@ -130,6 +138,11 @@ scatter_obsFit_seasInt_epiDur_multiSeason(c("8a_iliSum_v2-6", "8e_epiDur_v2-3"),
 # seasPlotFormats <- list(w = 6, h = 2.5, lvls = baseSeasSeq[2:length(baseSeasSeq)], labs = c("missing 1", "missing 3","missing 5"), replvls = c(.25, .5, .75, 1), replabs = c("25", "50", "75", "100"), descrip = "seasSeq", repcodelength = 4, numReplicates = 10, nomatchThresh = 0.5)
 # choro_fitCompareReplicates(baseSeasSeq, seasPlotFormats)
 
+###############################################################################
+# ### DOT PLOTS - Region comparison ###################
+# regSeq_modCodeLs <- paste0("8a_iliSum_v2-6_R", c("1&2", 3:7, "8&9&10"))
+# regSeq_plotFormats <- list(w = 6, h = 8, lvls = regSeq_modCodeLs, labs = c("R1&2 Boston-New York", "R3 Philadelphia", "R4 Atlanta", "R5 Chicago", "R6 Dallas", "R7 Kansas City", "R8-10 Denver-SF-Seattle"), descrip = "regSeq")
+# dot_coefCompare(regSeq_modCodeLs, regSeq_plotFormats)
 
 ###############################################################################
 # ### DOT PLOTS - Direct comparison ###################
