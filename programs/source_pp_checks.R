@@ -66,7 +66,7 @@ export_predictiveChecks_seasIntensity <- function(path_csvExport_replicateData, 
 
         # summary statistics for rr marginal
         summaryRow <- inla.zmarginal(fitMarginals_rr[[i]], silent = TRUE)
-        summ_rr_df[i,] <- summaryRow
+        summ_rr_df[] <- summaryRow
 
         # draw replicates from rr marginal
         replicatesRow <- inla.rmarginal(numrep, fitMarginals_rr[[i]])
@@ -125,9 +125,3 @@ import_ppReplicates <- function(modCodeStr){
     return(returnDat)
 
 }
-################################
-# plot choropleths for obs and 1-2 replicates side by side
-
-
-################################
-# 
