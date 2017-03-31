@@ -41,18 +41,22 @@ setwd(dirname(sys.frame(1)$ofile))
 # obsFit_plotFormats_one <- list(w = 7, h = 3.5)
 # choro_obsFit_seasIntensityRR_oneSeason("8a_iliSum_v2-6", obsFit_plotFormats_one, path_list)
 
-# obsFit_plotFormats_multi <- list(w = 5, h = 8, rmSeas = "2006-07", popCode = "")
+# obsFit_plotFormats_multi <- list(w = 4.25, h = 8, rmSeas = "2006-07", popCode = "")
 # choro_obsFit_seasIntensityRR_multiSeason("8a_iliSum_v2-6", obsFit_plotFormats_multi, path_list)
 
 # obsFit_plotFormats_scatter <- list(w = 6, h = 4)
 # scatter_obsFit_seasIntensityRR_multiSeason("8a_iliSum_v2-6", obsFit_plotFormats_scatter, path_list)
+# scatter_obsFit_excessSeasIntensityRR_multiSeason("8a_iliSum_v2-6", obsFit_plotFormats_scatter, path_list)
 # scatter_residFit_logSeasIntensity_multiSeason("8a_iliSum_v2-6", obsFit_plotFormats_scatter, path_list)
 
 # forest_coefDistr_stateEffects("8a_iliSum_v6-3")
 
+# plotFormats_scatter_regionValidationViral <- list(w = 4, h = 4, xmax = 30)
+# scatter_regionValidationViral("8a_iliSum_v2-6", plotFormats_scatter_regionValidationViral)
+
 ###############################################################################
 ### EPIDEMIC DURATION - total population ###################
-# obsFit_plotFormats_multi_epiDur <- list(w = 5, h = 9, popCode = "")
+# obsFit_plotFormats_multi_epiDur <- list(w = 4.25, h = 9, popCode = "")
 # choro_obsFit_epiDuration_multiSeason("8e_epiDur_v2-3", obsFit_plotFormats_multi_epiDur, path_list)
 
 # obsFit_plotFormats_scatter <- list(w = 6, h = 4)
@@ -70,12 +74,13 @@ setwd(dirname(sys.frame(1)$ofile))
 # obsFit_plotFormats_scatter_age <- list(w = 6, h = 3, ageLabs = c("Children", "Adults"))
 # scatter_obsFit_seasIntensityRR_multiSeason_age(c("8a_iliSum_v3-6", "8a_iliSum_v4-6"), obsFit_plotFormats_scatter_age, path_list)
 
-modCodeLs_regionValidation <- c("8a_iliSum_v2-6", "8a_iliSum_v3-6", "8a_iliSum_v4-6")
-ageVec <- c("total", "child", "adult")
-for (i in 1:length(modCodeLs_regionValidation)){
-	plotFormats_scatter_regionValidation <- list(w = 6, h = 4, age = ageVec[i])
-  scatter_regionValidation(modCodeLs_regionValidation[i], plotFormats_scatter_regionValidation)
-}
+# modCodeLs_regionValidation <- c("8a_iliSum_v2-6", "8a_iliSum_v3-6", "8a_iliSum_v4-6")
+# ageVec <- c("total", "child", "adult")
+# xmaxVec <- c(3.75, 1.5, 1.5)
+# for (i in 1:length(modCodeLs_regionValidation)){
+# 	plotFormats_scatter_regionValidation <- list(w = 4, h = 4, age = ageVec[i], xmax = xmaxVec[i])
+#   scatter_regionValidationILI(modCodeLs_regionValidation[i], plotFormats_scatter_regionValidation)
+# }
 
 
 # # not in appendix
@@ -125,23 +130,23 @@ for (i in 1:length(modCodeLs_regionValidation)){
 ### FIT CHOROS - Replicate comparison ###################
 # ## missing county sequence
 # baseCtySeq <- c("8a_iliSum_v2-6", "8a_iliSum_v2-6_c40", "8a_iliSum_v2-6_c20")
-# ctyPlotFormats <- list(w = 6, h = 2.5, lvls = baseCtySeq[2:length(baseCtySeq)], labs = c("40% of counties", "20% of counties"), replvls = c(.25, .5, .75, 1), replabs = c("25", "50", "75", "100"), descrip = "ctySeq", repcodelength = 5, numReplicates = 10, nomatchThresh = 0.5)
+# ctyPlotFormats <- list(w = 6, h = 2, lvls = baseCtySeq[2:length(baseCtySeq)], labs = c("40% of counties", "20% of counties"), replvls = c(.25, .5, .75, 1), replabs = c("25", "50", "75", "100"), descrip = "ctySeq", repcodelength = 5, numReplicates = 10, nomatchThresh = 0.5)
 # choro_fitCompareReplicates(baseCtySeq, ctyPlotFormats)
 # 
 # ## missing stratified county sequence
 # baseMissSeq <- c("8a_iliSum_v2-6", "8a_iliSum_v2-6_m60", "8a_iliSum_v2-6_m80")
-# missPlotFormats <- list(w = 6, h = 2.5, lvls = baseMissSeq[2:length(baseMissSeq)], labs = c("missing 60%", "missing 80%"), replvls = c(.25, .5, .75, 1), replabs = c("25", "50", "75", "100"), descrip = "missSeq", repcodelength = 5, numReplicates = 10, nomatchThresh = 0.5)
+# missPlotFormats <- list(w = 6, h = 2, lvls = baseMissSeq[2:length(baseMissSeq)], labs = c("missing 60%", "missing 80%"), replvls = c(.25, .5, .75, 1), replabs = c("25", "50", "75", "100"), descrip = "missSeq", repcodelength = 5, numReplicates = 10, nomatchThresh = 0.5)
 # choro_fitCompareReplicates(baseMissSeq, missPlotFormats)
 # 
 # ## missing season sequence
 # baseSeasSeq <- c("8a_iliSum_v2-6", "8a_iliSum_v2-6_s6", "8a_iliSum_v2-6_s4", "8a_iliSum_v2-6_s2")
-# seasPlotFormats <- list(w = 6, h = 2.5, lvls = baseSeasSeq[2:length(baseSeasSeq)], labs = c("missing 1", "missing 3","missing 5"), replvls = c(.25, .5, .75, 1), replabs = c("25", "50", "75", "100"), descrip = "seasSeq", repcodelength = 4, numReplicates = 10, nomatchThresh = 0.5)
+# seasPlotFormats <- list(w = 6, h = 2.25, lvls = baseSeasSeq[2:length(baseSeasSeq)], labs = c("missing 1", "missing 3","missing 5"), replvls = c(.25, .5, .75, 1), replabs = c("25", "50", "75", "100"), descrip = "seasSeq", repcodelength = 4, numReplicates = 10, nomatchThresh = 0.5)
 # choro_fitCompareReplicates(baseSeasSeq, seasPlotFormats)
 
 ###############################################################################
 # ### DOT PLOTS - Region comparison ###################
 # regSeq_modCodeLs <- paste0("8a_iliSum_v2-6_R", c("1&2", 3:7, "8&9&10"))
-# regSeq_plotFormats <- list(w = 6, h = 8, lvls = regSeq_modCodeLs, labs = c("R1&2 Boston-New York", "R3 Philadelphia", "R4 Atlanta", "R5 Chicago", "R6 Dallas", "R7 Kansas City", "R8-10 Denver-SF-Seattle"), descrip = "regSeq")
+# regSeq_plotFormats <- list(w = 6, h = 5, lvls = regSeq_modCodeLs, labs = c("R1&2 Boston-New York", "R3 Philadelphia", "R4 Atlanta", "R5 Chicago", "R6 Dallas", "R7 Kansas City", "R8-10 Denver-SF-Seattle"), descrip = "regSeq")
 # dot_coefCompare(regSeq_modCodeLs, regSeq_plotFormats)
 
 ###############################################################################
@@ -164,7 +169,7 @@ for (i in 1:length(modCodeLs_regionValidation)){
 #   missSeq_modCodeLs <- c("8a_iliSum_v2-6", missSeq)
 #   missSeq_plotFormats <- list(w = 6, h = 3, lvls = missSeq_modCodeLs, labs = c("complete", "missing 20%", "missing 40%", "missing 60%", "missing 80%"), descrip = paste0("missSeq", rep))
 #   dot_coefCompare(missSeq_modCodeLs, missSeq_plotFormats)
-# }
+# }as.c
 
 # ageSeq_modCodeLs <- c("8a_iliSum_v2-6", "8a_iliSum_v3-6", "8a_iliSum_v4-6")
 # ageSeq_plotFormats <- list(w = 6, h = 3, lvls = ageSeq_modCodeLs, labs = c("total", "children", "adults"), descrip = "ageSeq")
@@ -183,3 +188,9 @@ for (i in 1:length(modCodeLs_regionValidation)){
 #     choro_fitCompare(pairLs, pair_plotFormats)
 #   }
 # }
+
+###############################################################################
+### BOXPLOTS - Raw predictor by region ###################
+bxp_plotFormats <- list(w = 6, h = 2)
+bxp_rawPredictors_region(path_list, bxp_plotFormats)
+

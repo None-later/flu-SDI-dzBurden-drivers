@@ -16,6 +16,9 @@ require(lazyeval)
 require(ggthemes)
 setwd(dirname(sys.frame(1)$ofile))
 source("source_export_inlaDiagnostics.R")
+source("source_variableSelection_cty.R")
+source("source_clean_response_functions_cty.R") # functions to clean response and IMS coverage data (cty)
+source("source_clean_data_functions.R") # functions to clean covariate data
 
 #### processing functions ################################
 ################################
@@ -59,13 +62,25 @@ import_stAbbr <- function(){
 ################################
 import_cdcRegILI <- function(){
   print(match.call())
-  returnDat <- read_csv(paste0(string_cdcData_folder(), "all_cdc_source_data_HHSRegion.csv"), col_types = cols_only(uqidR = "c", reg = "i", yr = "i", wk = "i", num_samples = "i", season = "i", ilitot = "i", patients = "i", providers = "i", ili_5.24 = "i", ili_25.64 = "i")) %>%
+  returnDat <- read_csv(paste0(string_cdcData_folder(), "all_cdc_source_data_HHSRegion.csv"), col_types = cols_only(uqidR = "c", reg = "i", yr = "i", wk = "i", season = "i", ilitot = "i", patients = "i", providers = "i", ili_5.24 = "i", ili_25.64 = "i")) %>%
     filter(season >= 3 & season <= 9) %>%
     group_by(season, reg) %>%
     summarise(ilitot = sum(ilitot, na.rm = TRUE), ili_5.24 = sum(ili_5.24, na.rm = TRUE), ili_25.64 = sum(ili_25.64, na.rm = TRUE), patients = sum(patients, na.rm = TRUE)) %>%
     mutate(tot_unwt_pct = ilitot/patients*100) %>%
     mutate(ch_unwt_totPct = ili_5.24/patients*100) %>%
     mutate(ad_unwt_totPct = ili_25.64/patients*100) %>%
+    ungroup
+  return(returnDat)
+}
+################################
+import_cdcRegViral <- function(){
+  print(match.call())
+  returnDat <- read_csv(paste0(string_cdcData_folder(), "all_cdc_source_data_HHSRegion.csv"), col_types = cols_only(uqidR = "c", reg = "i", yr = "i", wk = "i", num_samples = "i", perc_pos = "d", season = "i")) %>%
+    filter(season >= 3 & season <= 9) %>%
+    mutate(num_pos = (perc_pos * num_samples)/100) %>%
+    group_by(season, reg) %>%
+    summarise(num_pos = sum(num_pos, na.rm = TRUE), num_samples = sum(num_samples, na.rm = TRUE)) %>%
+    mutate(perc_pos = num_pos/num_samples*100) %>%
     ungroup
   return(returnDat)
 }
@@ -77,7 +92,6 @@ label_ecol_predictors <- function(){
     dfLabels <- tbl_df(data.frame(RV = cleanRV, pltLabs = pltLabels, stringsAsFactors = FALSE))
     return(dfLabels)
 }
-
 ################################
 label_meas_predictors <- function(){
     cleanRV <- c("insured", "imscoverage", "careseek")
@@ -86,7 +100,6 @@ label_meas_predictors <- function(){
     dfLabels <- tbl_df(data.frame(RV = cleanRV, pltLabs = pltLabels, stringsAsFactors = FALSE))
     return(dfLabels)
 }
-
 ################################
 label_tot_predictors <- function(){
     cleanRV <- c("humidity", "pollution", "popdensity", "housdensity", "child", "adult", "vaxcovI", "vaxcovE", "priorImmunity", "H3A", "B", "adult:H3A", "child:B", "hospaccess", "singlePersonHH", "poverty", "insured", "imscoverage", "careseek")
@@ -233,6 +246,33 @@ import_obsFit_seasIntensityRR <- function(modCodeStr, filepathList){
 }
 
 ################################
+import_obsFit_excessSeasIntensityRR <- function(modCodeStr, filepathList){
+  print(match.call())
+  
+  # import fitted data (on the scale of log(y))
+  outDat <- read_csv(string_fit_fname(modCodeStr), col_types = "c_d_c_dd______") %>%
+    rename(fit_logy = mean, fit_sd = sd) %>%
+    select(modCodeStr, season, fips, fit_logy, fit_sd)
+  
+  # import expected log seasIntensity (shift1)
+  iliSumDat <- cleanR_iliSum_shift1_cty(filepathList) %>%
+    mutate(fit_logE = log(E)) %>%
+    select(season, fips, fit_logE)
+
+  # import observed and expected log excessSeasIntensity (shift1)
+  excessDat <- cleanR_iliExcessBL_shift1_cty(filepathList) %>%
+    mutate(obs_logy = log(y1), obs_logE = log(E)) %>%
+    select(season, fips, obs_logy, obs_logE)
+  
+  # prepare data for plotting breaks
+  obsFitDat <- left_join(outDat, iliSumDat, by = c("season", "fips")) %>%
+    left_join(excessDat, by = c("season", "fips")) %>%
+    mutate(obs_rr = obs_logy-obs_logE, fit_rr = fit_logy-fit_logE) 
+  
+  return(obsFitDat)
+}
+
+################################
 import_obsFit_epiDuration <- function(modCodeStr, filepathList){
   print(match.call())
   
@@ -274,7 +314,7 @@ import_county_geomMap <- function(){
 }
 
 ################################
-import_regionValidation <- function(modCodeStr, iFormats){
+import_regionValidationILI <- function(modCodeStr, iFormats){
   print(match.call())
   
   # import cw for fips-region
@@ -282,30 +322,63 @@ import_regionValidation <- function(modCodeStr, iFormats){
     distinct(fips, regionID) %>%
     rename(reg = regionID)
   
-  cdcDat <- import_cdcRegILI() 
+  iliDat <- import_cdcRegILI() 
   fitDat <- read_csv(string_fit_fname(modCodeStr), col_types = "c_d_c_dd______") %>%
     mutate(LB = mean-(2*sd), UB = mean+(2*sd))
   
   fullDat <- left_join(fitDat, cw, by = "fips") %>%
-    left_join(cdcDat, by = c("reg", "season")) 
+    left_join(iliDat, by = c("reg", "season")) 
   
   if(iFormats$age == "total"){
     returnDat <- fullDat %>%
       select(season, fips, reg, mean, LB, UB, tot_unwt_pct) %>%
-      rename(ili_unwt_pct = tot_unwt_pct)
+      rename(ili_unwt_pct = tot_unwt_pct) %>%
+      group_by(season, reg) %>%
+      summarise(mean = mean(mean, na.rm = TRUE), ili_unwt_pct = first(ili_unwt_pct)) %>%
+      ungroup
   } else if(iFormats$age == "child"){
     returnDat <- fullDat %>%
       select(season, fips, reg, mean, LB, UB, ch_unwt_totPct) %>%
-      rename(ili_unwt_pct = ch_unwt_totPct)
+      rename(ili_unwt_pct = ch_unwt_totPct) %>%
+      group_by(season, reg) %>%
+      summarise(mean = mean(mean, na.rm = TRUE), ili_unwt_pct = first(ili_unwt_pct)) %>%
+      ungroup
   } else if(iFormats$age == "adult"){
     returnDat <- fullDat %>%
       select(season, fips, reg, mean, LB, UB, ad_unwt_totPct) %>%
-      rename(ili_unwt_pct = ad_unwt_totPct)
+      rename(ili_unwt_pct = ad_unwt_totPct) %>%
+      group_by(season, reg) %>%
+      summarise(mean = mean(mean, na.rm = TRUE), ili_unwt_pct = first(ili_unwt_pct)) %>%
+      ungroup
   }
   
   return(returnDat)
 }
 
+################################
+import_regionValidationViral <- function(modCodeStr, iFormats){
+  print(match.call())
+  
+  # import cw for fips-region
+  cw <- read_csv(string_ids_fname(modCodeStr), col_types = cols_only(fips = "c", regionID = "d")) %>%
+    distinct(fips, regionID) %>%
+    rename(reg = regionID)
+  
+  vDat <- import_cdcRegViral()
+  fitDat <- read_csv(string_fit_fname(modCodeStr), col_types = "c_d_c_dd______") %>%
+    mutate(LB = mean-(2*sd), UB = mean+(2*sd))
+  
+  fullDat <- left_join(fitDat, cw, by = "fips") %>%
+    left_join(vDat, by = c("reg", "season")) 
+  
+  returnDat <- fullDat %>%
+      select(season, fips, reg, mean, LB, UB, perc_pos) %>%
+      group_by(season, reg) %>%
+      summarise(mean = mean(mean, na.rm = TRUE), perc_pos = first(perc_pos)) %>%
+      ungroup
+ 
+  return(returnDat)
+}
 
 #### plot functions ################################
 choro_obsFit_seasIntensityRR_oneSeason <- function(modCodeStr, pltFormats, filepathList){
@@ -470,6 +543,36 @@ scatter_obsFit_seasIntensityRR_multiSeason <- function(modCodeStr, pltFormats, f
 }
 ################################
 
+scatter_obsFit_excessSeasIntensityRR_multiSeason <- function(modCodeStr, pltFormats, filepathList){
+  # scatterplot of observed excess seasonal intensity vs fitted seasonal intensity RR values, by season -- validation checks
+  print(match.call())
+  
+  # plot formatting
+  w <- pltFormats$w; h <- pltFormats$h; dp <- 300
+  seasDf <- label_seas_predictors()
+  
+  # import and clean observed and fitted seasonal intensity RR 
+  plotDat <- import_obsFit_excessSeasIntensityRR(modCodeStr, filepathList) %>%
+    rename(Observed = obs_rr, Fitted = fit_rr) %>%
+    mutate(season = paste0("S", season)) %>%
+    mutate(season = factor(season, levels = seasDf$RV, labels = seasDf$pltLabs)) 
+
+  exportFname <- paste0(string_msFig_folder(), "scatter_obsFit_excessSeasIntensityRR_multiSeason", ".png")
+  
+  # plot
+  plotOutput <- ggplot(plotDat, aes(x = Observed, y = Fitted)) +
+    geom_point(alpha = 0.7) + 
+    geom_abline(yintercept = 0, slope = 1, colour = "grey50") +
+    scale_x_continuous("Observed Excess Seasonal Intensity RR", limits = c(-3,3)) +
+    scale_y_continuous("Fitted Seasonal Intensity RR", limits = c(-3,3)) +
+    theme_bw() + 
+    theme(text = element_text(size = 13), legend.margin = margin(), legend.position = "bottom") +
+    facet_wrap(~season, nrow = 2)
+  
+  ggsave(exportFname, plotOutput, height = h, width = w, dpi = dp)
+}
+################################
+
 scatter_residFit_logSeasIntensity_multiSeason <- function(modCodeStr, pltFormats, filepathList){
   # scatterplot of residuals vs fitted log seasonal intensity, by season
   print(match.call())
@@ -498,6 +601,7 @@ scatter_residFit_logSeasIntensity_multiSeason <- function(modCodeStr, pltFormats
   ggsave(exportFname, plotOutput, height = h, width = w, dpi = dp)
 }
 ################################
+
 choro_obsFit_epiDuration_multiSeason <- function(modCodeStr, pltFormats, filepathList){
   # plot side-by-side choropleths for the observed and fitted epidemic duration (multiple years)
   print(match.call())
@@ -543,14 +647,13 @@ choro_obsFit_epiDuration_multiSeason <- function(modCodeStr, pltFormats, filepat
   choro <- ggplot() +
     geom_map(data = ctyMap, map = ctyMap, aes(x = long, y = lat, map_id = region)) +
     geom_map(data = plotDat, map = ctyMap, aes(fill = bin, map_id = fips), color = "grey25", size = 0.025) +
-    scale_fill_brewer(name = "Duration (Weeks)", palette = "OrRd", na.value = "grey60", drop = FALSE) +
+    scale_fill_brewer(name = "Duration\n(Weeks)", palette = "OrRd", na.value = "grey60", drop = FALSE) +
     expand_limits(x = ctyMap$long, y = ctyMap$lat) +
     theme_minimal() +
     theme(text = element_text(size = 12), axis.ticks = element_blank(), axis.text = element_blank(), axis.title = element_blank(), panel.grid = element_blank(), legend.position = "bottom", legend.margin = margin(), legend.box.margin = margin()) +
     facet_grid(season~fig)
   
   ggsave(exportFname, choro, height = h, width = w, dpi = dp)
-  
   
 }
 ################################
@@ -704,7 +807,7 @@ choro_stateEffects <- function(modCodeStr){
 
   # plot formatting
   states_map <- map_data("state")
-  h <- 2; w <- 3; dp <- 300
+  h <- 1.75; w <- 3; dp <- 300
   exportFname <- paste0(string_msFig_folder(), "choro_stGroupEffects_", modCodeStr, ".png")
 
   # import coef data
@@ -1005,7 +1108,7 @@ choro_fitCompareReplicates <- function(baseCodeLs, pltFormats){
   choro <- ggplot() +
     geom_map(data = ctyMap, map = ctyMap, aes(x = long, y = lat, map_id = region)) +
     geom_map(data = plotDat, map = ctyMap, aes(fill = chorofill, map_id = fips), color = "grey50", size = 0.025) +
-    scale_fill_manual(name = "", values = c("1" = "#7b3294", "0" = "grey75"), breaks = c("1", "0"), labels = c("failure to match", paste0("match"))) +
+    scale_fill_manual(name = "", values = c("1" = "#7b3294", "0" = "grey75"), breaks = c("1", "0"), labels = c("failure\nto match", paste0("match"))) +
     expand_limits(x = ctyMap$long, y = ctyMap$lat) +
     theme_minimal() +
     theme(text = element_text(size = 16), axis.ticks = element_blank(), axis.text = element_blank(), axis.title = element_blank(), panel.grid = element_blank(), legend.margin = margin(t = 0, r = 0, b = 0, l = 0, unit = "pt"), legend.position = legendposition) +
@@ -1108,30 +1211,94 @@ choro_fitCompare <- function(modCodeLs, pltFormats){
 }
 ################################
 
-scatter_regionValidation <- function(modCodeStr, pltFormats){
+scatter_regionValidationILI <- function(modCodeStr, pltFormats){
   print(match.call())
   
   # plot formatting
   w <- pltFormats$w; h <- pltFormats$h; dp <- 300
   seasDf <- label_seas_predictors()
-  exportFname <- paste0(string_msFig_folder(), "scatter_regionValidation_", pltFormats$age, ".png")
+  exportFname <- paste0(string_msFig_folder(), "scatter_regionValidationILI_", pltFormats$age, "_byregion.png")
   
-  plotDat <- import_regionValidation(modCodeStr, pltFormats) %>%
+  plotDat <- import_regionValidationILI(modCodeStr, pltFormats) %>%
     mutate(season = paste0("S", season)) %>%
-    mutate(season = factor(season, levels = seasDf$RV, labels = seasDf$pltLabs))
+    mutate(season = factor(season, levels = seasDf$RV, labels = seasDf$pltLabs)) %>%
+    mutate(region = factor(paste("Region", reg), levels = paste("Region", 1:10)))
+  # correlation coefficient
+  corCoef <- cor.test(plotDat$ili_unwt_pct, plotDat$mean, alternative = "two.sided", method = "pearson", use = "complete.obs")
+  print(paste(modCodeStr, "region validation ILI"))
+  print(corCoef)
   
   # plot
   plotOutput <- ggplot(plotDat, aes(x = ili_unwt_pct, y = mean)) +
-    geom_point(alpha = 0.7) +
-    # geom_errorbar(aes(ymin = LB, ymax = UB), alpha = 0.7) +
-    scale_x_continuous("ILI % of Patients") +
-    scale_y_continuous("Fitted Mean") +
+    geom_point(aes(colour = region), alpha = 0.7) +
+    scale_x_continuous("ILI % of Patients (CDC)", limits = c(0,pltFormats$xmax)) +
+    scale_y_continuous("Model Fitted Mean (Avg for HHS Region)", limits = c(0,4.25)) +
+    scale_colour_tableau('', palette = 'tableau10medium') +
     theme_bw() +
-    theme(text = element_text(size = 13)) +
-    facet_wrap(~season, nrow = 2, scales = "fixed")
+    theme(text = element_text(size = 12), legend.margin = margin(t = 0, r = 0, b = 0, l = 0, unit = "pt")) 
   
   ggsave(exportFname, plotOutput, height = h, width = w, dpi = dp)
 }
-
 ################################
 
+scatter_regionValidationViral <- function(modCodeStr, pltFormats){
+  print(match.call())
+  
+  # plot formatting
+  w <- pltFormats$w; h <- pltFormats$h; dp <- 300
+  seasDf <- label_seas_predictors()
+  exportFname <- paste0(string_msFig_folder(), "scatter_regionValidationViral", "_byregion.png")
+  
+  plotDat <- import_regionValidationViral(modCodeStr, pltFormats) %>%
+    mutate(season = paste0("S", season)) %>%
+    mutate(season = factor(season, levels = seasDf$RV, labels = seasDf$pltLabs)) %>%
+    mutate(region = factor(paste("Region", reg), levels = paste("Region", 1:10)))
+  # correlation coefficient
+  corCoef <- cor.test(plotDat$perc_pos, plotDat$mean, alternative = "two.sided", method = "pearson", use = "complete.obs")
+  print(paste(modCodeStr, "region validation viral"))
+  print(corCoef)
+  
+  # plot
+  plotOutput <- ggplot(plotDat, aes(x = perc_pos, y = mean)) +
+    geom_point(aes(colour = region), alpha = 0.7) +
+    scale_x_continuous("% Positive Lab Confirmation (CDC)", limits = c(0,pltFormats$xmax)) +
+    scale_y_continuous("Model Fitted Mean (Avg for HHS Region)", limits = c(0,4.25)) +
+    scale_colour_tableau('', palette = 'tableau10medium') +
+    theme_bw() +
+    theme(text = element_text(size = 12), legend.margin = margin(t = 0, r = 0, b = 0, l = 0, unit = "pt")) 
+  
+  ggsave(exportFname, plotOutput, height = h, width = w, dpi = dp)
+}
+################################
+bxp_rawPredictors_region <- function(filepathList, pltFormats){
+  print(match.call())
+
+  # plot formatting
+  w <- pltFormats$w; h <- pltFormats$h; dp <- 300
+  pltLabs <- label_tot_predictors()
+
+  plotDat <- model8a_iliSum_v7_raw(filepathList) %>%
+    select(fips, season, regionID, contains("rX_"), contains("rO_")) %>%
+    gather("RV", "value", -fips, -season, -regionID) %>%
+    mutate(RV = gsub("rX_", "", RV)) %>%
+    mutate(RV = gsub("rO_", "", RV)) %>%
+    left_join(pltLabs, by = "RV") %>%
+    select(-RV) %>%
+    spread(pltLabs, value) %>%
+    mutate(regionID = factor(as.character(regionID), levels = as.character(1:10)))
+  varnames <- names(plotDat)[4:ncol(plotDat)]
+  View(plotDat %>% select(fips, season, regionID, fluH3, fluB))
+
+  # # plot
+  # for (i in 1:length(varnames)){
+  #   exportFname <- paste0(string_msFig_folder(), "rawPredictors_region/bxp_predictorByRegion_", varnames[i], ".png")
+  # 
+  # plotOutput <- ggplot(plotDat, aes_string(x = "regionID", y = varnames[i])) +
+  #   geom_boxplot() +
+  #   scale_x_discrete("Region") +
+  #   theme_bw() +
+  #   theme(text = element_text(size = 12), legend.margin = margin(t = 0, r = 0, b = 0, l = 0, unit = "pt")) 
+  # 
+  # ggsave(exportFname, plotOutput, height = h, width = w, dpi = dp)
+  # }
+}
