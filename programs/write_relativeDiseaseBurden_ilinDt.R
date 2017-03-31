@@ -124,6 +124,8 @@ write_relativeDiseaseBurden_ilinDt <- function(span.var, degree.var, spatial){
   # save summary data to file 
   # these data are used in "explore_dbMetricsDistribution_ilinDt.R" for exploratory analysis of outcome metrics
   setwd('../R_export')
+  View(dbMetrics.g2 %>% filter(metric=="ilinDt.sum"))
+  print(dbMetrics.g2 %>% filter(metric=="ilinDt.sum") %>% group_by(season) %>% count)
   write.csv(dbMetrics.g2, file = sprintf('dbMetrics_periodicReg_%silinDt%s%s%s%s_analyzeDB%s.csv', code, code2, spatial$servToggle, spatial$ageToggle, code.str, spatial$stringabbr), row.names=FALSE)
   
   # save summary data to file with coords 

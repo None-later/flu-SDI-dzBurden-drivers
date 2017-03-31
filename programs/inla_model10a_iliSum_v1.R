@@ -18,7 +18,7 @@ require(INLA) # main dependencies
 require(RColorBrewer); require(ggplot2) # export_inlaData_st dependencies
 
 
-modCodeLs <- c("10a_iliSum_v1-1")
+modCodeLs <- c("10a_iliSum_v1-2")
 
 for (i in 1:length(modCodeLs)){
   
@@ -71,24 +71,24 @@ for (i in 1:length(modCodeLs)){
     f(regionID_nonzero, model = "iid") +
     f(season_nonzero, model = "iid") +
     intercept_nonzero + O_imscoverage_nonzero + O_careseek_nonzero + O_insured_nonzero + X_poverty_nonzero + X_child_nonzero + X_adult_nonzero + X_hospaccess_nonzero + X_popdensity_nonzero + X_housdensity_nonzero + X_vaxcovI_nonzero + X_vaxcovE_nonzero + X_H3A_nonzero + X_B_nonzero + X_priorImmunity_nonzero + X_humidity_nonzero + X_pollution_nonzero + X_singlePersonHH_nonzero + X_H3A_nonzero*X_adult_nonzero + X_B_nonzero*X_child_nonzero + offset(logE_nonzero)
-  
+
   #### export formatting ####
   # diagnostic plot export directories
   setwd(dirname(sys.frame(1)$ofile))
   dir.create(sprintf("../graph_outputs/inlaModelDiagnostics/%s", modCodeStr), showWarnings = FALSE)
   setwd(sprintf("../graph_outputs/inlaModelDiagnostics/%s", modCodeStr))
   path_plotExport <- getwd()
-  
+
   # csv file export directories
   setwd(dirname(sys.frame(1)$ofile))
   dir.create(sprintf("../R_export/inlaModelData_export/%s", modCodeStr), showWarnings = FALSE)
   setwd(sprintf("../R_export/inlaModelData_export/%s", modCodeStr))
   path_csvExport <- getwd()
-  
+
   #### run models for all seasons ################################
   modData_full <- modData
   modData_hurdle <- convert_hurdleModel_nz_spatiotemporal_st(modData_full)
-  
+
   mod <- inla(formula,
               family = "gaussian",
               data = modData_hurdle,
@@ -99,11 +99,11 @@ for (i in 1:length(modCodeLs)){
               # control.mode = list(result = starting3, restart = TRUE),
               verbose = TRUE,
               keep = TRUE, debug = TRUE)
-  
-  
+
+
   #### model summary outputs ################################
   # 7/20/16 reorganized
-  
+
   #### write DIC and CPO values in separate tables by season ####
   # file path
   path_csvExport_dic <- paste0(path_csvExport, sprintf("/modFit_%s.csv", modCodeStr))
@@ -113,37 +113,37 @@ for (i in 1:length(modCodeLs)){
   names(dicData2) <- c("modCodeStr", "season", "exportDate", "DIC", "CPO", "cpoFail")
   # write DIC & CPO to file
   export_DIC(path_csvExport_dic, dicData2)
-  
+
   #### write random and group effect identities ####
   # file path
   path_csvExport_ids <- paste0(path_csvExport, sprintf("/ids_%s.csv", modCodeStr))
   # write identity codes to file
   export_ids_st(path_csvExport_ids, modData_full)
-  
+
   #### write fixed and random effects summary statistics ####
   # file path
   path_csvExport_summaryStats <- paste0(path_csvExport, sprintf("/summaryStats_%s.csv", modCodeStr))
   # write all summary statistics to file
   export_summaryStats_hurdle_likString(path_csvExport_summaryStats, mod, rdmFx_RV, modCodeStr, dbCodeStr, s, likString) # assuming hyperpar, fixed always exist
-  
-  
+
+
   # #### process fitted values for each model ################################
   # normal model processing
   path_csvExport_fittedNonzero <- paste0(path_csvExport, sprintf("/summaryStatsFitted_%s_%s.csv", likString, modCodeStr))
   dummy_nz <- mod$summary.fitted.values[1:nrow(modData_full),]
   mod_nz_fitted <- export_summaryStats_fitted_hurdle_st(path_csvExport_fittedNonzero, dummy_nz, modData_full, modCodeStr, dbCodeStr, s)
-  
+
   #### Diagnostic plots ################################
-  
+
   #### normal likelihood figures ####
   # marginal posteriors: first 6 county random effects (nu or phi)
   path_plotExport_rdmFxSample_nonzero <- paste0(path_plotExport, sprintf("/inla_%s_%s1-6_marg_%s.png", modCodeStr, rdmFx_RV, likString))
   plot_rdmFx_marginalsSample(path_plotExport_rdmFxSample_nonzero, mod$marginals.random$fips_st_nonzero, "nu")
-  
+
   # marginal posteriors: first 6 observation error terms
   path_plotExport_rdmFxSample_nonzero <- paste0(path_plotExport, sprintf("/inla_%s_ID1-6_marg_%s.png", modCodeStr, likString))
   plot_rdmFx_marginalsSample(path_plotExport_rdmFxSample_nonzero, mod$marginals.random$ID_nonzero, "obs err")
-  
+
 }
 
 

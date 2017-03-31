@@ -24,7 +24,7 @@ source("source_export_inlaDiagnostics.R") # plot_diag_scatter_hurdle function
 #### set these! ################################
 dbCodeStr <- "_ilinDt_Octfit_span0.4_degree2"
 seasons <- c(3:9)
-modCodeStrLs <- sprintf("10a_iliSum_v%s-1", 1:2)
+modCodeStrLs <- sprintf("10a_iliSum_v%s-2", 1:2)
 likString <- "normal"; likStrings <- c(likString) 
 source("source_calculate_residuals_shift1.R") # calculate_residuals function (source_calculate_residuals_shift1.R for iliSum; source_calculate_residuals.R for epiDur)
 
@@ -58,35 +58,35 @@ for (i in 1:length(modCodeStrLs)){
   path_csvExport <- getwd()
   path_csvExport_ids <- paste0(path_csvExport, "/ids_", modCodeStr, ".csv")
   
-  # #### results across seasons #################################
-  # # coef distributions by season
-  # importPlot_coefDistr_RV_spatiotemporal(path_csvExport, path_plotExport_coefDistr)
+  #### results across seasons #################################
+  # coef distributions by season
+  importPlot_coefDistr_RV_spatiotemporal(path_csvExport, path_plotExport_coefDistr)
 
   #### diagnostics across seasons #################################
 
   ### model fit ###
   if ("gamma" %in% likStrings | "normal" %in% likStrings | "poisson" %in% likStrings){
 
-    # # scatter: predicted vs. observed data (yhat - nonzero) + 95%CI vs. y nonzero observed
-    # path_plotExport_predVsObs <- paste0(path_plotExport, sprintf("/diag_predVsObs_%s_%s.png", likString, modCodeStr))
-    # plot_diag_scatter_st_spatiotemporal(path_csvExport, path_plotExport_predVsObs, likString, "y1", "mean", TRUE)
-    # 
-    # # scatter: standardized residuals vs. predicted (yhat - nonzero model only)
-    # path_plotExport_residVsPred <- paste0(path_plotExport, sprintf("/diag_residVsPred_%s_%s.png", likString, modCodeStr))
-    # plot_diag_scatter_st_spatiotemporal(path_csvExport, path_plotExport_residVsPred, likString, "mean", "yhat_resid", FALSE)
-    # 
-    # # scatter: standardized residuals vs. observed y_nonzero (yhat - nonzero model only)
-    # path_plotExport_residVsObs <- paste0(path_plotExport, sprintf("/diag_residVsObs_%s_%s.png", likString, modCodeStr))
-    # plot_diag_scatter_st_spatiotemporal(path_csvExport, path_plotExport_residVsObs, likString, "y1", "yhat_resid", FALSE)
-    # 
-    # # scatter: predicted SD vs. predicted
-    # path_plotExport_predsdVsPred <- paste0(path_plotExport, sprintf("/diag_predsdVsPred_%s_%s.png", likString, modCodeStr))
-    # plot_diag_scatter_st_spatiotemporal(path_csvExport, path_plotExport_predsdVsPred, likString, "mean", "sd", FALSE)
-    # 
-    # ## import summary statistics ##
-    # path_csvImport_estimates <- paste0(path_csvExport, sprintf("/summaryStats_%s.csv", modCodeStr))
-    # mod_est <- read_csv(path_csvImport_estimates, col_types = c("RV" = col_character())) %>%
-    #   filter(likelihood == likString)
+    # scatter: predicted vs. observed data (yhat - nonzero) + 95%CI vs. y nonzero observed
+    path_plotExport_predVsObs <- paste0(path_plotExport, sprintf("/diag_predVsObs_%s_%s.png", likString, modCodeStr))
+    plot_diag_scatter_st_spatiotemporal(path_csvExport, path_plotExport_predVsObs, likString, "y1", "mean", TRUE)
+
+    # scatter: standardized residuals vs. predicted (yhat - nonzero model only)
+    path_plotExport_residVsPred <- paste0(path_plotExport, sprintf("/diag_residVsPred_%s_%s.png", likString, modCodeStr))
+    plot_diag_scatter_st_spatiotemporal(path_csvExport, path_plotExport_residVsPred, likString, "mean", "yhat_resid", FALSE)
+
+    # scatter: standardized residuals vs. observed y_nonzero (yhat - nonzero model only)
+    path_plotExport_residVsObs <- paste0(path_plotExport, sprintf("/diag_residVsObs_%s_%s.png", likString, modCodeStr))
+    plot_diag_scatter_st_spatiotemporal(path_csvExport, path_plotExport_residVsObs, likString, "y1", "yhat_resid", FALSE)
+
+    # scatter: predicted SD vs. predicted
+    path_plotExport_predsdVsPred <- paste0(path_plotExport, sprintf("/diag_predsdVsPred_%s_%s.png", likString, modCodeStr))
+    plot_diag_scatter_st_spatiotemporal(path_csvExport, path_plotExport_predsdVsPred, likString, "mean", "sd", FALSE)
+
+    ## import summary statistics ##
+    path_csvImport_estimates <- paste0(path_csvExport, sprintf("/summaryStats_%s.csv", modCodeStr))
+    mod_est <- read_csv(path_csvImport_estimates, col_types = c("RV" = col_character())) %>%
+      filter(likelihood == likString)
 
 
     ## map spatially structured state random effect terms ##
@@ -116,7 +116,7 @@ for (i in 1:length(modCodeStrLs)){
       if (nrow(mod_nz_fitted %>% filter(!is.na(y1))) > 0){
         # choropleth: observed values (y_nonzero) - Magnitude of non-zero epidemic
         path_plotExport_yobs_nz <- paste0(path_plotExport, sprintf("/choro_yObs_%s_S%s.png", modCodeStr, s))
-        plot_stateChoro(path_plotExport_yobs_nz, path_abbr_st, mod_nz_fitted, "y1", "tier", TRUE)
+        plot_stateChoro(path_plotExport_yobs_nz, path_abbr_st, mod_nz_fitted, "y1", "tier", FALSE)
   
         # choropleth: fitted values (yhat_i) - Magnitude of non-zero epidemic
         path_plotExport_yhat_nz <- paste0(path_plotExport, sprintf("/choro_yHat_%s_S%s.png", modCodeStr, s))
@@ -124,7 +124,7 @@ for (i in 1:length(modCodeStrLs)){
 
         # choropleth: standardized residuals
         path_plotExport_resid_nz <- paste0(path_plotExport, sprintf("/choro_yResid_%s_S%s.png", modCodeStr, s))
-        plot_stateChoro(path_plotExport_resid_nz, path_abbr_st, mod_nz_fitted, "yhat_resid", "tier", TRUE)
+        plot_stateChoro(path_plotExport_resid_nz, path_abbr_st, mod_nz_fitted, "yhat_resid", "tier", FALSE)
 
       }
   

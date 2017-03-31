@@ -18,7 +18,7 @@ require(INLA) # main dependencies
 require(RColorBrewer); require(ggplot2) # export_inlaData_st dependencies
 
 
-modCodeLs <- c("10a_iliSum_v2-1")
+modCodeLs <- c("10a_iliSum_v2-2")
 
 for (i in 1:length(modCodeLs)){
   

@@ -46,11 +46,13 @@ cleanR_iliSum_shift1_st <- function(filepathList){
   # grab disease burden metric (e.g., ilinDt): match "ili" 1+ times
   dbCode <- grep("ili+", strsplit(filepathList$path_response_st, "_")[[1]], value=T)
   # clean data
-  iliSum_data <- read_csv(filepathList$path_response_st, col_types = "iclcddd") %>%
+  iliSum_data <- read_csv(filepathList$path_response_st, col_types = "icllcd") %>%
     filter(metric == sprintf("%s.sum", dbCode)) %>%
     select(-metric) %>%
     rename(y = burden, abbr_st = state)
   
+  print(filepathList$path_response_st)
+  print(summary(iliSum_data))
   pop_data <- clean_pop_st(filepathList) # 4/12/16 all 51 pops are there
   
   return_data <- full_join(iliSum_data, pop_data, by = c("season", "abbr_st")) %>% # 4/12/16 full_join so pops don't drop
@@ -81,7 +83,7 @@ cleanX_priorBurden_st <- function(filepathList){
   cw <- cw_zip3_st()
 
   # clean burden data into prior immunity
-  output <- read_csv(total_path_response_st, col_types = "iclcddd") %>%
+  output <- read_csv(total_path_response_st, col_types = "icllcd") %>%
     filter(metric == sprintf("%s.sum", dbCode)) %>%
     select(-metric) %>%
     rename(priorBurden = burden, abbr_st = state) %>%
@@ -221,27 +223,27 @@ clean_pop_child_st_plain <- function(){
 
 ################################
 
-#### testing area ################################
-dbCodeStr <- "_ilinDt_Octfit_span0.4_degree2"
-
-setwd(dirname(sys.frame(1)$ofile))
-setwd('../reference_data')
-path_latlon_st <- paste0(getwd(), "/state_latlon.csv")
-path_abbr_st <- paste0(getwd(), "/state_abbreviations_FIPS.csv")
-setwd("../R_export")
-path_response_st <- paste0(getwd(), sprintf("/dbMetrics_periodicReg%s_analyzeDB_st.csv", dbCodeStr))
-
-# put all paths in a list to pass them around in functions
-path_list <- list(path_abbr_st = path_abbr_st,
-                  path_latlon_st = path_latlon_st,
-                  path_response_st = path_response_st)
-setwd(dirname(sys.frame(1)$ofile))
-
-db <- cleanR_iliSum_shift1_st(path_list)
-priordb <- cleanX_priorBurden_st(path_list)
-priorImm <- cleanX_protectedFromPrevSeason_st(path_list)
-cw <- cw_zip3_st()
-fullpop <- clean_pop_st(path_list)
-pop <- clean_pop_st_plain()
-aPop <- clean_pop_adult_st_plain()
-cPop <- clean_pop_child_st_plain()
+# #### testing area ################################
+# dbCodeStr <- "_ilinDt_Octfit_span0.4_degree2"
+# 
+# setwd(dirname(sys.frame(1)$ofile))
+# setwd('../reference_data')
+# path_latlon_st <- paste0(getwd(), "/state_latlon.csv")
+# path_abbr_st <- paste0(getwd(), "/state_abbreviations_FIPS.csv")
+# setwd("../R_export")
+# path_response_st <- paste0(getwd(), sprintf("/dbMetrics_periodicReg%s_analyzeDB_st.csv", dbCodeStr))
+# 
+# # put all paths in a list to pass them around in functions
+# path_list <- list(path_abbr_st = path_abbr_st,
+#                   path_latlon_st = path_latlon_st,
+#                   path_response_st = path_response_st)
+# setwd(dirname(sys.frame(1)$ofile))
+# 
+# db <- cleanR_iliSum_shift1_st(path_list)
+# priordb <- cleanX_priorBurden_st(path_list)
+# priorImm <- cleanX_protectedFromPrevSeason_st(path_list)
+# cw <- cw_zip3_st()
+# fullpop <- clean_pop_st(path_list)
+# pop <- clean_pop_st_plain()
+# aPop <- clean_pop_adult_st_plain()
+# cPop <- clean_pop_child_st_plain()

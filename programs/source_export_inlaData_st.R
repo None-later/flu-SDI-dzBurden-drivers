@@ -70,7 +70,7 @@ plot_stateChoro <- function(exportPath, path_csv_abbr, inDat, pltVarTxt, code, z
     pltDat <- pltDat %>% rename_(pltVar = pltVarTxt) 
 
     choro <- ggplot(pltDat, aes(map_id = state)) +
-      geom_map(map = states_map, aes(fill = pltVar, map_id = region), color = "grey25", size = 0.15) +
+      geom_map(map = states_map, aes(fill = pltVar), color = "grey25", size = 0.15) +
       scale_fill_continuous(name = pltVarTxt, low = "#f0fff0", high = "#006400") +
       expand_limits(x = states_map$long, y = states_map$lat) +
       theme_minimal() +
