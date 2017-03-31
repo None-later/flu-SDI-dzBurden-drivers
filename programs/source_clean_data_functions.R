@@ -1014,6 +1014,49 @@ cleanX_wonderAirParticulateMatter_cty <- function(){
   return(output)
   
 }
+################################
+
+cleanX_wonderAirParticulateMatter_wksToEpi_cty <- function(filepathList){
+  # 3/31/17 for wksToEpi model: include only month of epidemic start time
+  # clean data on fine particulate matter (air pollution) with aerodynamic diameter < 2.5 micrometers by county, which was aggregated from 10 km square grids (monthly, micrograms/meter^3); monthly data are averages of daily observations
+  print(match.call())
+  
+  con <- dbConnect(RMySQL::MySQL(), group = "rmysql-fludrivers")
+  dbListTables(con)
+  
+  dbListFields(con, "airpollution_wonder0311_county")
+  # sel.statement <- "SELECT * from airpollution_wonder0311_county limit 5"
+  sel.statement <- "SELECT fips, season, month, avg_pm from airpollution_wonder0311_county where month <= 4 or month >= 10"
+  dummy <- dbGetQuery(con, sel.statement)
+  
+  dbDisconnect(con)
+
+  # identify weekdate of epidemic start 
+  epiWeekDat <- identify_firstEpiWeekdate(filepathList) %>%
+    mutate(epiMonth = as.integer(substring(as.character(t.firstepiweek), 6, 7)))
+
+  
+  dummy2 <- tbl_df(dummy) %>%
+    left_join(epiWeekDat, by = c("season", "fips"))
+    filter(month == epiMonth) %>%
+    summarise(avg_pm = mean(avg_pm, na.rm = TRUE)) %>%
+    mutate(fips = ifelse(fips == "12025", "12086", fips)) # Miami-Dade, FL renumbered
+
+  # Broomfield county, CO (fips 08014) was created in 2001 from 08001, 08013, 08059, 081233 -- avg these to get 08014 data
+  fips08014 <- dummy2 %>%
+    filter(fips %in% c("08013", "08001", "08059", "08123")) %>%
+    group_by(season) %>% 
+    summarise(avg_pm = mean(avg_pm, na.rm = TRUE)) %>%
+    ungroup %>%
+    mutate(fips = "08014") %>%
+    select(fips, season, avg_pm)
+  
+  output <- bind_rows(dummy2, fips08014) %>%
+    arrange(fips, season)
+  
+  return(output)
+  
+}
 
 ##### social cohesion ##########
 
@@ -1191,6 +1234,25 @@ fillValues_years <- function(.data, varname){
     mutate(year = as.numeric(substr(year, 2, 5)))
 
 }
+################################
+
+identify_firstEpiWeekdate <- function(filepathList){
+  # grab weekdate of first epidemic week in each county-season combination 
+
+  print(match.call())
+  
+  fullIndicDat <- read_csv(filepathList$path_fullIndic_cty, col_types = cols_only(fips = "c", Thu.week = "D", season = "i", in.season = "l")) %>%
+    filter(in.season) %>%
+    group_by(season, fips) %>%
+    mutate(t.firstepiweek = ifelse(Thu.week==min(Thu.week), Thu.week, 0)) %>%
+    ungroup %>%
+    filter(t.firstepiweek != 0) %>%
+    mutate(t.firstepiweek = as.Date(t.firstepiweek, origin = "1970-01-01")) %>%
+    select(fips, season, t.firstepiweek)
+
+  return(fullIndicDat)
+}
+
 
 #### testing area ################################
 # setwd(dirname(sys.frame(1)$ofile))

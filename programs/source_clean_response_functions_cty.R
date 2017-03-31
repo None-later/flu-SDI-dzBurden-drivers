@@ -110,8 +110,6 @@ cleanR_epiDur_cty <- function(filepathList){
   pop_data <- clean_pop_cty(filepathList)
   
   # 7/18/16: add incl.analysis indicator
-  # grab disease burden metric (e.g., ilinDt): match "ili" 1+ times
-  dbCode <- grep("ili+", strsplit(filepathList$path_response_cty, "_")[[1]], value=T)
   # clean burden data
   epiDur_data <- read_csv(filepathList$path_response_cty, col_types = "icllcd") %>%
     filter(metric == "epi.dur") %>%
@@ -120,6 +118,33 @@ cleanR_epiDur_cty <- function(filepathList){
   
   # merge final data
   return_data <- full_join(epiDur_data, pop_data, by = c("season", "fips")) %>%
+    select(fips, county, st, stateID, lat, lon, season, year, pop, y, has.epi, incl.analysis) %>%
+    mutate(y1 = ifelse(y>0, y, NA)) %>% # 10/3/16
+    group_by(season) %>%
+    mutate(E = weighted.mean(y1, pop, na.rm = TRUE)) %>%
+    ungroup %>%
+    filter(season >= 3 & season <= 9) # 12/12/16
+
+  return(return_data)
+}
+##########################################
+
+cleanR_wksToEpi_cty <- function(filepathList){
+  # clean response variable: wks.to.epi; 3/31/17
+  print(match.call())
+
+  # pop data: fips, county, st, season, year, pop, lat lon
+  pop_data <- clean_pop_cty(filepathList)
+  
+  # 7/18/16: add incl.analysis indicator
+  # clean burden data
+  wksToEpi_data <- read_csv(filepathList$path_response_cty, col_types = "icllcd") %>%
+    filter(metric == "wks.to.epi") %>%
+    select(-metric) %>%
+    rename(y = burden)
+  
+  # merge final data
+  return_data <- full_join(wksToEpi_data, pop_data, by = c("season", "fips")) %>%
     select(fips, county, st, stateID, lat, lon, season, year, pop, y, has.epi, incl.analysis) %>%
     mutate(y1 = ifelse(y>0, y, NA)) %>% # 10/3/16
     group_by(season) %>%
