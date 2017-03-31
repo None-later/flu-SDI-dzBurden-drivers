@@ -953,6 +953,38 @@ cleanX_noaanarrSpecHum_cty <- function(){
 }
 ################################
 
+cleanX_noaanarrSpecHum_wksToEpi_cty <- function(filepathList){
+  # clean average specific humidity near population-weighted centroid of the county in the two weeks prior to the epidemic start
+  print(match.call())
+  
+  con <- dbConnect(RMySQL::MySQL(), group = "rmysql-fludrivers")
+  dbListTables(con)
+  
+  dbListFields(con, "env_NOAANARR_specHum_county")
+  # sel.statement <- "SELECT * from env_NOAANARR_specHum_county limit 5"
+  sel.statement <- "SELECT fips, year, date as dayDate, humidity from env_NOAANARR_specHum_county where (MONTH(date) <= 4 or MONTH(date) >= 10)"
+  dummy <- dbGetQuery(con, sel.statement)
+  
+  dbDisconnect(con)
+
+  # identify weekdate of epidemic start 
+  epiWeekDat <- identify_firstEpiWeekdate(filepathList) %>%
+    mutate(year = as.integer(substring(as.character(t.firstepiweek), 1, 4)))
+  
+  output <- tbl_df(dummy) %>%
+    left_join(epiWeekDat, by = c("fips", "year"))
+    mutate(season = as.numeric(substr.Right(as.character(year), 2))) %>%
+    mutate(season = ifelse(as.numeric(substring(dayDate, 6, 7)) >= 11, season + 1, season)) %>%
+    filter(dayDate %in% seq.Date(t.firstepiweek-14, t.firstepiweek, by = 1)) %>%
+    group_by(fips, season) %>%
+    summarise(humidity = mean(humidity, na.rm = TRUE)) %>%
+    ungroup
+  
+  return(output)
+  
+}
+################################
+
 cleanX_noaanarrSfcTemp_cty <- function(){
   # clean average surface temperature near population-weighted centroid of the county during flu months (daily, Kelvin)
   print(match.call())
