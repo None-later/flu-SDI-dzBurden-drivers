@@ -16,10 +16,11 @@ require(dplyr); require(tidyr); require(readr) # clean_data_functions dependenci
 require(RColorBrewer); require(ggplot2)
 
 #### set these! ################################
-dbCodeStr <- "_ilinDt_Octfit_span0.4_degree2"
+agecode <- "_adult"
+dbCodeStr <- sprintf("_ilinDt_Octfit%s_span0.4_degree2", agecode)
 rCode <- "iliSum" # epiDur, iliSum
 seasons <- 3:9
-analysesOn <- c('singleVarPlot') 
+analysesOn <- c('loadData', 'singleVarWrite', 'singleVarPlot') 
 # 'loadData', 'dataQuality', 'pairwise', 'singleVarWrite', 'singleVarPlot'
 type_cleanDataFxns <- ''
 # '' or '_nofill
@@ -80,9 +81,9 @@ if("loadData" %in% analysesOn){
   
   # load data frame with all available cleaned variables
   # allDat <- prepare_allCov_iliSum_cty(path_list) # VS all variables
-  allDat <- model8a_iliSum_v7(path_list) # total pop data
+  # allDat <- model8a_iliSum_v7(path_list) # total pop data
   # allDat <- model8a_iliSum_v3(path_list) # child pop data
-  # allDat <- model8a_iliSum_v4(path_list) # adult pop data
+  allDat <- model8a_iliSum_v4(path_list) # adult pop data
   # allDat <- model8e_epiDur_v7(path_list)
   summary(allDat)
   
@@ -142,7 +143,7 @@ if("singleVarWrite" %in% analysesOn){
     } # end for varlist
     
     # write to file in parts
-    write_csv(coefDat, sprintf("%s_pt%s.csv", path_coefDat, 1)) 
+    write_csv(coefDat, sprintf("%s%s_pt%s.csv", path_coefDat, agecode, 1)) 
   # }
 
 } # end singleVarWrite
@@ -154,7 +155,7 @@ if("singleVarPlot" %in% analysesOn){
   
   # pull together all relevant file names since data were exported in pieces
   allFiles <- list.files()
-  pattern <- substring(sprintf("%s_pt", fname_coefDat), 2, nchar(sprintf("%s_pt", fname_coefDat)))
+  pattern <- substring(sprintf("%s%s_pt", fname_coefDat, agecode), 2, nchar(sprintf("%s%s_pt", fname_coefDat, agecode)))
   fnamels <- grep(pattern, allFiles, value = TRUE)
   
   # bind all of the data pieces together
@@ -173,7 +174,7 @@ if("singleVarPlot" %in% analysesOn){
   setwd(path_pltExport)
   plt_coefTime <- plot_singleVarCoef(coefDat2)
 
-  ggsave(sprintf("singleVarCoef_%s_cty%s.png", rCode, type_cleanDataFxns), width = w2, height = h2, dpi = dp)
+  ggsave(sprintf("singleVarCoef_%s_cty%s%s.png", rCode, type_cleanDataFxns, agecode), width = w2, height = h2, dpi = dp)
 }
 
 
