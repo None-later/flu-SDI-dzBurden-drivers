@@ -73,6 +73,35 @@ cleanR_iliSum_shift1_cty <- function(filepathList){
 }
 ##########################################
 
+cleanR_iliExcessBL_shift1_cty <- function(filepathList){
+  # 3/2/17 clean response variable: ilinDt.excess.BL for validation checks
+  print(match.call())
+  
+  # pop data: fips, county, st, season, year, pop, lat lon
+  pop_data <- clean_pop_cty(filepathList)
+  
+  # 7/18/16: add incl.analysis indicator
+  # grab disease burden metric (e.g., ilinDt): match "ili" 1+ times
+  dbCode <- grep("ili+", strsplit(filepathList$path_response_cty, "_")[[1]], value=T)
+  # clean burden data
+  iliExcessBL_data <- read_csv(filepathList$path_response_cty, col_types = "icllcd") %>%
+    filter(metric == sprintf("%s.excess.BL", dbCode)) %>%
+    select(-metric) %>%
+    rename(y = burden)
+  
+  # merge final data
+  return_data <- full_join(iliExcessBL_data, pop_data, by = c("season", "fips")) %>%
+    select(fips, county, st, stateID, lat, lon, season, year, pop, y, has.epi, incl.analysis) %>%
+    mutate(y1 = y+1) %>% # add 1 to all seasonal intensity values
+    group_by(season) %>%
+    mutate(E = weighted.mean(y1, pop, na.rm = TRUE)) %>%
+    ungroup %>%
+    filter(season >= 3 & season <= 9) # 12/12/16
+  
+  return(return_data)
+}
+##########################################
+
 cleanR_epiDur_cty <- function(filepathList){
   # clean response variable: epi.dur; revised 7/28/16
   print(match.call())

@@ -101,7 +101,6 @@ logit <- function(probability) {
 
 
 #### functions for data export  ################################
-
 ################################
 
 export_summaryStats_hurdle_wHyperpar <- function(exportPath, modelOutput, rdmFxTxt, modCodeString, dbCodeString, season){

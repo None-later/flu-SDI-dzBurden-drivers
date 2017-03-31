@@ -17,8 +17,8 @@ require(maptools); require(spdep) # prepare_inlaData_st.R dependencies
 require(INLA) # main dependencies
 require(RColorBrewer); require(ggplot2) # export_inlaData_st dependencies
 
-labLs <- c("8&9&10")
-regLs <- list(c(8,9,10))
+labLs <- c("1&2", "3", "4", "5", "6", "7", "8&9&10")
+regLs <- list(c(1,2), 3, 4, 5, 6, 7, c(8,9,10))
 modCodeLs <- paste0("8a_iliSum_v2-6_R", labLs)
 
 
@@ -71,16 +71,17 @@ for (i in 1:length(modCodeLs)){
   
   #### MAIN #################################
   #### Import and process data ####
-  modData <- model8a_iliSum_v7(path_list) %>%
-    filter_region(regNum)
+  modData <- model8a_iliSum_regions(path_list, regLs) %>%
+    filter_region(regLs[[i]])
   
+  # 3/3/17: rm region-level and region-level-dependent predictors
   formula <- Y ~ -1 +
     f(ID_nonzero, model = "iid") +
     f(fips_nonzero, model = "iid") +
     f(graphIdx_nonzero, model = "besag", graph = path_adjMxExport_cty) +
     f(fips_st_nonzero, model = "iid") +
     f(season_nonzero, model = "iid") +
-    intercept_nonzero + O_imscoverage_nonzero + O_careseek_nonzero + O_insured_nonzero + X_poverty_nonzero + X_child_nonzero + X_adult_nonzero + X_hospaccess_nonzero + X_popdensity_nonzero + X_housdensity_nonzero + X_vaxcovI_nonzero + X_vaxcovE_nonzero + X_H3A_nonzero + X_B_nonzero + X_priorImmunity_nonzero + X_humidity_nonzero + X_pollution_nonzero + X_singlePersonHH_nonzero + X_H3A_nonzero*X_adult_nonzero + X_B_nonzero*X_child_nonzero + offset(logE_nonzero)
+    intercept_nonzero + O_imscoverage_nonzero + O_careseek_nonzero + O_insured_nonzero + X_poverty_nonzero + X_child_nonzero + X_adult_nonzero + X_hospaccess_nonzero + X_popdensity_nonzero + X_housdensity_nonzero + X_vaxcovI_nonzero + X_vaxcovE_nonzero + X_priorImmunity_nonzero + X_humidity_nonzero + X_pollution_nonzero + X_singlePersonHH_nonzero + offset(logE_nonzero)
 
   #### export formatting ####
   # diagnostic plot export directories
@@ -88,10 +89,6 @@ for (i in 1:length(modCodeLs)){
   dir.create(sprintf("../graph_outputs/inlaModelDiagnostics/%s", modCodeStr), showWarnings = FALSE)
   setwd(sprintf("../graph_outputs/inlaModelDiagnostics/%s", modCodeStr))
   path_plotExport <- getwd()
-
-  # # diagnostic plot formatting
-  # labVec <- paste("Tier", 1:5)
-  # colVec <- brewer.pal(length(labVec), 'RdYlGn')
 
   # csv file export directories
   setwd(dirname(sys.frame(1)$ofile))

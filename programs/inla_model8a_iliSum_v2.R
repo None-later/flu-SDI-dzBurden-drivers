@@ -170,7 +170,7 @@ for (i in 1:length(keepLs)){
   export_summaryStats_hurdle_likString(path_csvExport_summaryStats, mod, rdmFx_RV, modCodeStr, dbCodeStr, s, likString) # assuming hyperpar, fixed always exist
   
   
-  # #### process fitted values for each model ################################
+  #### process fitted values for each model ################################
   # normal model processing
   path_csvExport_fittedNonzero <- paste0(path_csvExport, sprintf("/summaryStatsFitted_%s_%s.csv", likString, modCodeStr))
   dummy_nz <- mod$summary.fitted.values[1:nrow(modData_full),]
