@@ -968,14 +968,15 @@ cleanX_noaanarrSpecHum_wksToEpi_cty <- function(filepathList){
   dbDisconnect(con)
 
   # identify weekdate of epidemic start 
-  epiWeekDat <- identify_firstEpiWeekdate(filepathList) %>%
-    mutate(year = as.integer(substring(as.character(t.firstepiweek), 1, 4)))
-  
+  epiWeekDat <- identify_firstEpiWeekdate(filepathList)
+
   output <- tbl_df(dummy) %>%
-    left_join(epiWeekDat, by = c("fips", "year"))
     mutate(season = as.numeric(substr.Right(as.character(year), 2))) %>%
-    mutate(season = ifelse(as.numeric(substring(dayDate, 6, 7)) >= 11, season + 1, season)) %>%
-    filter(dayDate %in% seq.Date(t.firstepiweek-14, t.firstepiweek, by = 1)) %>%
+    mutate(season = ifelse(as.numeric(substring(as.character(dayDate), 6, 7)) >= 11, season + 1, season)) %>%
+    left_join(epiWeekDat, by = c("fips", "season")) %>%
+    mutate(dayDate = as.Date(dayDate), t.firstepiweek = as.Date(t.firstepiweek)) %>%
+    mutate(epiMin14 = t.firstepiweek-14) %>%
+    filter(dayDate >= epiMin14 & dayDate <= t.firstepiweek) %>%
     group_by(fips, season) %>%
     summarise(humidity = mean(humidity, na.rm = TRUE)) %>%
     ungroup
@@ -1067,12 +1068,11 @@ cleanX_wonderAirParticulateMatter_wksToEpi_cty <- function(filepathList){
   epiWeekDat <- identify_firstEpiWeekdate(filepathList) %>%
     mutate(epiMonth = as.integer(substring(as.character(t.firstepiweek), 6, 7)))
 
-  
   dummy2 <- tbl_df(dummy) %>%
-    left_join(epiWeekDat, by = c("season", "fips"))
+    left_join(epiWeekDat, by = c("season", "fips")) %>%
     filter(month == epiMonth) %>%
-    summarise(avg_pm = mean(avg_pm, na.rm = TRUE)) %>%
-    mutate(fips = ifelse(fips == "12025", "12086", fips)) # Miami-Dade, FL renumbered
+    mutate(fips = ifelse(fips == "12025", "12086", fips)) %>% # Miami-Dade, FL renumbered
+    select(fips, season, avg_pm)
 
   # Broomfield county, CO (fips 08014) was created in 2001 from 08001, 08013, 08059, 081233 -- avg these to get 08014 data
   fips08014 <- dummy2 %>%
