@@ -20,7 +20,7 @@ require(RColorBrewer); require(ggplot2) # export_inlaData_st dependencies
 
 #### set these! ################################
 dbCodeStr <- "_ilinDt_Octfit_span0.4_degree2"
-modCodeStr <- "8f_epiDur_v1-1"
+modCodeStr <- "8f_wksToEpi_v1-1"
 rdmFx_RV <- "nu"
 likString <- "poisson"
 dig <- 4 # number of digits in the number of elements at this spatial scale (~3000 counties -> 4 digits)
