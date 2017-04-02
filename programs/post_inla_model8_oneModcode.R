@@ -33,9 +33,9 @@ seasons <- c(3:9)
 # labLs <- c("1&2", "3", "4", "5", "6", "7", "8&9&10")
 # modCodeStrLs <- paste0("8a_iliSum_v2-6_R", labLs)
 
-modCodeStrLs <- paste0("8f_wksToEp_v", 1:2, "-1")
-likString <- "normal"; likStrings <- c(likString) 
-source("source_calculate_residuals.R") # calculate_residuals function (source_calculate_residuals_shift1.R for iliSum; source_calculate_residuals.R for epiDur)
+modCodeStrLs <- paste0("8f_wksToEpi_v", 1:2, "-1")
+likString <- "poisson"; likStrings <- c(likString) 
+source("source_calculate_residuals.R") # calculate_residuals function (source_calculate_residuals_shift1.R for iliSum; source_calculate_residuals.R for epiDur, wksToEpi)
 
 #### IMPORT FILEPATHS #################################
 setwd('../reference_data')
@@ -72,69 +72,69 @@ for (i in 1:length(modCodeStrLs)){
   importPlot_coefDistr_RV_spatiotemporal(path_csvExport, path_plotExport_coefDistr)
 
   #### diagnostics across seasons #################################
-  
+
   ### model validity ###
   if ("binomial" %in% likStrings){
     # scatter: predicted vs. observed data (phat - binomial) + 95%CI vs. y observed
     path_plotExport_predVsObs <- paste0(path_plotExport, sprintf("/diag_predVsObs_%s_%s.png", "binomial", modCodeStr))
     plot_diag_scatter_hurdle_spatiotemporal(path_csvExport, path_plotExport_predVsObs, "binomial", "y", "mean", TRUE)
   }
-  
+
   ### model fit ###
   if ("gamma" %in% likStrings | "normal" %in% likStrings | "poisson" %in% likStrings){
     # 1/8/17 only coded up for iliSum response
     # # correlogram: Moran's I vs. distance
     # path_plotExport_correlogram <- paste0(path_plotExport, sprintf("/diag_correlog_%s_%s", likString, modCodeStr))
     # importPlot_correlogram(path_csvExport, path_plotExport_correlogram, path_list, likString)
-    
+
     # scatter: predicted vs. observed data (yhat - nonzero) + 95%CI vs. y nonzero observed
     path_plotExport_predVsObs <- paste0(path_plotExport, sprintf("/diag_predVsObs_%s_%s.png", likString, modCodeStr))
     plot_diag_scatter_hurdle_spatiotemporal(path_csvExport, path_plotExport_predVsObs, likString, "y1", "mean", TRUE)
-    
+
     # scatter: standardized residuals vs. predicted (yhat - nonzero model only)
     path_plotExport_residVsPred <- paste0(path_plotExport, sprintf("/diag_residVsPred_%s_%s.png", likString, modCodeStr))
     plot_diag_scatter_hurdle_spatiotemporal(path_csvExport, path_plotExport_residVsPred, likString, "mean", "yhat_resid", FALSE)
-    
+
     # # scatter: raw residuals vs. predicted (yhat - nonzero model only)
     # path_plotExport_residVsPred2 <- paste0(path_plotExport, sprintf("/diag_rawresidVsPred_%s_%s.png", likString, modCodeStr))
     # plot_diag_scatter_hurdle_spatiotemporal(path_csvExport, path_plotExport_residVsPred2, likString, "mean", "yhat_rawresid", FALSE)
-    
+
     # scatter: standardized residuals vs. observed y_nonzero (yhat - nonzero model only)
     path_plotExport_residVsObs <- paste0(path_plotExport, sprintf("/diag_residVsObs_%s_%s.png", likString, modCodeStr))
     plot_diag_scatter_hurdle_spatiotemporal(path_csvExport, path_plotExport_residVsObs, likString, "y1", "yhat_resid", FALSE)
-    
+
     # # scatter: raw residuals vs. observed y_nonzero (yhat - nonzero model only)
     # path_plotExport_residVsObs2 <- paste0(path_plotExport, sprintf("/diag_rawresidVsObs_%s_%s.png", likString, modCodeStr))
     # plot_diag_scatter_hurdle_spatiotemporal(path_csvExport, path_plotExport_residVsObs2, likString, "y1", "yhat_rawresid", FALSE)
-    
+
     # scatter: predicted SD vs. predicted
     path_plotExport_predsdVsPred <- paste0(path_plotExport, sprintf("/diag_predsdVsPred_%s_%s.png", likString, modCodeStr))
     plot_diag_scatter_hurdle_spatiotemporal(path_csvExport, path_plotExport_predsdVsPred, likString, "mean", "sd", FALSE)
-    
+
     # # scatter: predicted SD vs. observed y_nonzero
     # path_plotExport_predsdVsObs <- paste0(path_plotExport, sprintf("/diag_predsdVsObs_%s_%s.png", likString, modCodeStr))
     # plot_diag_scatter_hurdle_spatiotemporal(path_csvExport, path_plotExport_predsdVsObs, likString, "y1", "sd", FALSE)
-    
+
     # # scatter: predicted SD vs. raw residuals
     # path_plotExport_predsdVsResid2 <- paste0(path_plotExport, sprintf("/diag_predsdVsRawresid_%s_%s.png", likString, modCodeStr))
     # plot_diag_scatter_hurdle_spatiotemporal(path_csvExport, path_plotExport_predsdVsResid2, likString, "yhat_rawresid", "sd", FALSE)
-    
+
     # # scatter: predicted SD vs. standardized residuals
     # path_plotExport_predsdVsResid <- paste0(path_plotExport, sprintf("/diag_predsdVsResid_%s_%s.png", likString, modCodeStr))
     # plot_diag_scatter_hurdle_spatiotemporal(path_csvExport, path_plotExport_predsdVsResid, likString, "yhat_resid", "sd", FALSE)
-    
+
     ## import summary statistics ##
     path_csvImport_estimates <- paste0(path_csvExport, sprintf("/summaryStats_%s.csv", modCodeStr))
     mod_est <- read_csv(path_csvImport_estimates, col_types = c("RV" = col_character())) %>%
       filter(likelihood == likString)
-    
+
     ## map county random effect terms ##
     path_plotExport_ctyEffects <- paste0(path_plotExport, sprintf("/choro_spatialEffect_%s.png", modCodeStr))
     mod_est_ctyEffects <- mod_est %>%
       filter(effectType == "spatial") %>%
       dplyr::rename(fips = RV)
     plot_countyChoro(path_plotExport_ctyEffects, mod_est_ctyEffects, "mean", "gradient", FALSE)
-    
+
     ## map spatially structured county random effect terms ##
     if(nrow(mod_est %>% filter(effectType == "structured")) > 0){
       path_plotExport_strucEffects <- paste0(path_plotExport, sprintf("/choro_structuredEffect_%s.png", modCodeStr))
@@ -145,7 +145,7 @@ for (i in 1:length(modCodeStrLs)){
         left_join(idDat, by = c("RV" = "graphIdx"))
       plot_countyChoro(path_plotExport_strucEffects, mod_est_strucEffects, "mean", "gradient", FALSE)
     }
-    
+
     ## map spatially structured state random effect terms ##
     if(nrow(mod_est %>% filter(effectType == "structured_st")) > 0){
       path_plotExport_strucEffects2 <- paste0(path_plotExport, sprintf("/choro_structuredEffect_st_%s.png", modCodeStr))
@@ -156,9 +156,9 @@ for (i in 1:length(modCodeStrLs)){
         left_join(idDat, by = c("RV" = "graphIdx_st"))
       plot_countyChoro(path_plotExport_strucEffects2, mod_est_strucEffects2, "mean", "gradient", FALSE)
     }
-    
+
   }
-  
+
   #### diagnostics by season #################################
   for (s in seasons){
     print(paste("Season", s, "-----------------"))
@@ -212,7 +212,7 @@ for (i in 1:length(modCodeStrLs)){
     }
 
   }
-  
+
 }
 
 

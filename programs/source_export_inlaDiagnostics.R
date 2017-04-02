@@ -101,7 +101,7 @@ plot_diag_scatter_hurdle_spatiotemporal <- function(path_csvExport, path_plotExp
   setwd(path_csvExport)
   readfile_list <- grep(sprintf("summaryStatsFitted_%s", likelihoodString), list.files(), value = TRUE)
   fitDat <- tbl_df(data.frame())
-
+  
   for (infile in readfile_list){
     seasFile <- read_csv(infile, col_types = "ccd_ccdddddddd")
     fitDat <- bind_rows(fitDat, seasFile)
