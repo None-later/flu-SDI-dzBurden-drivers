@@ -63,7 +63,7 @@ for (i in 1:length(modCodeLs)){
   
   #### MAIN #################################
   #### Import and process data ####
-  modData <- model10a_iliSum_v2(path_list) 
+  modData <- model10a_iliSum_v2(path_list)
 
   formula <- Y ~ -1 +
     f(ID_nonzero, model = "iid") +

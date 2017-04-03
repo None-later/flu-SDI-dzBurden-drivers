@@ -68,11 +68,11 @@ modData <- model8a_iliSum_v7(path_list) # with driver & sampling effort variable
 #%>%
 # remove_randomObs_stratifySeas(0.4)
 
-formula <- Y ~ -1 + 
+formula <- Y ~ -1 +
   f(ID_nonzero, model = "iid") +
-  f(fips_nonzero, model = "iid") + 
-  f(fips_st_nonzero, model = "iid") + 
-  f(regionID_nonzero, model = "iid") + 
+  f(fips_nonzero, model = "iid") +
+  f(fips_st_nonzero, model = "iid") +
+  f(regionID_nonzero, model = "iid") +
   f(season_nonzero, model = "iid") +
   intercept_nonzero + O_imscoverage_nonzero + O_careseek_nonzero + O_insured_nonzero + X_poverty_nonzero + X_child_nonzero + X_adult_nonzero + X_hospaccess_nonzero + X_popdensity_nonzero + X_housdensity_nonzero + X_vaxcovI_nonzero + X_vaxcovE_nonzero + X_H3A_nonzero + X_B_nonzero + X_priorImmunity_nonzero + X_humidity_nonzero + X_pollution_nonzero + X_singlePersonHH_nonzero + X_H3A_nonzero*X_adult_nonzero + X_B_nonzero*X_child_nonzero + offset(logE_nonzero)
 
