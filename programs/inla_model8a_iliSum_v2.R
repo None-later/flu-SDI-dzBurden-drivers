@@ -56,6 +56,7 @@ for (i in 1:length(modCodeLs)){
   source("source_export_inlaData_cty.R") # functions to plot county-specific model diagnostics
   source("source_export_inlaData.R") # functions to plot general model diagnostics
   source("source_export_inlaData_hurdle.R") # data export functions for hurdle model
+  source("source_pp_checks.R") # export cpo & pit observations
   
   #### FILEPATHS #################################
   setwd('../reference_data')
