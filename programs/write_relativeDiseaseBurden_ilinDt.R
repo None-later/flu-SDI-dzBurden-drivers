@@ -2,7 +2,7 @@
 ## Name: Elizabeth Lee
 ## Date: 12/15/15
 ## Function: write relative magnitude of disease burden with detrended ILIn (ilin.dt) Octfit data; data processing: Zip3-season combinations with equal or more consecutive weeks above the epidemic threshold in the non-flu period than the flu period are filtered out (see explore_fluSeasonDefinition_ILIn.R, Analysis 3 for additional details)
-### disease burden metrics: total ili summed across epidemic weeks, cumulative difference in ili and baseline, cumulative difference in ili and epidemic threshold, rate of ili at epidemic peak, epidemic duration, weeks from Nov1 to epidemic start, weeks from epidemic start to peak ili week 
+### disease burden metrics: total ili summed across epidemic weeks, cumulative difference in ili and baseline, cumulative difference in ili and epidemic threshold, rate of ili at epidemic peak, epidemic duration, weeks from wknum40 to epidemic start, weeks from epidemic start to peak ili week 
 
 ## Filenames: periodicReg_%sallZip3Mods_ilinDt_Oct.csv
 ## Data Source: IMS Health 
