@@ -17,12 +17,15 @@ require(maptools); require(spdep) # prepare_inlaData_st.R dependencies
 require(INLA) # main dependencies
 require(RColorBrewer); require(ggplot2) # export_inlaData_st dependencies
 
-ncodes <- 4
-nreps <- 1
-repLs <- c(rep(9,ncodes))
-modCodeLs <- paste0(rep(c("8a_iliSum_v2-6_c80-", "8a_iliSum_v2-6_c60-", "8a_iliSum_v2-6_c40-", "8a_iliSum_v2-6_c20-"), nreps), repLs)
-keepLs <- rep(c(.80, .60, .40, .20), nreps)
-seedLs <- c(rep(998,ncodes))
+## county replicate sequence
+# ncodes <- 4
+# nreps <- 1
+# repLs <- c(rep(9,ncodes))
+# modCodeLs <- paste0(rep(c("8a_iliSum_v2-6_c80-", "8a_iliSum_v2-6_c60-", "8a_iliSum_v2-6_c40-", "8a_iliSum_v2-6_c20-"), nreps), repLs)
+# keepLs <- rep(c(.80, .60, .40, .20), nreps)
+# seedLs <- c(rep(998,ncodes))
+
+## season replicate sequence
 # ncodes <- 3
 # nreps <- 5
 # repLs <- c(rep(5,ncodes), rep(6,ncodes), rep(7,ncodes), rep(8,ncodes), rep(9,ncodes))
@@ -30,13 +33,16 @@ seedLs <- c(rep(998,ncodes))
 # keepLs <- rep(c(6, 4, 2), nreps)
 # seedLs <- c(rep(707,ncodes), rep(9067,ncodes), rep(8075,ncodes), rep(4430,ncodes), rep(999,ncodes))
 
-for (i in 1:length(keepLs)){
+# single code
+modCodeLs <- c("8a_iliSum_v2-6")
+
+for (i in 1:length(modCodeLs)){
   
   #### set these! ################################
   dbCodeStr <- "_ilinDt_Octfit_span0.4_degree2"
-  modCodeStr <- modCodeLs[i] # modCodeStr <- "8a_iliSum_v2-6_c60-3"
-  keep <- keepLs[i]
-  set.seed(seedLs[i])
+  modCodeStr <- modCodeLs[i] 
+  # keep <- keepLs[i] # comment if single code
+  # set.seed(seedLs[i]) # comment if single code
   rdmFx_RV <- "phi"
   likString <- "normal"
   dig <- 4 # number of digits in the number of elements at this spatial scale (~3000 counties -> 4 digits)
@@ -80,8 +86,8 @@ for (i in 1:length(keepLs)){
   
   #### MAIN #################################
   #### Import and process data ####
-  modData <- model8a_iliSum_v7(path_list) %>% 
-    keep_randomCty(keep)
+  modData_full <- model8a_iliSum_v7(path_list) #%>% 
+    # keep_randomCty(keep)
     # keep_randomSeas(keep)
     # remove_randomObs_stratifySeas(keep)
   
@@ -112,7 +118,6 @@ for (i in 1:length(keepLs)){
   path_csvExport <- getwd()
   
   #### run models for all seasons ################################
-  modData_full <- modData
   modData_hurdle <- convert_hurdleModel_nz_spatiotemporal(modData_full)
   
   # starting3 <- inla(formula,
