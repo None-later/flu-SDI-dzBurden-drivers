@@ -41,6 +41,17 @@ clean_RVnames <- function(dat){
 
 #### functions for model data import and cleaning ################################
 
+export_cpoPIT_observations <- function(exportPath, modelOutput){
+    # export CPO and PIT for individual observations
+    print(match.call())
+
+    cpoLs <- modelOutput$cpo$cpo
+    pitLs <- modelOutput$cpo$pit
+    exportDat <- data.frame(ID = seq_along(cpoLs), cpo = cpoLs, pit = pitLs)
+    write_csv(exportDat, exportPath)
+}
+################################
+
 export_predictiveChecks_seasIntensity <- function(path_csvExport_replicateData, path_csvExport_repSummData, modelOutput, modelData, modCodeStr){
     # export replicates and summary statistics for predictive checks
     print(match.call())

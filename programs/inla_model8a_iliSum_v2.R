@@ -147,15 +147,20 @@ for (i in 1:length(keepLs)){
   #### model summary outputs ################################
   # 7/20/16 reorganized
   
-  #### write DIC and CPO values in separate tables by season ####
+  #### write DIC and CPO summaries in separate tables by season ####
   # file path
   path_csvExport_dic <- paste0(path_csvExport, sprintf("/modFit_%s.csv", modCodeStr))
-  # DIC & CPO file formatting
+  # DIC & CPO summary file formatting
   dicData <- unlist(c(modCodeStr, s, as.character(Sys.Date()), mod$dic$dic, sum(log(mod$cpo$cpo), na.rm=TRUE), sum(mod$cpo$failure, na.rm=TRUE), use.names=FALSE))
   dicData2 <- as.data.frame(matrix(dicData, nrow = 1), byrow = TRUE)
   names(dicData2) <- c("modCodeStr", "season", "exportDate", "DIC", "CPO", "cpoFail")
-  # write DIC & CPO to file
-  export_DIC(path_csvExport_dic, dicData2)
+  # write DIC & CPO summaries svExport_dic, dicData2)
+
+  #### write DIC and CPO for individual observations #### 
+  # file path
+  path_csvExport_cpoPIT <- paste0(path_csvExport, sprintf("/cpoPIT_observations_%s.csv", modCodeStr))
+  # write CPO and PIT for each observation to file
+  export_cpoPIT_observations(path_csvExport_cpoPIT, mod)
   
   #### write random and group effect identities ####
   # file path
