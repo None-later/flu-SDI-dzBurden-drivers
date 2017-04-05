@@ -38,11 +38,11 @@ setwd(dirname(sys.frame(1)$ofile))
 ## PLOTS ##
 ###############################################################################
 ### SEASONAL INTENSITY - total population ###################
-# obsFit_plotFormats_one <- list(w = 7, h = 3.5)
-# choro_obsFit_seasIntensityRR_oneSeason("8a_iliSum_v2-6", obsFit_plotFormats_one, path_list)
+obsFit_plotFormats_one <- list(w = 7, h = 3.5)
+choro_obsFit_seasIntensityRR_oneSeason("8a_iliSum_v2-6", obsFit_plotFormats_one, path_list)
 
-# obsFit_plotFormats_multi <- list(w = 4.25, h = 8, rmSeas = "2006-07", popCode = "")
-# choro_obsFit_seasIntensityRR_multiSeason("8a_iliSum_v2-6", obsFit_plotFormats_multi, path_list)
+obsFit_plotFormats_multi <- list(w = 4.25, h = 8, rmSeas = "2006-07", popCode = "")
+choro_obsFit_seasIntensityRR_multiSeason("8a_iliSum_v2-6", obsFit_plotFormats_multi, path_list)
 
 # obsFit_plotFormats_scatter <- list(w = 6, h = 4)
 # scatter_obsFit_seasIntensityRR_multiSeason("8a_iliSum_v2-6", obsFit_plotFormats_scatter, path_list)
@@ -56,8 +56,8 @@ setwd(dirname(sys.frame(1)$ofile))
 
 ###############################################################################
 ### EPIDEMIC DURATION - total population ###################
-# obsFit_plotFormats_multi_epiDur <- list(w = 4.25, h = 9, popCode = "")
-# choro_obsFit_epiDuration_multiSeason("8e_epiDur_v2-3", obsFit_plotFormats_multi_epiDur, path_list)
+obsFit_plotFormats_multi_epiDur <- list(w = 4.25, h = 9, popCode = "")
+choro_obsFit_epiDuration_multiSeason("8e_epiDur_v2-3", obsFit_plotFormats_multi_epiDur, path_list)
 
 # obsFit_plotFormats_scatter <- list(w = 6, h = 4)
 # scatter_obsFit_epiDuration_multiSeason("8e_epiDur_v2-3", obsFit_plotFormats_scatter, path_list)

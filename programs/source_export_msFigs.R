@@ -403,6 +403,7 @@ choro_obsFit_seasIntensityRR_oneSeason <- function(modCodeStr, pltFormats, filep
   plotDat <- prepDat2 %>%
     select(season, fips, Observed, Fitted) %>%
     gather(fig, bin, Observed:Fitted) %>%
+    mutate(fig = factor(fig, levels = c("Observed", "Fitted"))) %>%
     mutate(bin = factor(bin, levels = factorlvls, labels = factorlvls, ordered = TRUE))
   print(levels(plotDat$bin))
  
@@ -456,6 +457,7 @@ choro_obsFit_seasIntensityRR_multiSeason <- function(modCodeStr, pltFormats, fil
   prepDat3 <- prepDat2 %>%
     select(season, fips, Observed, Fitted) %>%
     gather(fig, bin, Observed:Fitted) %>%
+    mutate(fig = factor(fig, levels = c("Observed", "Fitted"))) %>%
     mutate(bin = factor(bin, levels = factorlvls, labels = factorlvls, ordered = TRUE)) %>%
     mutate(season = paste0("S", season)) %>%
     mutate(season = factor(season, levels = seasDf$RV, labels = seasDf$pltLabs)) 
@@ -624,6 +626,7 @@ choro_obsFit_epiDuration_multiSeason <- function(modCodeStr, pltFormats, filepat
   prepDat3 <- prepDat2 %>%
     select(season, fips, Observed, Fitted) %>%
     gather(fig, bin, Observed:Fitted) %>%
+    mutate(fig = factor(fig, levels = c("Observed", "Fitted"))) %>%
     mutate(bin = factor(bin, levels = factorlvls, labels = factorlvls, ordered = TRUE)) %>%
     mutate(season = paste0("S", season)) %>%
     mutate(season = factor(season, levels = seasDf$RV, labels = seasDf$pltLabs)) 
@@ -1287,7 +1290,7 @@ bxp_rawPredictors_region <- function(filepathList, pltFormats){
     spread(pltLabs, value) %>%
     mutate(regionID = factor(as.character(regionID), levels = as.character(1:10)))
   varnames <- names(plotDat)[4:ncol(plotDat)]
-  View(plotDat %>% select(fips, season, regionID, fluH3, fluB))
+  # View(plotDat %>% select(fips, season, regionID, fluH3, fluB))
 
   # # plot
   # for (i in 1:length(varnames)){
