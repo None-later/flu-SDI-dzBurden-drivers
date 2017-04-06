@@ -108,10 +108,6 @@ for (i in 1:length(modCodeLs)){
   setwd(sprintf("../graph_outputs/inlaModelDiagnostics/%s", modCodeStr))
   path_plotExport <- getwd()
   
-  # diagnostic plot formatting
-  labVec <- paste("Tier", 1:5)
-  colVec <- brewer.pal(length(labVec), 'RdYlGn')
-  
   # csv file export directories
   setwd(dirname(sys.frame(1)$ofile))
   dir.create(sprintf("../R_export/inlaModelData_export/%s", modCodeStr), showWarnings = FALSE)
@@ -144,7 +140,7 @@ for (i in 1:length(modCodeLs)){
               control.fixed = list(mean = 0, prec = 1/100), # set prior parameters for regression coefficients
               control.predictor = list(compute = TRUE, link = rep(1, nrow(modData_full))),
               control.compute = list(dic = TRUE, cpo = TRUE),
-              control.inla = list(correct = TRUE, correct.factor = 10, diagonal = 0, tolerance = 1e-8, int.strategy = "grid", diff.logdens = 4), # http://www.r-inla.org/events/newfeaturesinr-inlaapril2015
+              control.inla = list(correct = TRUE, correct.factor = 10, diagonal = 0, tolerance = 1e-8), # http://www.r-inla.org/events/newfeaturesinr-inlaapril2015
               # control.mode = list(result = starting3, restart = TRUE),
               verbose = TRUE,
               keep = TRUE, debug = TRUE)
