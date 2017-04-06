@@ -17,8 +17,10 @@ require(maptools); require(spdep) # prepare_inlaData_st.R dependencies
 require(INLA) # main dependencies
 require(RColorBrewer); require(ggplot2) # export_inlaData_st dependencies
 
-labLs <- c("1&2", "3", "4", "5", "6", "7", "8&9&10")
-regLs <- list(c(1,2), 3, 4, 5, 6, 7, c(8,9,10))
+# labLs <- c("1&2", "3", "4", "5", "6", "7", "8&9&10")
+# regLs <- list(c(1,2), 3, 4, 5, 6, 7, c(8,9,10))
+labLs <- c("1&2&3", "4&6", "5&7")
+regLs <- list(c(1,2,3), c(4,6), c(5,7))
 modCodeLs <- paste0("8a_iliSum_v2-6_R", labLs)
 
 
@@ -41,6 +43,7 @@ for (i in 1:length(modCodeLs)){
   source("source_export_inlaData_cty.R") # functions to plot county-specific model diagnostics
   source("source_export_inlaData.R") # functions to plot general model diagnostics
   source("source_export_inlaData_hurdle.R") # data export functions for hurdle model
+  source("source_pp_checks.R") # export individual cpo
   
   #### FILEPATHS #################################
   setwd('../reference_data')
@@ -71,7 +74,7 @@ for (i in 1:length(modCodeLs)){
   
   #### MAIN #################################
   #### Import and process data ####
-  modData <- model8a_iliSum_regions(path_list, regLs) %>%
+  modData_full <- model8a_iliSum_regions(path_list, regLs) %>%
     filter_region(regLs[[i]])
   
   # 3/3/17: rm region-level and region-level-dependent predictors
@@ -97,7 +100,6 @@ for (i in 1:length(modCodeLs)){
   path_csvExport <- getwd()
 
   #### run models for all seasons ################################
-  modData_full <- modData
   modData_hurdle <- convert_hurdleModel_nz_spatiotemporal(modData_full)
 
   mod <- inla(formula,
@@ -124,7 +126,13 @@ for (i in 1:length(modCodeLs)){
   names(dicData2) <- c("modCodeStr", "season", "exportDate", "DIC", "CPO", "cpoFail")
   # write DIC & CPO to file
   export_DIC(path_csvExport_dic, dicData2)
-
+  
+  #### write DIC and CPO for individual observations #### 
+  # file path
+  path_csvExport_cpoPIT <- paste0(path_csvExport, sprintf("/cpoPIT_observations_%s.csv", modCodeStr))
+  # write CPO and PIT for each observation to file
+  export_cpoPIT_observations(path_csvExport_cpoPIT, mod)
+  
   #### write random and group effect identities ####
   # file path
   path_csvExport_ids <- paste0(path_csvExport, sprintf("/ids_%s.csv", modCodeStr))

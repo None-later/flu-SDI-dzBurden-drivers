@@ -30,12 +30,13 @@ seasons <- c(3:9)
 # modCodeStrLs <- paste0(rep(c("8a_iliSum_v2-6_s6-", "8a_iliSum_v2-6_s4-", "8a_iliSum_v2-6_s2-"), 5), c(rep(5,3), rep(6,3), rep(7,3), rep(8,3), rep(9,3)))
 
 ## groupings for 8a v2 regions
-# labLs <- c("1&2", "3", "4", "5", "6", "7", "8&9&10")
-# modCodeStrLs <- paste0("8a_iliSum_v2-6_R", labLs)
+labLs <- c("1&2&3", "4&6", "5&7")
+modCodeStrLs <- paste0("8a_iliSum_v2-6_R", labLs)
 
-modCodeStrLs <- paste0("8f_wksToEpi_v", 1:2, "-1")
-likString <- "poisson"; likStrings <- c(likString) 
-source("source_calculate_residuals.R") # calculate_residuals function (source_calculate_residuals_shift1.R for iliSum; source_calculate_residuals.R for epiDur, wksToEpi)
+# modCodeStrLs <- paste0("8f_wksToEpi_v", 1:2, "-2")
+
+likString <- "normal"; likStrings <- c(likString)
+source("source_calculate_residuals_shift1.R") # calculate_residuals function (source_calculate_residuals_shift1.R for iliSum; source_calculate_residuals.R for epiDur, wksToEpi)
 
 #### IMPORT FILEPATHS #################################
 setwd('../reference_data')
