@@ -47,7 +47,8 @@ export_cpoPIT_observations <- function(exportPath, modelOutput){
 
     cpoLs <- modelOutput$cpo$cpo
     pitLs <- modelOutput$cpo$pit
-    exportDat <- data.frame(ID = seq_along(cpoLs), cpo = cpoLs, pit = pitLs)
+    failLs <- modelOutput$cpo$failure
+    exportDat <- data.frame(ID = seq_along(cpoLs), cpo = cpoLs, cpoFail = failLs, pit = pitLs)
     write_csv(exportDat, exportPath)
 }
 ################################

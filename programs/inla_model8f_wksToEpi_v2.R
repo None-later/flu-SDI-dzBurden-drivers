@@ -20,7 +20,7 @@ require(RColorBrewer); require(ggplot2) # export_inlaData_st dependencies
 
 #### set these! ################################
 dbCodeStr <- "_ilinDt_Octfit_span0.4_degree2"
-modCodeStr <- "8f_wksToEpi_v2-1"
+modCodeStr <- "8f_wksToEpi_v2-2"
 rdmFx_RV <- "phi"
 likString <- "poisson"
 dig <- 4 # number of digits in the number of elements at this spatial scale (~3000 counties -> 4 digits)
@@ -34,6 +34,7 @@ source("source_prepare_inlaData_cty.R") # functions to aggregate all data source
 source("source_export_inlaData_cty.R") # functions to plot county-specific model diagnostics
 source("source_export_inlaData.R") # functions to plot general model diagnostics
 source("source_export_inlaData_hurdle.R") # data export functions for hurdle model
+source("source_pp_checks.R") # cpo individual level
 
 #### FILEPATHS #################################
 setwd('../reference_data')
@@ -77,7 +78,7 @@ formula <- Y ~ -1 +
   f(fips_st_nonzero, model = "iid") +
   f(regionID_nonzero, model = "iid") +
   f(season_nonzero, model = "iid") +
-  intercept_nonzero + O_imscoverage_nonzero + O_careseek_nonzero + O_insured_nonzero + X_poverty_nonzero + X_child_nonzero + X_adult_nonzero + X_hospaccess_nonzero + X_popdensity_nonzero + X_housdensity_nonzero + X_vaxcovI_nonzero + X_vaxcovE_nonzero + X_H3A_nonzero + X_B_nonzero + X_priorImmunity_nonzero + X_humidity_nonzero + X_pollution_nonzero + X_singlePersonHH_nonzero + X_H3A_nonzero*X_adult_nonzero + X_B_nonzero*X_child_nonzero
+  intercept_nonzero + O_imscoverage_nonzero + O_careseek_nonzero + O_insured_nonzero + X_poverty_nonzero + X_child_nonzero + X_adult_nonzero + X_hospaccess_nonzero + X_popdensity_nonzero + X_housdensity_nonzero + X_vaxcovI_nonzero + X_vaxcovE_nonzero + X_H3A_nonzero + X_B_nonzero + X_priorImmunity_nonzero + X_humidity_nonzero + X_pollution_nonzero + X_singlePersonHH_nonzero + X_H3A_nonzero*X_adult_nonzero + X_B_nonzero*X_child_nonzero + offset(logE_nonzero)
 
 #### export formatting ####
 # diagnostic plot export directories
@@ -86,9 +87,6 @@ dir.create(sprintf("../graph_outputs/inlaModelDiagnostics/%s", modCodeStr), show
 setwd(sprintf("../graph_outputs/inlaModelDiagnostics/%s", modCodeStr))
 path_plotExport <- getwd()
 
-# diagnostic plot formatting
-labVec <- paste("Tier", 1:5)
-colVec <- brewer.pal(length(labVec), 'RdYlGn')
 
 # csv file export directories
 setwd(dirname(sys.frame(1)$ofile))
@@ -122,6 +120,13 @@ dicData2 <- as.data.frame(matrix(dicData, nrow = 1), byrow = TRUE)
 names(dicData2) <- c("modCodeStr", "season", "exportDate", "DIC", "CPO", "cpoFail")
 # write DIC & CPO to file
 export_DIC(path_csvExport_dic, dicData2)
+
+
+#### write DIC and CPO for individual observations #### 
+# file path
+path_csvExport_cpoPIT <- paste0(path_csvExport, sprintf("/cpoPIT_observations_%s.csv", modCodeStr))
+# write CPO and PIT for each observation to file
+export_cpoPIT_observations(path_csvExport_cpoPIT, mod)
 
 #### write random and group effect identities ####
 # file path

@@ -20,7 +20,7 @@ require(RColorBrewer); require(ggplot2) # export_inlaData_st dependencies
 
 #### set these! ################################
 dbCodeStr <- "_ilinDt_Octfit_span0.4_degree2"
-modCodeStr <- "8f_wksToEpi_v1-1"
+modCodeStr <- "8f_wksToEpi_v1-2"
 rdmFx_RV <- "nu"
 likString <- "poisson"
 dig <- 4 # number of digits in the number of elements at this spatial scale (~3000 counties -> 4 digits)
@@ -34,6 +34,7 @@ source("source_prepare_inlaData_cty.R") # functions to aggregate all data source
 source("source_export_inlaData_cty.R") # functions to plot county-specific model diagnostics
 source("source_export_inlaData.R") # functions to plot general model diagnostics
 source("source_export_inlaData_hurdle.R") # data export functions for hurdle model
+source("source_pp_checks.R") # cpo individual level
 
 #### FILEPATHS #################################
 setwd('../reference_data')
@@ -86,15 +87,12 @@ dir.create(sprintf("../graph_outputs/inlaModelDiagnostics/%s", modCodeStr), show
 setwd(sprintf("../graph_outputs/inlaModelDiagnostics/%s", modCodeStr))
 path_plotExport <- getwd()
 
-# diagnostic plot formatting
-labVec <- paste("Tier", 1:5)
-colVec <- brewer.pal(length(labVec), 'RdYlGn')
-
 # csv file export directories
 setwd(dirname(sys.frame(1)$ofile))
 dir.create(sprintf("../R_export/inlaModelData_export/%s", modCodeStr), showWarnings = FALSE)
 setwd(sprintf("../R_export/inlaModelData_export/%s", modCodeStr))
 path_csvExport <- getwd()
+
 
 #### run models for all seasons ################################
 modData_hurdle <- convert_hurdleModel_nz_spatiotemporal(modData_full)
@@ -122,6 +120,12 @@ dicData2 <- as.data.frame(matrix(dicData, nrow = 1), byrow = TRUE)
 names(dicData2) <- c("modCodeStr", "season", "exportDate", "DIC", "CPO", "cpoFail")
 # write DIC & CPO to file
 export_DIC(path_csvExport_dic, dicData2)
+
+#### write DIC and CPO for individual observations #### 
+# file path
+path_csvExport_cpoPIT <- paste0(path_csvExport, sprintf("/cpoPIT_observations_%s.csv", modCodeStr))
+# write CPO and PIT for each observation to file
+export_cpoPIT_observations(path_csvExport_cpoPIT, mod)
 
 #### write random and group effect identities ####
 # file path
