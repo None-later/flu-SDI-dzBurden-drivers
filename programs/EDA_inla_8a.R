@@ -58,15 +58,15 @@ simulate_dummy8a_iliSum <- function(filepathList, paramVec){
     full_df <- pred_df %>%
       mutate(E = paramVec[1], logE = log(paramVec[1])) %>%
       mutate(logy = paramVec[2]
-             + O_imscoverage*paramVec[3] + X_hospaccess*paramVec[4]) %>%
-      mutate(y1 = exp(paramVec[2] + O_imscoverage*paramVec[3] + X_hospaccess*paramVec[4])) %>%
+             + O_imscoverage*paramVec[3] + X_hospaccess*paramVec[4] - logE) %>%
+      mutate(y1 = E*exp(paramVec[2] + O_imscoverage*paramVec[3] + X_hospaccess*paramVec[4])) %>%
       mutate(ID = seq_along(fips))
 
     return(full_df)
 }
 
 #### MAIN #################################
-formula <- y1 ~ 1 + O_imscoverage + X_hospaccess
+formula <- y1 ~ 1 + O_imscoverage + X_hospaccess + offset(logE)
 fullData <- simulate_dummy8a_iliSum(path_list, parameterVec)
 
 mod <- inla(formula, family = "poisson", data = fullData,
