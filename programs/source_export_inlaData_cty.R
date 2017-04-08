@@ -49,7 +49,7 @@ plot_countyChoro <- function(exportPath, pltDat, pltVarTxt, code, zeroes){
       } else {
         breakList <- c(0, intervals$brks)
       }
-      breaks <- sort(c(0, breakList))
+      breaks <- sort(breakList) # 4/7/17 rm extra 0 from breakList
     } else{
       breaks <- c(intervals$brks)
     }

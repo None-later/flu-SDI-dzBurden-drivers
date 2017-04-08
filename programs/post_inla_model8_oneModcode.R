@@ -30,10 +30,11 @@ seasons <- c(3:9)
 # modCodeStrLs <- paste0(rep(c("8a_iliSum_v2-6_s6-", "8a_iliSum_v2-6_s4-", "8a_iliSum_v2-6_s2-"), 5), c(rep(5,3), rep(6,3), rep(7,3), rep(8,3), rep(9,3)))
 
 ## groupings for 8a v2 regions
-labLs <- c("1&2&3", "4&6", "5&7")
-modCodeStrLs <- paste0("8a_iliSum_v2-6_R", labLs)
+# labLs <- c("1&2&3", "4&6", "5&7")
+# modCodeStrLs <- paste0("8a_iliSum_v2-6_R", labLs)
 
 # modCodeStrLs <- paste0("8f_wksToEpi_v", 1:2, "-2")
+modCodeStrLs <- c("8a_iliSum_v2-6")
 
 likString <- "normal"; likStrings <- c(likString)
 source("source_calculate_residuals_shift1.R") # calculate_residuals function (source_calculate_residuals_shift1.R for iliSum; source_calculate_residuals.R for epiDur, wksToEpi)
@@ -84,9 +85,9 @@ for (i in 1:length(modCodeStrLs)){
   ### model fit ###
   if ("gamma" %in% likStrings | "normal" %in% likStrings | "poisson" %in% likStrings){
     # 1/8/17 only coded up for iliSum response
-    # # correlogram: Moran's I vs. distance
-    # path_plotExport_correlogram <- paste0(path_plotExport, sprintf("/diag_correlog_%s_%s", likString, modCodeStr))
-    # importPlot_correlogram(path_csvExport, path_plotExport_correlogram, path_list, likString)
+    # correlogram: Moran's I vs. distance
+    path_plotExport_correlogram <- paste0(path_plotExport, sprintf("/diag_correlog_%s_%s", likString, modCodeStr))
+    importPlot_correlogram(path_csvExport, path_plotExport_correlogram, path_list, likString)
 
     # scatter: predicted vs. observed data (yhat - nonzero) + 95%CI vs. y nonzero observed
     path_plotExport_predVsObs <- paste0(path_plotExport, sprintf("/diag_predVsObs_%s_%s.png", likString, modCodeStr))
@@ -203,11 +204,11 @@ for (i in 1:length(modCodeStrLs)){
 
         # choropleth: standardized residuals
         path_plotExport_resid_nz <- paste0(path_plotExport, sprintf("/choro_yResid_%s_S%s.png", modCodeStr, s))
-        plot_countyChoro(path_plotExport_resid_nz, mod_nz_fitted, "yhat_resid", "tier", TRUE)
+        plot_countyChoro(path_plotExport_resid_nz, mod_nz_fitted, "yhat_resid", "tier", FALSE)
 
         # # choropleth: raw residuals
         # path_plotExport_resid_nz2 <- paste0(path_plotExport, sprintf("/choro_yRawResid_%s_S%s.png", modCodeStr, s))
-        # plot_countyChoro(path_plotExport_resid_nz2, mod_nz_fitted, "yhat_rawresid", "tier", TRUE)
+        # plot_countyChoro(path_plotExport_resid_nz2, mod_nz_fitted, "yhat_rawresid", "tier", FALSE)
       }
 
     }
