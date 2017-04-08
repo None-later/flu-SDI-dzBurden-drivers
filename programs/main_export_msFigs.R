@@ -38,11 +38,11 @@ setwd(dirname(sys.frame(1)$ofile))
 ## PLOTS ##
 ###############################################################################
 ### SEASONAL INTENSITY - total population ###################
-obsFit_plotFormats_one <- list(w = 7, h = 3.5)
-choro_obsFit_seasIntensityRR_oneSeason("8a_iliSum_v2-6", obsFit_plotFormats_one, path_list)
+# obsFit_plotFormats_one <- list(w = 7, h = 3.5)
+# choro_obsFit_seasIntensityRR_oneSeason("8a_iliSum_v2-6", obsFit_plotFormats_one, path_list)
 
-obsFit_plotFormats_multi <- list(w = 4.25, h = 8, rmSeas = "2006-07", popCode = "")
-choro_obsFit_seasIntensityRR_multiSeason("8a_iliSum_v2-6", obsFit_plotFormats_multi, path_list)
+# obsFit_plotFormats_multi <- list(w = 4.25, h = 8, rmSeas = "2006-07", popCode = "")
+# choro_obsFit_seasIntensityRR_multiSeason("8a_iliSum_v2-6", obsFit_plotFormats_multi, path_list)
 
 # obsFit_plotFormats_scatter <- list(w = 6, h = 4)
 # scatter_obsFit_seasIntensityRR_multiSeason("8a_iliSum_v2-6", obsFit_plotFormats_scatter, path_list)
@@ -56,8 +56,8 @@ choro_obsFit_seasIntensityRR_multiSeason("8a_iliSum_v2-6", obsFit_plotFormats_mu
 
 ###############################################################################
 ### EPIDEMIC DURATION - total population ###################
-obsFit_plotFormats_multi_epiDur <- list(w = 4.25, h = 9, popCode = "")
-choro_obsFit_epiDuration_multiSeason("8e_epiDur_v2-3", obsFit_plotFormats_multi_epiDur, path_list)
+# obsFit_plotFormats_multi_epiDur <- list(w = 4.25, h = 9, popCode = "")
+# choro_obsFit_epiDuration_multiSeason("8e_epiDur_v2-3", obsFit_plotFormats_multi_epiDur, path_list)
 
 # obsFit_plotFormats_scatter <- list(w = 6, h = 4)
 # scatter_obsFit_epiDuration_multiSeason("8e_epiDur_v2-3", obsFit_plotFormats_scatter, path_list)
@@ -145,9 +145,9 @@ choro_obsFit_epiDuration_multiSeason("8e_epiDur_v2-3", obsFit_plotFormats_multi_
 
 ###############################################################################
 # ### DOT PLOTS - Region comparison ###################
-# regSeq_modCodeLs <- paste0("8a_iliSum_v2-6_R", c("1&2", 3:7, "8&9&10"))
-# regSeq_plotFormats <- list(w = 6, h = 5, lvls = regSeq_modCodeLs, labs = c("R1&2 Boston-New York", "R3 Philadelphia", "R4 Atlanta", "R5 Chicago", "R6 Dallas", "R7 Kansas City", "R8-10 Denver-SF-Seattle"), descrip = "regSeq")
-# dot_coefCompare(regSeq_modCodeLs, regSeq_plotFormats)
+regSeq_modCodeLs <- paste0("8a_iliSum_v2-6_R", c("1&2&3", "4&6", "5&7", "8&9&10"))
+regSeq_plotFormats <- list(w = 6, h = 5, lvls = regSeq_modCodeLs, labs = c("R1&2 BOS-NY-PHL", "R4&6 ATL-DAL", "R5&7 CHI-KS", "R8-10 DENV-SF-SEATT"), descrip = "regSeq")
+dot_coefCompare(regSeq_modCodeLs, regSeq_plotFormats)
 
 ###############################################################################
 # ### DOT PLOTS - Direct comparison ###################
@@ -191,6 +191,6 @@ choro_obsFit_epiDuration_multiSeason("8e_epiDur_v2-3", obsFit_plotFormats_multi_
 
 ###############################################################################
 ### BOXPLOTS - Raw predictor by region ###################
-bxp_plotFormats <- list(w = 6, h = 2)
-bxp_rawPredictors_region(path_list, bxp_plotFormats)
+# bxp_plotFormats <- list(w = 6, h = 2)
+# bxp_rawPredictors_region(path_list, bxp_plotFormats)
 
