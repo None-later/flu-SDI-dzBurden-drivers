@@ -1377,6 +1377,31 @@ model8a_iliSum_regions <- function(filepathList, regionList){
 }
 ################################
 
+model_8fV7_8aV7_diff <- function(filepathList){
+    # 4/8/17 covariates that are only in models 8f_v7 and not 8a_v7, for additional diagnostics in EDA_choro_inlaPredictors.R
+    print(match.call())
+    print(filepathList)
+
+    # list of continental states
+    statesOnly <- read_csv(filepathList$path_abbr_st, col_types = "__c", col_names = c("stateID"), skip = 1) 
+    continentalOnly <- statesOnly %>% filter(!(stateID %in% c("02", "15"))) %>% unlist
+
+    #### import data ####
+    narrSpecHum_cty_df <- cleanX_noaanarrSpecHum_wksToEpi_cty(filepathList)
+    wonderPollution_cty_df <- cleanX_wonderAirParticulateMatter_wksToEpi_cty(filepathList)
+
+    full_df <- full_join(narrSpecHum_cty_df, wonderPollution_cty_df, by = c("season", "fips")) %>%
+    mutate(fips_st = substring(fips, 1, 2)) %>%
+    mutate(X_humidity_8f = centerStandardize(humidity)) %>%
+    mutate(X_pollution_8f = centerStandardize(avg_pm)) %>%
+    filter(fips_st %in% continentalOnly) %>%
+    select(-humidity, -avg_pm) %>%
+    filter(season %in% 3:9) 
+
+    return(full_df)
+}
+################################
+
 #### functions for shapefile manipulation ################################
 read_shapefile_cty <- function(filepathList){
   # read & clean county shapefile

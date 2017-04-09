@@ -46,6 +46,7 @@ path_graphIdx_st <- paste0(getwd(), "/US_statePassenger_graph_index.csv")
 
 setwd("../../R_export")
 path_response_cty <- paste0(getwd(), sprintf("/dbMetrics_periodicReg%s_analyzeDB_cty.csv", dbCodeStr))
+path_fullIndic_cty <- paste0(getwd(), sprintf("/fullIndicAll_periodicReg%s_analyzeDB_cty.csv", dbCodeStr))
 
 # put all paths in a list to pass them around in functions
 path_list <- list(path_abbr_st = path_abbr_st,
@@ -55,10 +56,12 @@ path_list <- list(path_abbr_st = path_abbr_st,
                   path_response_cty = path_response_cty, 
                   path_graphIdx_cty = path_graphIdx_cty,
                   path_graphExport_st = path_graphExport_st,
-                  path_graphIdx_st = path_graphIdx_st)
+                  path_graphIdx_st = path_graphIdx_st,
+                  path_fullIndic_cty = path_fullIndic_cty)
 
 #### Import and process data ####
-modData <- model8a_iliSum_v7(path_list) # with driver & sampling effort variables
+# modData <- model8a_iliSum_v7(path_list) # with driver & sampling effort variables
+modData <- model_8fV7_8aV7_diff(path_list)
 
 #### export formatting ####
 # diagnostic plot export directories
@@ -113,7 +116,7 @@ plot_countyChoro_predictors <- function(exportPath, pltDat, pltVarTxt, code, zer
       } else {
         breakList <- c(0, intervals$brks)
       }
-      breaks <- sort(c(0, breakList))
+      breaks <- sort(breakList)
     } else{
       breaks <- c(intervals$brks)
     }
