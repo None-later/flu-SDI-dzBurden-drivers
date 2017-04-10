@@ -29,6 +29,7 @@ source("source_clean_data_functions.R") # functions to clean covariate data
 source("source_prepare_inlaData_cty.R") # functions to aggregate all data sources for model
 source("source_export_inlaData_cty.R") # functions to plot county-specific model diagnostics
 source("source_export_inlaDiagnostics.R")
+source("source_variableSelection_cty.R")
 
 #### FILEPATHS #################################
 setwd('../reference_data')
@@ -61,7 +62,9 @@ path_list <- list(path_abbr_st = path_abbr_st,
 
 #### Import and process data ####
 # modData <- model8a_iliSum_v7(path_list) # with driver & sampling effort variables
-modData <- model_8fV7_8aV7_diff(path_list)
+# modData <- model_8fV7_8aV7_diff(path_list)
+# modData <- prepare_allCov_iliSum_cty_raw(path_list)
+modData <- model_8fV7_8aV7_diff_raw(path_list)
 
 #### export formatting ####
 # diagnostic plot export directories
@@ -162,10 +165,10 @@ plot_countyChoro_predictors <- function(exportPath, pltDat, pltVarTxt, code, zer
 }
 
 #### Diagnostic plots ################################
-for (v in varnames){
-  path_choroDummy <- paste0(path_plotExport, "/choro_", v, "_allSeas_grad.png")
-  plot_countyChoro_predictors(path_choroDummy, modData3, v, "gradient", FALSE)
-}
+# for (v in varnames){
+#   path_choroDummy <- paste0(path_plotExport, "/choro_", v, "_allSeas_grad.png")
+#   plot_countyChoro_predictors(path_choroDummy, modData3, v, "gradient", FALSE)
+# }
 
 for (v in varnames){
   for (s in seasons){
@@ -176,3 +179,19 @@ for (v in varnames){
     plot_countyChoro(path_choroDummy_1seas, subData, v, "gradient", FALSE)
   }
 }
+
+#### Quantify variation of predictors ################################
+varDf <- modData2 %>%
+  filter(RV != "graphIdx_st") %>%
+  mutate(season = paste0("S", season)) %>%
+  group_by(RV, season) %>%
+  summarise(variance = var(predictor, na.rm = TRUE)) %>%
+  spread(season, variance) %>%
+  arrange(S3)
+
+varDf2 <- modData2 %>%
+  filter(RV != "graphIdx_st") %>%
+  mutate(season = paste0("S", season)) %>%
+  group_by(RV) %>%
+  summarise(variance = var(predictor, na.rm = TRUE)) %>%
+  arrange(variance)
