@@ -796,6 +796,7 @@ cleanX_multsrcSubtypeDistrStrainSim_reg <- function(){
     rowwise %>%
     mutate(estImmuneProp = prod(prevProp, strainSim, currProp)) %>%
     ungroup
+
   output <- dummy2 %>%
     group_by(year, region) %>%
     summarise(estImmuneProp = sum(estImmuneProp)) %>%
