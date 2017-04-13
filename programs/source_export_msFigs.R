@@ -1018,11 +1018,11 @@ dot_coefCompareReplicates <- function(baseCodeLs, pltFormats){
   plotOutput <- ggplot(plotDat, aes(x = RV, y = modCodeStr)) +
     geom_point(aes(colour = signif2, size = dotsize, alpha = dotalpha)) +
     geom_hline(yintercept = length(baseCodeLs)-0.5, size = 0.25) +
-    scale_colour_manual("Signif", values = c("-1" = "#ca0020", "1" = "#0571b0"), breaks = c("-1", "1"), labels = c("(-)", "(+)"), na.value = "white") +
+    scale_colour_manual("Signif.", values = c("-1" = "#ca0020", "1" = "#0571b0"), breaks = c("-1", "1"), labels = c("(-)", "(+)"), na.value = "white") +
     scale_size(trans = "exp") +
     scale_alpha("% Replicates", labels = rev(pltFormats$replabs), breaks = rev(pltFormats$replvls)) +
     scale_x_discrete(position = "top") +
-    guides(size = FALSE) +
+    guides(size = FALSE, colour = guide_legend(order=1)) +
     theme_bw() +
     theme(axis.title=element_blank(), axis.text.x=element_text(angle=45, vjust=1, hjust=0), axis.text=element_text(size=12), panel.grid = element_blank(), legend.position="right", legend.margin = margin(1,1,1,1, unit="pt"))
   ggsave(exportFname, plotOutput, height = h, width = w, dpi = dp)
@@ -1154,7 +1154,7 @@ dot_coefCompare <- function(modCodeLs, pltFormats){
   # plot
   plotOutput <- ggplot(plotDat, aes(x = RV, y = modCodeStr)) +
     geom_point(aes(colour = signif2, size = dotsize)) +
-    scale_colour_manual("Signif", values = c("-1" = "#ca0020", "1" = "#0571b0"), breaks = c("-1", "1"), labels = c("(-)", "(+)"), na.value = "white") +
+    scale_colour_manual("Signif.", values = c("-1" = "#ca0020", "1" = "#0571b0"), breaks = c("-1", "1"), labels = c("(-)", "(+)"), na.value = "white") +
     scale_size(trans = "exp") +
     scale_x_discrete(position = "top") +
     guides(size = FALSE) +
