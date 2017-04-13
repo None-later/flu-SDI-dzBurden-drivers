@@ -16,7 +16,7 @@ require(dplyr); require(tidyr); require(readr) # clean_data_functions dependenci
 require(RColorBrewer); require(ggplot2)
 
 #### set these! ################################
-agecode <- "_adult"
+agecode <- ""
 dbCodeStr <- sprintf("_ilinDt_Octfit%s_span0.4_degree2", agecode)
 rCode <- "iliSum" # epiDur, iliSum
 seasons <- 3:9
@@ -67,7 +67,7 @@ path_list <- list(path_abbr_st = path_abbr_st,
 
 setwd(dirname(sys.frame(1)$ofile))
 setwd("../graph_outputs")
-path_pltExport <- paste0(getwd(), "/VS_analysisSuite_iliSum_cty")
+path_pltExport <- paste0(getwd(), "/VS_analysisSuite_iliSum_cty_iid")
 
 #### PLOT FORMATTING ################################
 w <- 7.5; h <- 7.5; dp <- 300
@@ -81,9 +81,9 @@ if("loadData" %in% analysesOn){
   
   # load data frame with all available cleaned variables
   # allDat <- prepare_allCov_iliSum_cty(path_list) # VS all variables
-  # allDat <- model8a_iliSum_v7(path_list) # total pop data
+  allDat <- model8a_iliSum_v7(path_list) # total pop data
   # allDat <- model8a_iliSum_v3(path_list) # child pop data
-  allDat <- model8a_iliSum_v4(path_list) # adult pop data
+  # allDat <- model8a_iliSum_v4(path_list) # adult pop data
   # allDat <- model8e_epiDur_v7(path_list)
   summary(allDat)
   
@@ -137,7 +137,7 @@ if("singleVarWrite" %in% analysesOn){
     # loop through all variables and seasons
     for (varInterest in varlist){
       modDat[['varInterest']] <- modDat[[varInterest]]
-      coefRow <- model_singleVariable_inla(modDat, rCode, s, varInterest) # N.B. model includes intercept
+      coefRow <- model_singleVariable_inla_iid(modDat, rCode, s, varInterest) # N.B. model includes intercept
       # append to model data object
       coefDat <- bind_rows(coefDat, coefRow)
     } # end for varlist
