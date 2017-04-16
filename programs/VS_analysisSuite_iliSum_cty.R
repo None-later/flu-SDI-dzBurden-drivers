@@ -67,7 +67,7 @@ path_list <- list(path_abbr_st = path_abbr_st,
 
 setwd(dirname(sys.frame(1)$ofile))
 setwd("../graph_outputs")
-path_pltExport <- paste0(getwd(), "/VS_analysisSuite_iliSum_cty_iid")
+path_pltExport <- paste0(getwd(), "/VS_analysisSuite_iliSum_cty_noSeas")
 
 #### PLOT FORMATTING ################################
 w <- 7.5; h <- 7.5; dp <- 300
@@ -137,7 +137,7 @@ if("singleVarWrite" %in% analysesOn){
     # loop through all variables and seasons
     for (varInterest in varlist){
       modDat[['varInterest']] <- modDat[[varInterest]]
-      coefRow <- model_singleVariable_inla_iid(modDat, rCode, s, varInterest) # N.B. model includes intercept
+      coefRow <- model_singleVariable_inla_noSeas(modDat, rCode, s, varInterest) # N.B. model includes intercept
       # append to model data object
       coefDat <- bind_rows(coefDat, coefRow)
     } # end for varlist
