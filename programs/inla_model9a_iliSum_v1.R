@@ -45,6 +45,10 @@ path_adjMxExport_cty <- paste0(getwd(), "/US_county_adjacency.graph")
 path_graphIdx_cty <- paste0(getwd(), "/US_county_graph_index.csv")
 path_shape_cty <- paste0(getwd(), "/gz_2010_us_050_00_500k") # for dbf metadata only
 
+setwd('../stateFlightpassenger_graph')
+path_graphExport_st <- paste0(getwd(), "/US_statePassenger_edgelist.txt")
+path_graphIdx_st <- paste0(getwd(), "/US_statePassenger_graph_index.csv")
+
 setwd("../../R_export")
 path_response_cty <- paste0(getwd(), sprintf("/dbMetrics_periodicReg%s_analyzeDB_cty.csv", dbCodeStr))
 
@@ -54,7 +58,9 @@ path_list <- list(path_abbr_st = path_abbr_st,
                   path_shape_cty = path_shape_cty,
                   path_adjMxExport_cty = path_adjMxExport_cty,
                   path_response_cty = path_response_cty, 
-                  path_graphIdx_cty = path_graphIdx_cty)
+                  path_graphIdx_cty = path_graphIdx_cty,
+                  path_graphExport_st = path_graphExport_st,
+                  path_graphIdx_st = path_graphIdx_st)
 
 
 #### MAIN #################################
