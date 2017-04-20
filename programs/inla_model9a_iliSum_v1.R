@@ -20,7 +20,7 @@ require(RColorBrewer); require(ggplot2) # export_inlaData_st dependencies
 
 #### set these! ################################
 dbCodeStr <- "_ilinDt_Octfit_span0.4_degree2"
-modCodeStr <- "9a_iliSum_v1-2"; testDataOn <- FALSE
+modCodeStr <- "9a_iliSum_v1-3"; testDataOn <- FALSE
 seasons <- 3:9
 rdmFx_RV <- "nu"
 likString <- "normal"
@@ -69,17 +69,13 @@ if (testDataOn){
     intercept_nonzero + O_imscoverage_nonzero + O_careseek_nonzero + X_poverty_nonzero + X_H3_nonzero + offset(logE_nonzero)
 } else{
 #### Import and process data ####
-  modData <- model8a_iliSum_v2(path_list) 
-    #%>%
-    # remove_randomObs_stratifySeas(0.4)
+  modData <- model9a_iliSum_v7(path_list) 
   
   formula <- Y ~ -1 + 
-    f(ID_nonzero, model = "iid") +
     f(fips_nonzero, model = "iid") + 
-    # f(graphIdx_nonzero, model = "besag", graph = path_adjMxExport_cty) +
     f(fips_st_nonzero, model = "iid") + 
     f(regionID_nonzero, model = "iid") + 
-    intercept_nonzero + O_imscoverage_nonzero + O_careseek_nonzero + O_insured_nonzero + O_imscoverage_nonzero*O_careseek_nonzero + X_poverty_nonzero + X_child_nonzero + X_adult_nonzero + X_hospaccess_nonzero + X_popdensity_nonzero + X_housdensity_nonzero + X_vaxcovI_nonzero + X_vaxcovE_nonzero + X_H3A_nonzero + X_B_nonzero + X_priorImmunity_nonzero + X_humidity_nonzero + X_pollution_nonzero + X_singlePersonHH_nonzero + X_H3A_nonzero*X_adult_nonzero + X_B_nonzero*X_child_nonzero + offset(logE_nonzero)
+    intercept_nonzero + O_imscoverage_nonzero + O_careseek_nonzero + O_insured_nonzero + X_poverty_nonzero + X_child_nonzero + X_adult_nonzero + X_hospaccess_nonzero + X_popdensity_nonzero + X_housdensity_nonzero + X_vaxcovI_nonzero + X_vaxcovE_nonzero + X_H3A_nonzero + X_B_nonzero + X_priorImmunity_nonzero + X_humidity_nonzero + X_pollution_nonzero + X_singlePersonHH_nonzero + X_H3A_nonzero*X_adult_nonzero + X_B_nonzero*X_child_nonzero + offset(logE_nonzero)
 }
  
 
@@ -109,23 +105,6 @@ for (i in 1:length(seasons)){
   modData_full <- modData %>% filter(season == s) 
   modData_hurdle <- convert_hurdleModel_nz_spatiotemporal(modData_full)
   
-  starting3 <- inla(formula, 
-                    family = "gaussian", 
-                    data = modData_hurdle, 
-                    control.fixed = list(mean = 0, prec = 1/100), # set prior parameters for regression coefficients
-                    control.predictor = list(compute = TRUE, link = rep(1, nrow(modData_full))), 
-                    control.inla = list(correct = TRUE, correct.factor = 10, diagonal = 10, strategy = "gaussian", int.strategy = "eb"), # http://www.r-inla.org/events/newfeaturesinr-inlaapril2015; http://www.r-inla.org/?place=msg%2Fr-inla-discussion-group%2Fuf2ZGh4jmWc%2FA0rdPE5W7uMJ
-                    verbose = TRUE)
-  
-  starting4 <- inla(formula, 
-                    family = "gaussian", 
-                    data = modData_hurdle, 
-                    control.fixed = list(mean = 0, prec = 1/100), # set prior parameters for regression coefficients
-                    control.predictor = list(compute = TRUE, link = rep(1, nrow(modData_full))), # compute summary statistics on fitted values, link designates that NA responses are calculated according to the first likelihood for the first (nrow(modData_full)) rows & the second likelihood for the second (nrow(modData_full)) rows
-                    control.inla = list(correct = TRUE, correct.factor = 10, diagonal = 1, strategy = "gaussian", int.strategy = "eb"), # http://www.r-inla.org/events/newfeaturesinr-inlaapril2015; http://www.r-inla.org/?place=msg%2Fr-inla-discussion-group%2Fuf2ZGh4jmWc%2FA0rdPE5W7uMJ
-                    control.mode = list(result = starting3, restart = TRUE),
-                    verbose = TRUE)
-  
   mod <- inla(formula, 
               family = "gaussian", 
               data = modData_hurdle, 
@@ -134,7 +113,6 @@ for (i in 1:length(seasons)){
               control.predictor = list(compute = TRUE, link = rep(1, nrow(modData_full))), # compute summary statistics on fitted values, link designates that NA responses are calculated according to the first likelihood
               control.compute = list(dic = TRUE, cpo = TRUE),
               control.inla = list(correct = TRUE, correct.factor = 10, diagonal = 0, tolerance = 1e-6),
-              control.mode = list(result = starting4, restart = TRUE),
               verbose = TRUE,
               keep = TRUE, debug = TRUE) 
   
