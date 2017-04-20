@@ -215,6 +215,38 @@ model_singleVariable_inla_noSt <- function(mod_df, respCode, s, covariate){
 }
 ################################
 
+model_singleVariable_inla_noRdm <- function(mod_df, respCode, s, covariate){
+  # inla model for single response and covariate, output fixed effect coeff, rm random effects except error term
+  print(match.call())
+  
+  formula <- Y ~ -1 +
+    f(ID_nonzero, model = "iid") +
+    intercept_nonzero + varInterest + offset(logE_nonzero)
+  
+  
+  mod <- inla(formula, family = "gaussian", data = mod_df, 
+              control.fixed = list(mean = 0, prec = 1/100), # set prior parameters for regression coefficients
+              control.predictor = list(compute = TRUE),
+              control.compute = list(dic = TRUE, cpo = TRUE),
+              control.inla = list(correct = TRUE, correct.factor = 10, diagonal = 0, tolerance = 1e-8), # http://www.r-inla.org/events/newfeaturesinr-inlaapril2015
+              # control.mode = list(result = starting3, restart = TRUE),
+              verbose = TRUE,
+              keep = TRUE) 
+  
+  names(mod$summary.fixed) <- c("mean", "sd", "q_025", "q_5", "q_975", "mode", "kld")
+  modOutput <- tbl_df(mod$summary.fixed) %>%
+    mutate(RV = rownames(mod$summary.fixed)) %>%
+    filter(RV == "varInterest") %>%
+    mutate(LB = (mean-2*sd), UB = (mean+2*sd)) %>%
+    select(RV, mean, sd, LB, UB) 
+  
+  # data to save
+  coefRow <- list(respCode = respCode, RV = covariate, exportDate = as.character(Sys.Date()), mean = modOutput$mean, sd = modOutput$sd, LB = modOutput$LB, UB = modOutput$UB, DIC = mod$dic$dic)
+  
+  return(coefRow)
+}
+################################
+
 #### functions for single variable coef plotting ################################
 plot_singleVarCoef <- function(coefDat){
   # plot all coef modes, Q.025 - Q0.975 over time
