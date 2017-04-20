@@ -20,7 +20,7 @@ require(RColorBrewer); require(ggplot2) # export_inlaData_st dependencies
 
 #### set these! ################################
 dbCodeStr <- "_ilinDt_Octfit_span0.4_degree2"
-modCodeStr <- "9a_iliSum_v1-3"; testDataOn <- FALSE
+modCodeStr <- "9a_iliSum_v1-6"; testDataOn <- FALSE
 seasons <- 3:9
 rdmFx_RV <- "nu"
 likString <- "normal"
@@ -70,7 +70,7 @@ if (testDataOn){
   # testing module formula
   formula <- Y ~ -1 + 
     f(fips_nonzero, model = "iid") + 
-    f(fips_st_nonzero, model = "iid") + 
+    f(fips_st_nonzero, model = "iid") +
     f(regionID_nonzero, model = "iid") + 
     intercept_nonzero + O_imscoverage_nonzero + O_careseek_nonzero + X_poverty_nonzero + X_H3_nonzero + offset(logE_nonzero)
 } else{
@@ -79,8 +79,8 @@ if (testDataOn){
   
   formula <- Y ~ -1 + 
     f(fips_nonzero, model = "iid") + 
-    f(fips_st_nonzero, model = "iid") + 
-    f(regionID_nonzero, model = "iid") + 
+    # f(fips_st_nonzero, model = "iid") +
+    # f(regionID_nonzero, model = "iid") + 
     intercept_nonzero + O_imscoverage_nonzero + O_careseek_nonzero + O_insured_nonzero + X_poverty_nonzero + X_child_nonzero + X_adult_nonzero + X_hospaccess_nonzero + X_popdensity_nonzero + X_housdensity_nonzero + X_vaxcovI_nonzero + X_vaxcovE_nonzero + X_H3A_nonzero + X_B_nonzero + X_priorImmunity_nonzero + X_humidity_nonzero + X_pollution_nonzero + X_singlePersonHH_nonzero + X_H3A_nonzero*X_adult_nonzero + X_B_nonzero*X_child_nonzero + offset(logE_nonzero)
 }
  
