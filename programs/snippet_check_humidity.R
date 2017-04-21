@@ -65,7 +65,7 @@ path_list <- list(path_abbr_st = path_abbr_st,
 #### Import and process data ####
 modDat <- model8a_iliSum_v7(path_list)
 
-cor(modDat$y1, modDat$X_humidity)
+cor(modDat$y1, modDat$X_humidity, use="complete.obs")
 
 
 
