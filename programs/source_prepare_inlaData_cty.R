@@ -1023,7 +1023,7 @@ model9a_iliSum_2009p_v7 <- function(filepathList){
   
   #### import data ####
   # IMS Health based tables
-  mod_cty_df <- cleanR_iliSum_shift1_cty(filepathList)
+  mod_cty_df <- cleanR_iliSum_2009p_shift1_cty(filepathList) 
   imsCov_cty_df <- cleanO_imsCoverage_cty()
   imsCareseek_cty_df <- cleanO_imsCareseekTot_cty() # 1/5/17 visitsPerPop from sdi flu data
   # all county tables
@@ -1094,7 +1094,8 @@ model9a_iliSum_2009p_v7 <- function(filepathList){
     filter(!is.na(graphIdx_st)) %>% # rm data not in graph
     mutate(logE = log(E), y1 = log(y1)) %>% # model response y1 = log(y+1)
     select(-stateID, -adjProviderCoverage, -visitsPerPopT, -insured, -poverty, -child, -adult, -hospitalAccess, -popDensity, -housDensity, -infantAnyVax, -elderlyAnyVax, -prop_H3_a, -prop_b_all, -protectionPrevSeason, -humidity, -avg_pm, -perc_hh_1p) %>%
-    filter(season %in% 3:10) %>%
+    filter(season == 9) %>%
+    mutate(season = 10) %>%
     mutate(ID = seq_along(fips))
   
   return(full_df)

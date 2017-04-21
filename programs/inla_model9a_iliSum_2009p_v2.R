@@ -69,7 +69,6 @@ modData <- model9a_iliSum_2009p_v7(path_list)
 # remove_randomObs_stratifySeas(0.4)
 
 formula <- Y ~ -1 + 
-  f(ID_nonzero, model = "iid") +
   f(fips_nonzero, model = "iid") + 
   f(graphIdx_nonzero, model = "besag", graph = path_adjMxExport_cty) +
   f(fips_st_nonzero, model = "iid") + 
