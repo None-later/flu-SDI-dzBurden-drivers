@@ -11,7 +11,8 @@
 ## Notes: code2 = 'Octfit' --> October to April is flu period, but we fit the seasonal regression from April to October (i.e., expanded definition of summer) in order to improve phase of regression fits
 ## 52.18 weeks per year in the regression model
 ## 8/16/16 - forked from write_loess_fits_ILIn.R, separate downscaling procedure for ILIn (zip3 to county)
-## flu.week: Nov through Apr; fit.week: Apr through Oct
+## 4/23/17 - change definition of fit.week for 2009p (don't fit data that captures the pandemic)
+## flu.week: Nov through Apr; fit.week: Apr through Oct prior to 2009
 
 ## useful commands:
 ## install.packages("pkg", dependencies=TRUE, lib="/usr/local/lib/R/site-library") # in sudo R
@@ -45,8 +46,9 @@ write_loess_fits_ILIn <- function(span.var, degree.var, spatial){
   
   # import zip3 data
   zipILI_df <- read_csv(sprintf('ilicByallZip3_allWeekly%s%s.csv', spatial$serv, spatial$age), col_types = list(zip3 = col_character(), ili = col_integer(), pop = col_integer(), cov_z.y = col_double(), alpha_z.y = col_double(), ILIc = col_double(), cov_below5 = col_logical())) %>%
-    select(week, Thu.week, year, month, flu.week, t, fit.week, zip3, ili, pop) %>%
-    mutate(ILIn = ili/pop*10000)
+    select(week, Thu.week, year, month, flu.week, t, zip3, ili, pop) %>%
+    mutate(ILIn = ili/pop*10000) %>%
+    mutate(fit.week = (month >= 4 & month <= 10 & year < 2009)) # 4/23/17: specific to 2009p code
   
   #### data cleaning ####################################
   # use population-weighted proportions to convert zip3 ILIn data to county
@@ -61,22 +63,8 @@ write_loess_fits_ILIn <- function(span.var, degree.var, spatial){
     select(week, Thu.week, year, month, flu.week, t, fit.week, fips, ILIn, pop, ili) %>%
     mutate(incl.lm = ifelse(is.na(pop) | is.na(ILIn), FALSE, TRUE)) %>%
     rename(scale = fips) %>%
-    filter(!is.na(scale)) #%>% # it appears that there are 496 scale NAs that are generated
-#     mutate(ili = ifelse(ili < 1, 0, ili)) %>% # 8/17/16 `dataprocessing_backcalculateILI_ili1'
-#     mutate(ILIn = ili/pop*100000)
+    filter(!is.na(scale)) 
   
-#   # 8/17/16 `dataprocessing_backcalculateILI_ili1'
-#   # change incl.lm to FALSE for counties with more than 300 weeks where ili=0
-#   rmcty<- ilic_df %>%
-#     mutate(zero = ifelse(ili == 0, 1, 0)) %>%
-#     group_by(scale) %>%
-#     summarise(zeros = sum(zero)) %>%
-#     mutate(rm = ifelse(zeros >= 300, TRUE, FALSE)) 
-#   ilic_df2 <- ilic_df %>%
-#     full_join(rmcty, by = "scale") %>%
-#     mutate(incl.lm = ifelse(rm==TRUE, FALSE, incl.lm)) %>%
-#     select(-zeros, -rm)
-
   # create new data for augment
   newbasedata <- ilic_df2 %>% select(Thu.week, t) %>% unique %>% filter(Thu.week < as.Date('2010-05-01')) 
   

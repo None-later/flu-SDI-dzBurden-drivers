@@ -65,27 +65,36 @@ write_fullIndic_periodicReg_ilinDt <- function(span.var, degree.var, spatial){
   }
   
   # 1) add ISO week numbers; 2) 4/19/17 add pandemic season numbers where season begins in July (reg season begins Oct); 3) 4/19/17 assign 2009p flu.week from August through January TRUE
-  data2 <- data %>% mutate(wknum = as.numeric(substr.Right(ISOweek(Thu.week), 2))) %>% mutate(season = ifelse(wknum<28, as.integer(substr(Thu.week, 3, 4)), as.integer(substr(Thu.week, 3, 4))+1)) %>% mutate(pflu.week = ifelse((month >= 8 | month <= 1), TRUE, FALSE))
+  data2 <- data %>% 
+    mutate(wknum = as.numeric(substr.Right(ISOweek(Thu.week), 2))) %>% 
+    mutate(season = ifelse(wknum<40, as.integer(substr(Thu.week, 3, 4)), as.integer(substr(Thu.week, 3, 4))+1)) %>% 
+    mutate(pseason = ifelse(wknum<28, as.integer(substr(Thu.week, 3, 4)), as.integer(substr(Thu.week, 3, 4))+1)) %>% 
+    mutate(pflu.week = ifelse((month >= 8 | month <= 1), TRUE, FALSE))
   
   # 1) include only zip3s where lm was performed; 2) set .fitted + 1.96*.se.fit as the epidemic threshold; 3) identify which weeks are epi weeks
   # 8/20/16 if ILIn >= .fitted (incl.lm2), epi.thresh = 0 and epi.week = FALSE
-  data3 <- data2 %>% filter(incl.lm) %>% mutate(epi.thresh = ifelse(incl.lm2, .fitted+(1.96*.se.fit), 0)) %>% mutate(epi.week = ilin.dt>epi.thresh)
+  data3 <- data2 %>% 
+    filter(incl.lm) %>% 
+    mutate(epi.thresh = ifelse(incl.lm2, .fitted+(1.96*.se.fit), 0)) %>% 
+    mutate(epi.week = ilin.dt>epi.thresh)
 
-  
-  ## See explore_fluSeasonDefinition_IR.R for derivation of flu season definition
-  # 9/15/15: filter out cty-season combinations with equivalent or more ILI activity in the previous non-flu season than flu season (season 1 will use subsequent non-flu season)
+  # 4/23/17: flu.week for pre-pandemic onset estimation
+  dummy.flupre09 <- data3 %>% filter(flu.week & season < 10) %>% group_by(season, scale) %>% summarise(consec.flu.epiweeks = rle.func(epi.week)) %>% ungroup
   # 4/19/17: pflu.week for pandemic onset estimation
-  dummy.flu <- data3 %>% filter(pflu.week) %>% group_by(season, scale) %>% summarise(consec.flu.epiweeks = rle.func(epi.week)) %>% ungroup
+  dummy.flu2009 <- data3 %>% filter(pflu.week & pseason == 10) %>% group_by(pseason, scale) %>% summarise(consec.flu.epiweeks = rle.func(epi.week)) %>% ungroup
 
   # summarize season-zip3 combinations that have epidemics (num.weeks+ consecutive epidemic weeks)
   # 4/19/17: incl.analysis is all TRUE for pandemic version
-  zip3s_with_epi <- dummy.flu %>% mutate(incl.analysis = TRUE) %>% mutate(has.epi = (consec.flu.epiweeks>=num.weeks))
-  
+  zip3s_with_epi <- bind_rows(dummy.flupre09, dummy.flu2009) %>% mutate(incl.analysis = TRUE) %>% mutate(has.epi = (consec.flu.epiweeks>=num.weeks))
+
   # join summary data to full dataset (adds has.epi and incl.analysis indicators)
   data4 <- right_join(data3, zip3s_with_epi %>% select(-contains("consec.")), by=c("season", "scale"))
   # 9/15/15: in.season indicator: must meet pflu.week, has.epi, incl.analysis, and consecutive epi.week criteria (FLU PERIOD DATA ONLY)
-  data5 <- data4 %>% filter(pflu.week & has.epi & incl.analysis) %>% group_by(season, scale) %>% mutate(in.season = consider.flu.season(epi.week))
-  data6 <- left_join(data4, (data5 %>% ungroup %>% select(Thu.week, scale, in.season)), by = c("Thu.week", "scale")) %>% mutate(Thu.week=as.Date(Thu.week, origin="1970-01-01")) # rm filter(incl.analysis)
+  data5.pre09 <- data4 %>% filter(flu.week & has.epi & incl.analysis & season < 10) %>% group_by(season, scale) %>% mutate(in.season = consider.flu.season(epi.week)) %>% ungroup
+  data5.09 <- data4 %>% filter(pflu.week & has.epi & incl.analysis & season == 10) %>% group_by(season, scale) %>% mutate(in.season = consider.flu.season(epi.week)) %>% ungroup
+  data5 <- bind_rows(data5.pre09, data5.09)
+  
+  data6 <- left_join(data4, (data5 %>% select(Thu.week, scale, in.season)), by = c("Thu.week", "scale")) %>% mutate(Thu.week=as.Date(Thu.week, origin="1970-01-01")) # rm filter(incl.analysis)
   
   # rename variable "scale" to zip3 or state
   data5_write <- scaleRename(spatial$scale, data5)
