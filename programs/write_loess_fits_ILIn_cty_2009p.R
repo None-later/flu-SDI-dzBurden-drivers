@@ -31,10 +31,10 @@ write_loess_fits_ILIn <- function(span.var, degree.var, spatial){
   source("source_clean_response_functions_cty.R")
   
   #### set these! ################################
-#     # uncomment when running script separately
-#     spatial <- list(scale = "county", stringcode = "County", stringabbr = "_cty", serv = "_totServ", servToggle = "", age = "_totAge", ageToggle = "", panToggle = "_2009p") 
-#     span.var <- 0.4 # 0.4, 0.6
-#     degree.var <- 2
+    # # uncomment when running script separately
+    # spatial <- list(scale = "county", stringcode = "County", stringabbr = "_cty", serv = "_totServ", servToggle = "", age = "_totAge", ageToggle = "", panToggle = "_2009p")
+    # span.var <- 0.4 # 0.4, 0.6
+    # degree.var <- 2
   code.str <- sprintf('_span%s_degree%s', span.var, degree.var)
   
   #### import data ####################################
@@ -48,7 +48,7 @@ write_loess_fits_ILIn <- function(span.var, degree.var, spatial){
   zipILI_df <- read_csv(sprintf('ilicByallZip3_allWeekly%s%s.csv', spatial$serv, spatial$age), col_types = list(zip3 = col_character(), ili = col_integer(), pop = col_integer(), cov_z.y = col_double(), alpha_z.y = col_double(), ILIc = col_double(), cov_below5 = col_logical())) %>%
     select(week, Thu.week, year, month, flu.week, t, zip3, ili, pop) %>%
     mutate(ILIn = ili/pop*10000) %>%
-    mutate(fit.week = (month >= 4 & month <= 10 & year < 2009)) # 4/23/17: specific to 2009p code
+    mutate(fit.week = (month >= 4 & month <= 10 & year < 2009)|(month >= 2 & year == 2010)) # 4/23/17: specific to 2009p code
   
   #### data cleaning ####################################
   # use population-weighted proportions to convert zip3 ILIn data to county
@@ -66,23 +66,23 @@ write_loess_fits_ILIn <- function(span.var, degree.var, spatial){
     filter(!is.na(scale)) 
   
   # create new data for augment
-  newbasedata <- ilic_df2 %>% select(Thu.week, t) %>% unique %>% filter(Thu.week < as.Date('2010-05-01')) 
+  newbasedata <- ilic_df2 %>% distinct(Thu.week, t) %>% filter(Thu.week < as.Date('2010-05-01')) 
   
   #### perform loess regression ####################################
   allLoessMods <- ilic_df2 %>%
-    filter(fit.week) %>% 
-    filter(Thu.week < as.Date('2010-05-01')) %>% 
+    filter(fit.week) %>%
+    filter(Thu.week < as.Date('2010-05-01')) %>%
     filter(incl.lm) %>%
     group_by(scale) %>%
     do(fitCty = loess(ILIn ~ t, span = span.var, degree = degree.var, data = ., na.action=na.exclude))
-    
+
   allLoessMods_aug <- augment(allLoessMods, fitCty, newdata = newbasedata)
  
   # after augment - join ILI data to fits
   # 7/18/16 incl.lm2 == .fitted>0
-  allLoessMods_fit_ILI <- right_join((allLoessMods_aug %>% ungroup %>% select(-t)), (ilic_df2 %>% filter(Thu.week < as.Date('2010-05-01'))), by=c('Thu.week', 'scale')) %>% 
-    mutate(week=as.Date(week, origin="1970-01-01")) %>% 
-    mutate(Thu.week=as.Date(Thu.week, origin="1970-01-01")) %>% 
+  allLoessMods_fit_ILI <- right_join((allLoessMods_aug %>% ungroup %>% select(-t)), (ilic_df2 %>% filter(Thu.week < as.Date('2010-05-01'))), by=c('Thu.week', 'scale')) %>%
+    mutate(week=as.Date(week, origin="1970-01-01")) %>%
+    mutate(Thu.week=as.Date(Thu.week, origin="1970-01-01")) %>%
     mutate(incl.lm2 = ifelse(ILIn >= .fitted, TRUE, FALSE)) %>%
     mutate(ilin.dt = ifelse(incl.lm2, ILIn-.fitted, 0)) # 8/16/16 update: convert value to 0 if !incl.lm2; 7/28/16: don't make any change to detrending based on incl.lm2
   
@@ -90,11 +90,11 @@ write_loess_fits_ILIn <- function(span.var, degree.var, spatial){
   #### write data to file ####################################
   print('writing loess fits')
   setwd('../R_export')
-  
+
   # rename scale variable
-  allLoessMods_fit_ILI2 <- scaleRename(spatial$scale, allLoessMods_fit_ILI) 
-  
-  # write fitted and original loess smoothed ILI data 
+  allLoessMods_fit_ILI2 <- scaleRename(spatial$scale, allLoessMods_fit_ILI)
+
+  # write fitted and original loess smoothed ILI data
   write.csv(allLoessMods_fit_ILI2, file=sprintf('loess%s_all%sMods_ILIn%s%s%s.csv', code.str, spatial$stringcode, spatial$servToggle, spatial$ageToggle, spatial$panToggle), row.names=FALSE)
 
 }

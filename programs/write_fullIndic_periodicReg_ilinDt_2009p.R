@@ -12,7 +12,7 @@
 ## useful commands:
 ## install.packages("pkg", dependencies=TRUE, lib="/usr/local/lib/R/site-library") # in sudo R
 ## update.packages(lib.loc = "/usr/local/lib/R/site-library")
-# 
+
 write_fullIndic_periodicReg_ilinDt <- function(span.var, degree.var, spatial){
   print(deparse(sys.call()))
   
@@ -48,10 +48,10 @@ write_fullIndic_periodicReg_ilinDt <- function(span.var, degree.var, spatial){
   code <-"" # linear time trend term
   code2 <- "_Octfit"
   
-#   # uncomment when running script separately
-#   spatial <- list(scale = "zip3", stringcode = "Zip3", stringabbr = "", serv = "_emergency", servToggle = "_emergency", age = "_totAge", ageToggle = "")
-#   span.var <- 0.4 # 0.4, 0.6
-#   degree.var <- 2
+  # # uncomment when running script separately
+  # spatial <- list(scale = "county", stringcode = "County", stringabbr = "", serv = "_totServ", servToggle = "", age = "_totAge", ageToggle = "", panToggle = "_2009p")
+  # span.var <- 0.4 # 0.4, 0.6
+  # degree.var <- 2
   
   code.str <- sprintf('_span%s_degree%s', span.var, degree.var)
   
@@ -69,7 +69,7 @@ write_fullIndic_periodicReg_ilinDt <- function(span.var, degree.var, spatial){
     mutate(wknum = as.numeric(substr.Right(ISOweek(Thu.week), 2))) %>% 
     mutate(season = ifelse(wknum<40, as.integer(substr(Thu.week, 3, 4)), as.integer(substr(Thu.week, 3, 4))+1)) %>% 
     mutate(pseason = ifelse(wknum<28, as.integer(substr(Thu.week, 3, 4)), as.integer(substr(Thu.week, 3, 4))+1)) %>% 
-    mutate(pflu.week = ifelse((month >= 8 | month <= 1), TRUE, FALSE))
+    mutate(pflu.week =(month >= 8 | month <= 1))
   
   # 1) include only zip3s where lm was performed; 2) set .fitted + 1.96*.se.fit as the epidemic threshold; 3) identify which weeks are epi weeks
   # 8/20/16 if ILIn >= .fitted (incl.lm2), epi.thresh = 0 and epi.week = FALSE
@@ -81,7 +81,7 @@ write_fullIndic_periodicReg_ilinDt <- function(span.var, degree.var, spatial){
   # 4/23/17: flu.week for pre-pandemic onset estimation
   dummy.flupre09 <- data3 %>% filter(flu.week & season < 10) %>% group_by(season, scale) %>% summarise(consec.flu.epiweeks = rle.func(epi.week)) %>% ungroup
   # 4/19/17: pflu.week for pandemic onset estimation
-  dummy.flu2009 <- data3 %>% filter(pflu.week & pseason == 10) %>% group_by(pseason, scale) %>% summarise(consec.flu.epiweeks = rle.func(epi.week)) %>% ungroup
+  dummy.flu2009 <- data3 %>% filter(pflu.week & pseason == 10) %>% group_by(pseason, scale) %>% summarise(consec.flu.epiweeks = rle.func(epi.week)) %>% ungroup %>% rename(season = pseason)
 
   # summarize season-zip3 combinations that have epidemics (num.weeks+ consecutive epidemic weeks)
   # 4/19/17: incl.analysis is all TRUE for pandemic version
@@ -91,21 +91,22 @@ write_fullIndic_periodicReg_ilinDt <- function(span.var, degree.var, spatial){
   data4 <- right_join(data3, zip3s_with_epi %>% select(-contains("consec.")), by=c("season", "scale"))
   # 9/15/15: in.season indicator: must meet pflu.week, has.epi, incl.analysis, and consecutive epi.week criteria (FLU PERIOD DATA ONLY)
   data5.pre09 <- data4 %>% filter(flu.week & has.epi & incl.analysis & season < 10) %>% group_by(season, scale) %>% mutate(in.season = consider.flu.season(epi.week)) %>% ungroup
-  data5.09 <- data4 %>% filter(pflu.week & has.epi & incl.analysis & season == 10) %>% group_by(season, scale) %>% mutate(in.season = consider.flu.season(epi.week)) %>% ungroup
+  
+  data5.09 <- data4 %>% filter(pflu.week & has.epi & incl.analysis & pseason == 10) %>% group_by(pseason, scale) %>% mutate(in.season = consider.flu.season(epi.week)) %>% ungroup
   data5 <- bind_rows(data5.pre09, data5.09)
-  
+
   data6 <- left_join(data4, (data5 %>% select(Thu.week, scale, in.season)), by = c("Thu.week", "scale")) %>% mutate(Thu.week=as.Date(Thu.week, origin="1970-01-01")) # rm filter(incl.analysis)
-  
+
   # rename variable "scale" to zip3 or state
   data5_write <- scaleRename(spatial$scale, data5)
   data6_write <- scaleRename(spatial$scale, data6)
-  
-  # save to file 
+
+  # save to file
   print(sprintf('writing full indicators to file %s', code.str))
   # these data are used in "write_relativeDiseaseBurden_ilinDt.R" for further processing of disease burden metrics
   write.csv(data5_write, file = sprintf('fullIndicFlu_periodicReg_%silinDt%s%s%s%s%s_analyzeDB%s.csv', code, code2, spatial$servToggle, spatial$ageToggle, spatial$panToggle, code.str, spatial$stringabbr), row.names=FALSE)
   write.csv(data6_write, file = sprintf('fullIndicAll_periodicReg_%silinDt%s%s%s%s%s_analyzeDB%s.csv', code, code2, spatial$servToggle, spatial$ageToggle, spatial$panToggle, code.str, spatial$stringabbr), row.names=FALSE)
-  
+
 }
 
 
