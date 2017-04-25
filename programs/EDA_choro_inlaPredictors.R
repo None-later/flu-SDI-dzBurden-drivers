@@ -64,7 +64,8 @@ path_list <- list(path_abbr_st = path_abbr_st,
 # modData <- model8a_iliSum_v7(path_list) # with driver & sampling effort variables
 # modData <- model_8fV7_8aV7_diff(path_list)
 # modData <- prepare_allCov_iliSum_cty_raw(path_list)
-modData <- model_8fV7_8aV7_diff_raw(path_list)
+# modData <- model_8fV7_8aV7_diff_raw(path_list)
+modData <- model9a_iliSum_v7(path_list)
 
 #### export formatting ####
 # diagnostic plot export directories
