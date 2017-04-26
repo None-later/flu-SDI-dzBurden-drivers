@@ -809,6 +809,29 @@ cleanX_multsrcSubtypeDistrStrainSim_reg <- function(){
   return(output)
   
 }
+##########################################
+cleanX_protectedFromPrevSeason_cty_2009p <- function(filepathList){
+  # clean variable indicating protection conferred from infection during 2009 pandemic: a function of the proportion of the elderly/adult population and the percentage of protection in those populations
+  print(match.call())
+  
+  # elderly 70+, adult 20-69 
+  elderlyPopDat <- cleanX_censusElderlyPop_cty()
+  adultPopDat <- cleanX_censusAdultPop_cty()
+
+  # MMWR May 22, 2009 / 58(19);521-524
+  # proportion of population with cross-reactive antibody to novel A/H1N1 prior to vaccination
+  # elderly > 60, adult 18-64
+  elderlyProtection <- 0.33
+  adultProtection <- 0.075
+  
+  output <- full_join(elderlyPopDat, adultPopDat, by = c("year", "fips")) %>%
+    mutate(protectionPrevSeason = sum(prod(elderly, elderlyProtection), prod(adult, adultProtection))) %>%
+    mutate(protectionPrevSeason = ifelse(is.na(protectionPrevSeason), 0, protectionPrevSeason)) %>%
+    select(fips, season, protectionPrevSeason) %>%
+    ungroup
+  
+  return(output)
+}
 ################################
 
 cleanX_nisInfantAnyVaxCov_st <- function(){
@@ -925,6 +948,64 @@ cleanX_brfssAdultAnyVaxCov_st <- function(){
   
   return(output)
 }
+################################
+
+cleanX_brfssnhfsChildVaxCov_st_2009p <- function(){
+  # clean monovalent vaccination coverage by state for 6mo-17yo
+  print(match.call())
+  
+  con <- dbConnect(RMySQL::MySQL(), group = "rmysql-fludrivers")
+  dbListTables(con)
+  
+  # dbListFields(con, "immunity_nisBRFSSVaxCoverage_state")
+  # # sel.statement <- "SELECT * from immunity_nisBRFSSVaxCoverage_state limit 5"
+  # sel.statement <- "SELECT season, state AS st, scale, vaxlevel, agegroup, coverage, interval95 from immunity_nisBRFSSVaxCoverage_state where scale = 'State' and agegroup = 'elderly' and vaxlevel = 'anyvax'"
+  # dummy <- dbGetQuery(con, sel.statement)
+  
+  # dbDisconnect(con)
+  
+  # origDat <- tbl_df(dummy) %>%
+  #   select(season, st, coverage) %>%
+  #   rename(elderlyAnyVax = coverage)
+  
+  # # 6/7/16: duplicate season 7 data to fill in missing data for seasons 8 and 9
+  # dupDat <- origDat %>%
+  #   filter(season == 7)
+  
+  # output <- bind_rows(origDat, dupDat %>% mutate(season = 8), dupDat %>% mutate(season = 9)) %>%
+  #   arrange(season, st)
+  
+  return(output)
+}
+################################
+
+cleanX_brfssnhfsAdultVaxCov_st_2009p <- function(){
+  # clean monovalent vaccination coverage by state for >=18yo
+  print(match.call())
+  
+  con <- dbConnect(RMySQL::MySQL(), group = "rmysql-fludrivers")
+  dbListTables(con)
+  
+  # dbListFields(con, "immunity_nisBRFSSVaxCoverage_state")
+  # # sel.statement <- "SELECT * from immunity_nisBRFSSVaxCoverage_state limit 5"
+  # sel.statement <- "SELECT season, state AS st, scale, vaxlevel, agegroup, coverage, interval95 from immunity_nisBRFSSVaxCoverage_state where scale = 'State' and agegroup = 'elderly' and vaxlevel = 'anyvax'"
+  # dummy <- dbGetQuery(con, sel.statement)
+  
+  # dbDisconnect(con)
+  
+  # origDat <- tbl_df(dummy) %>%
+  #   select(season, st, coverage) %>%
+  #   rename(elderlyAnyVax = coverage)
+  
+  # # 6/7/16: duplicate season 7 data to fill in missing data for seasons 8 and 9
+  # dupDat <- origDat %>%
+  #   filter(season == 7)
+  
+  # output <- bind_rows(origDat, dupDat %>% mutate(season = 8), dupDat %>% mutate(season = 9)) %>%
+  #   arrange(season, st)
+  
+  return(output)
+}
 
 ##### environmental factors ##########
 
@@ -945,6 +1026,32 @@ cleanX_noaanarrSpecHum_cty <- function(){
   output <- tbl_df(dummy) %>%
     mutate(season = as.numeric(substr.Right(as.character(year), 2))) %>%
     mutate(season = ifelse(as.numeric(substring(dayDate, 6, 7)) >= 11, season + 1, season)) %>%
+    group_by(fips, season) %>%
+    summarise(humidity = mean(humidity, na.rm = TRUE)) %>%
+    ungroup
+  
+  return(output)
+  
+}
+################################
+
+cleanX_noaanarrSpecHum_cty_2009p <- function(){
+  # clean average specific humidity near population-weighted centroid of the county during pandemic flu months (daily, Aug thru Jan)
+  print(match.call())
+  
+  con <- dbConnect(RMySQL::MySQL(), group = "rmysql-fludrivers")
+  dbListTables(con)
+  
+  dbListFields(con, "env_NOAANARR_specHum_county")
+  # sel.statement <- "SELECT * from env_NOAANARR_specHum_county limit 5"
+  sel.statement <- "SELECT fips, year, date as dayDate, humidity from env_NOAANARR_specHum_county where (MONTH(date) <= 1 or MONTH(date) >= 8)"
+  dummy <- dbGetQuery(con, sel.statement)
+  
+  dbDisconnect(con)
+  
+  output <- tbl_df(dummy) %>%
+    mutate(season = as.numeric(substr.Right(as.character(year), 2))) %>%
+    mutate(season = ifelse(as.numeric(substring(dayDate, 6, 7)) >= 8, season + 1, season)) %>%
     group_by(fips, season) %>%
     summarise(humidity = mean(humidity, na.rm = TRUE)) %>%
     ungroup
@@ -1090,6 +1197,45 @@ cleanX_wonderAirParticulateMatter_wksToEpi_cty <- function(filepathList){
   return(output)
   
 }
+################################
+
+cleanX_wonderAirParticulateMatter_cty_2009p <- function(){
+  # clean data on fine particulate matter (air pollution) with aerodynamic diameter < 2.5 micrometers by county, which was aggregated from 10 km square grids (monthly, micrograms/meter^3); monthly data are averages of daily observations (pandemic months Aug thru Jan)
+  print(match.call())
+  
+  con <- dbConnect(RMySQL::MySQL(), group = "rmysql-fludrivers")
+  dbListTables(con)
+  
+  dbListFields(con, "airpollution_wonder0311_county")
+  # sel.statement <- "SELECT * from airpollution_wonder0311_county limit 5"
+  sel.statement <- "SELECT fips, season, month, avg_pm from airpollution_wonder0311_county where month <= 1 or month >= 8"
+  dummy <- dbGetQuery(con, sel.statement)
+  
+  dbDisconnect(con)
+  
+  dummy2 <- tbl_df(dummy) %>%
+    mutate(season = ifelse(month %in% 8:9, season+1, season)) %>% # 4/24/17 add Aug & Sept to subsequent season 
+    group_by(fips, season) %>%
+    summarise(avg_pm = mean(avg_pm, na.rm = TRUE)) %>%
+    ungroup %>%
+    mutate(fips = ifelse(fips == "12025", "12086", fips)) # Miami-Dade, FL renumbered
+
+  # Broomfield county, CO (fips 08014) was created in 2001 from 08001, 08013, 08059, 081233 -- avg these to get 08014 data
+  fips08014 <- dummy2 %>%
+    filter(fips %in% c("08013", "08001", "08059", "08123")) %>%
+    group_by(season) %>% 
+    summarise(avg_pm = mean(avg_pm, na.rm = TRUE)) %>%
+    ungroup %>%
+    mutate(fips = "08014") %>%
+    select(fips, season, avg_pm)
+  
+  output <- bind_rows(dummy2, fips08014) %>%
+    arrange(fips, season)
+  
+  return(output)
+  
+}
+################################
 
 ##### social cohesion ##########
 

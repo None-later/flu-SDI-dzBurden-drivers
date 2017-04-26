@@ -20,7 +20,7 @@ require(RColorBrewer); require(ggplot2) # export_inlaData_st dependencies
 
 #### set these! ################################
 dbCodeStr <- "_ilinDt_Octfit_2009p_span0.4_degree2"
-modCodeStr <- "9a_iliSum_2009p_v2-1"
+modCodeStr <- "9a_iliSum_2009p_v2-3"
 seasons <- 10:10
 rdmFx_RV <- "phi"
 likString <- "normal"
@@ -72,8 +72,14 @@ formula <- Y ~ -1 +
   f(fips_nonzero, model = "iid") + 
   f(graphIdx_nonzero, model = "besag", graph = path_adjMxExport_cty) +
   f(fips_st_nonzero, model = "iid") + 
-  f(regionID_nonzero, model = "iid") + 
-  intercept_nonzero + O_imscoverage_nonzero + O_careseek_nonzero + O_insured_nonzero + X_poverty_nonzero + X_child_nonzero + X_adult_nonzero + X_hospaccess_nonzero + X_popdensity_nonzero + X_housdensity_nonzero + X_vaxcovI_nonzero + X_vaxcovE_nonzero + X_H3A_nonzero + X_B_nonzero + X_priorImmunity_nonzero + X_humidity_nonzero + X_pollution_nonzero + X_singlePersonHH_nonzero + X_H3A_nonzero*X_adult_nonzero + X_B_nonzero*X_child_nonzero + offset(logE_nonzero)
+  # f(regionID_nonzero, model = "iid") + 
+  intercept_nonzero + O_imscoverage_nonzero + O_careseek_nonzero + O_insured_nonzero + X_poverty_nonzero + X_child_nonzero + X_adult_nonzero + X_hospaccess_nonzero + X_popdensity_nonzero + X_housdensity_nonzero + 
+  # X_vaxcovI_nonzero + X_vaxcovE_nonzero +
+  # X_H3A_nonzero + X_B_nonzero + 
+  X_priorImmunity_nonzero + 
+  X_humidity_nonzero + X_pollution_nonzero + X_singlePersonHH_nonzero +
+  # X_H3A_nonzero*X_adult_nonzero + X_B_nonzero*X_child_nonzero +
+  offset(logE_nonzero)
 
 
 #### export formatting ####
@@ -93,62 +99,58 @@ path_csvExport <- getwd()
 dicData <- rep(NA, length(seasons)*6)
 
 #### run models by season ################################
-for (i in 1:length(seasons)){
-  s <- seasons[i]
-  modData_full <- modData %>% filter(season == s) 
-  modData_hurdle <- convert_hurdleModel_nz_spatiotemporal(modData_full)
-  
-  mod <- inla(formula, 
-              family = "gaussian", 
-              data = modData_hurdle, 
-              # control.family = list(link="identity"), 
-              control.fixed = list(mean = 0, prec = 1/100), # set prior parameters for regression coefficients
-              control.predictor = list(compute = TRUE, link = rep(1, nrow(modData_full))), # compute summary statistics on fitted values, link designates that NA responses are calculated according to the first likelihood
-              control.compute = list(dic = TRUE, cpo = TRUE),
-              control.inla = list(correct = TRUE, correct.factor = 10, diagonal = 0, tolerance = 1e-6),
-              verbose = TRUE,
-              keep = TRUE, debug = TRUE) 
-  
-  #### model summary outputs ################################
-  # 7/20/16 reorganized
-  
-  #### clean DIC and CPO values ####
-  dicData[((i*6)-5):(i*6)] <- unlist(c(modCodeStr, s, as.character(Sys.Date()), mod$dic$dic, sum(log(mod$cpo$cpo), na.rm=TRUE), sum(mod$cpo$failure, na.rm=TRUE), use.names=FALSE))
-  
-  
-  #### write random and group effect identities ####
-  # file path
-  path_csvExport_ids <- paste0(path_csvExport, sprintf("/ids_%s_S%s.csv", modCodeStr, s))
-  # write identity codes to file
-  export_ids(path_csvExport_ids, modData_full)
-  
-  
-  #### write fixed and random effects summary statistics ####
-  # file path
-  path_csvExport_summaryStats <- paste0(path_csvExport, sprintf("/summaryStats_%s_S%s.csv", modCodeStr, s))
-  # write all summary statistics to file
-  export_summaryStats_hurdle_likString(path_csvExport_summaryStats, mod, rdmFx_RV, modCodeStr, dbCodeStr, s, likString) # assuming hyperpar, fixed always exist
-  
-  
-  #### process fitted values for each model ################################
-  # gamma model processing
-  path_csvExport_fittedNonzero <- paste0(path_csvExport, sprintf("/summaryStatsFitted_%s_%s_S%s.csv", likString, modCodeStr, s))
-  dummy_nz <- mod$summary.fitted.values[1:nrow(modData_full),]
-  mod_nz_fitted <- export_summaryStats_fitted_hurdle(path_csvExport_fittedNonzero, dummy_nz, modData_full, modCodeStr, dbCodeStr, s)
+modData_full <- modData %>% filter(season == s) 
+modData_hurdle <- convert_hurdleModel_nz_spatiotemporal(modData_full)
+
+mod <- inla(formula, 
+            family = "gaussian", 
+            data = modData_hurdle, 
+            # control.family = list(link="identity"), 
+            control.fixed = list(mean = 0, prec = 1/100), # set prior parameters for regression coefficients
+            control.predictor = list(compute = TRUE, link = rep(1, nrow(modData_full))), # compute summary statistics on fitted values, link designates that NA responses are calculated according to the first likelihood
+            control.compute = list(dic = TRUE, cpo = TRUE),
+            control.inla = list(correct = TRUE, correct.factor = 10, diagonal = 0, tolerance = 1e-6),
+            verbose = TRUE,
+            keep = TRUE, debug = TRUE) 
+
+#### model summary outputs ################################
+# 7/20/16 reorganized
+
+#### clean DIC and CPO values ####
+dicData[((i*6)-5):(i*6)] <- unlist(c(modCodeStr, s, as.character(Sys.Date()), mod$dic$dic, sum(log(mod$cpo$cpo), na.rm=TRUE), sum(mod$cpo$failure, na.rm=TRUE), use.names=FALSE))
 
 
-  #### Diagnostic plots ################################
- 
-  #### gamma likelihood figures ####
+#### write random and group effect identities ####
+# file path
+path_csvExport_ids <- paste0(path_csvExport, sprintf("/ids_%s_S%s.csv", modCodeStr, s))
+# write identity codes to file
+export_ids(path_csvExport_ids, modData_full)
+
+
+#### write fixed and random effects summary statistics ####
+# file path
+path_csvExport_summaryStats <- paste0(path_csvExport, sprintf("/summaryStats_%s_S%s.csv", modCodeStr, s))
+# write all summary statistics to file
+export_summaryStats_hurdle_likString(path_csvExport_summaryStats, mod, rdmFx_RV, modCodeStr, dbCodeStr, s, likString) # assuming hyperpar, fixed always exist
+
+
+#### process fitted values for each model ################################
+# gamma model processing
+path_csvExport_fittedNonzero <- paste0(path_csvExport, sprintf("/summaryStatsFitted_%s_%s_S%s.csv", likString, modCodeStr, s))
+dummy_nz <- mod$summary.fitted.values[1:nrow(modData_full),]
+mod_nz_fitted <- export_summaryStats_fitted_hurdle(path_csvExport_fittedNonzero, dummy_nz, modData_full, modCodeStr, dbCodeStr, s)
+
+
+#### Diagnostic plots ################################
+
+#### gamma likelihood figures ####
+# marginal posteriors: first 6 random effects (nu or phi)
+if (!is.null(mod$marginals.random$fips_nonzero)){
   # marginal posteriors: first 6 random effects (nu or phi)
-  if (!is.null(mod$marginals.random$fips_nonzero)){
-    # marginal posteriors: first 6 random effects (nu or phi)
-    path_plotExport_rdmFxSample_nonzero <- paste0(path_plotExport, sprintf("/inla_%s_%s1-6_marg_%s_S%s.png", modCodeStr, rdmFx_RV, likString, s))
-    plot_rdmFx_marginalsSample(path_plotExport_rdmFxSample_nonzero, mod$marginals.random$fips_nonzero, rdmFx_RV)
-  }
-
-
+  path_plotExport_rdmFxSample_nonzero <- paste0(path_plotExport, sprintf("/inla_%s_%s1-6_marg_%s_S%s.png", modCodeStr, rdmFx_RV, likString, s))
+  plot_rdmFx_marginalsSample(path_plotExport_rdmFxSample_nonzero, mod$marginals.random$fips_nonzero, rdmFx_RV)
 }
+
 
 #### write DIC for all years to file #### 
 path_csvExport_dic <- paste0(path_csvExport, sprintf("/modFit_%s.csv", modCodeStr))

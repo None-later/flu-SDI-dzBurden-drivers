@@ -734,7 +734,6 @@ model8f_wksToEpi_v7 <- function(filepathList){
   
   return(full_df)
 }
-
 ################################
 
 model9a_iliSum_v3 <- function(filepathList){
@@ -1034,16 +1033,14 @@ model9a_iliSum_2009p_v7 <- function(filepathList){
   ahrfHosp_cty_df <- cleanX_ahrfHospitals_cty()
   popDens_cty_df <- cleanX_popDensity_cty()
   housDens_cty_df <- cleanX_housDensity_cty()
-  narrSpecHum_cty_df <- cleanX_noaanarrSpecHum_cty()
-  wonderPollution_cty_df <- cleanX_wonderAirParticulateMatter_cty()
+  narrSpecHum_cty_df <- cleanX_noaanarrSpecHum_cty_2009p()
+  wonderPollution_cty_df <- cleanX_wonderAirParticulateMatter_cty_2009p()
   acsOnePersonHH_cty_df <- cleanX_acsOnePersonHH_cty()
+  protectedPriorSeas_df <- cleanX_protectedFromPrevSeason_cty_2009p(filepathList)
   # all state tables 
-  infantAnyVax_st_df <- cleanX_nisInfantAnyVaxCov_st()
-  elderlyAnyVax_st_df <- cleanX_brfssElderlyAnyVaxCov_st() 
-  # all region tables
-  cdcH3A_df <- cleanX_cdcFluview_H3A_region()
-  cdcB_df <- cleanX_cdcFluview_B_region() %>% select(-region)
-  protectedPriorSeas_df <- cleanX_protectedFromPrevSeason_cty(filepathList)
+  # childVax_st_df <- cleanX_brfssnhfsChildVaxCov_st_2009p()
+  # adultVax_st_df <- cleanX_brfssnhfsAdultVaxCov_st_2009p() 
+  
   # graph index IDs
   graphIdx_df <- clean_graphIDx(filepathList, "county")
   graphIdx_st_df <- clean_graphIDx(filepathList, "state")
@@ -1059,12 +1056,9 @@ model9a_iliSum_2009p_v7 <- function(filepathList){
     full_join(ahrfHosp_cty_df, by = c("year", "fips")) %>%
     full_join(popDens_cty_df, by = c("year", "fips")) %>%
     full_join(housDens_cty_df, by = c("year", "fips")) %>%
-    full_join(infantAnyVax_st_df, by = c("season", "st")) %>%
-    full_join(elderlyAnyVax_st_df, by = c("season", "st")) %>%
-    mutate(fips_st = substring(fips, 1, 2)) %>% # region is linked by state fips code
-    full_join(cdcH3A_df, by = c("season", "fips_st" = "fips")) %>%
-    full_join(cdcB_df, by = c("season", "fips_st" = "fips")) %>%
-    rename(regionID = region) %>%
+    # full_join(childVax_st_df, by = c("season", "st")) %>%
+    # full_join(adultVax_st_df, by = c("season", "st")) %>%
+    mutate(fips_st = substring(fips, 1, 2)) %>% # region is linked by state fips code 
     full_join(protectedPriorSeas_df, by = c("season", "fips")) %>%
     full_join(narrSpecHum_cty_df, by = c("season", "fips")) %>%
     full_join(wonderPollution_cty_df, by = c("season", "fips")) %>%
@@ -1081,10 +1075,8 @@ model9a_iliSum_2009p_v7 <- function(filepathList){
     mutate(X_hospaccess = centerStandardize(hospitalAccess)) %>%
     mutate(X_popdensity = centerStandardize(popDensity)) %>%
     mutate(X_housdensity = centerStandardize(housDensity)) %>%
-    mutate(X_vaxcovI = centerStandardize(infantAnyVax)) %>%
-    mutate(X_vaxcovE = centerStandardize(elderlyAnyVax)) %>%
-    mutate(X_H3A = centerStandardize(prop_H3_a)) %>%
-    mutate(X_B = centerStandardize(prop_b_all)) %>%
+    # mutate(X_vaxcovI = centerStandardize(infantAnyVax)) %>%
+    # mutate(X_vaxcovE = centerStandardize(elderlyAnyVax)) %>%
     mutate(X_priorImmunity = centerStandardize(protectionPrevSeason)) %>%
     mutate(X_humidity = centerStandardize(humidity)) %>%
     mutate(X_pollution = centerStandardize(avg_pm)) %>%
@@ -1093,7 +1085,7 @@ model9a_iliSum_2009p_v7 <- function(filepathList){
     filter(fips_st %in% continentalOnly) %>%
     filter(!is.na(graphIdx_st)) %>% # rm data not in graph
     mutate(logE = log(E), y1 = log(y1)) %>% # model response y1 = log(y+1)
-    select(-stateID, -adjProviderCoverage, -visitsPerPopT, -insured, -poverty, -child, -adult, -hospitalAccess, -popDensity, -housDensity, -infantAnyVax, -elderlyAnyVax, -prop_H3_a, -prop_b_all, -protectionPrevSeason, -humidity, -avg_pm, -perc_hh_1p) %>%
+    select(-stateID, -adjProviderCoverage, -visitsPerPopT, -insured, -poverty, -child, -adult, -hospitalAccess, -popDensity, -housDensity, -protectionPrevSeason, -humidity, -avg_pm, -perc_hh_1p) %>%
     filter(season == 9) %>%
     mutate(season = 10) %>%
     mutate(ID = seq_along(fips))
