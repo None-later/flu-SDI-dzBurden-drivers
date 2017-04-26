@@ -21,9 +21,9 @@ source("source_export_inlaDiagnostics.R") # plot_diag_scatter_hurdle function
 source("source_clean_response_functions_cty.R") # cty response functions
 
 #### set these! ################################
-dbCodeStr <- "_ilinDt_Octfit_span0.4_degree2"
-seasons <- c(3:9)
-modCodeStr <- "9a_iliSum_v1-5"
+dbCodeStr <- "_ilinDt_Octfit_2009p_span0.4_degree2"
+seasons <- c(10)
+modCodeStr <- "9a_iliSum_2009p_v2-3"
 likString <- "normal"; likStrings <- c(likString)
 source("source_calculate_residuals_shift1.R") # calculate_residuals function depends on model
 
