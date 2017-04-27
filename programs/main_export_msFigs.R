@@ -111,19 +111,19 @@ setwd(dirname(sys.frame(1)$ofile))
 ###############################################################################
 ### DOT PLOTS - Replicate comparison ###################
 ## missing county sequence
-baseCtySeq <- c("8a_iliSum_v2-6", "8a_iliSum_v2-6_c80", "8a_iliSum_v2-6_c60", "8a_iliSum_v2-6_c40", "8a_iliSum_v2-6_c20")
-ctyPlotFormats <- list(w = 6, h = 3, lvls = baseCtySeq, labs = c("complete", "80% of counties", "60% of counties","40% of counties", "20% of counties"), replvls = c(.25, .5, .75, 1), replabs = c("25", "50", "75", "100"), descrip = "ctySeq", numReplicates = 10)
-dot_coefCompareReplicates(baseCtySeq, ctyPlotFormats)
-
-## missing stratified county sequence
-baseMissSeq <- c("8a_iliSum_v2-6", "8a_iliSum_v2-6_m20", "8a_iliSum_v2-6_m40", "8a_iliSum_v2-6_m60", "8a_iliSum_v2-6_m80")
-missPlotFormats <- list(w = 6, h = 3, lvls = baseMissSeq, labs = c("complete", "missing 20%", "missing 40%", "missing 60%", "missing 80%"), replvls = c(.25, .5, .75, 1), replabs = c("25", "50", "75", "100"), descrip = "missSeq", numReplicates = 10)
-dot_coefCompareReplicates(baseMissSeq, missPlotFormats)
-
-## missing season sequence
-baseSeasSeq <- c("8a_iliSum_v2-6", "8a_iliSum_v2-6_s6", "8a_iliSum_v2-6_s4", "8a_iliSum_v2-6_s2")
-seasPlotFormats <- list(w = 6, h = 3, lvls = baseSeasSeq, labs = c("complete", "missing 1", "missing 3","missing 5"), replvls = c(.25, .5, .75, 1), replabs = c("25", "50", "75", "100"), descrip = "seasSeq", numReplicates = 10)
-dot_coefCompareReplicates(baseSeasSeq, seasPlotFormats)
+# baseCtySeq <- c("8a_iliSum_v2-6", "8a_iliSum_v2-6_c80", "8a_iliSum_v2-6_c60", "8a_iliSum_v2-6_c40", "8a_iliSum_v2-6_c20")
+# ctyPlotFormats <- list(w = 6, h = 3, lvls = baseCtySeq, labs = c("complete", "80% of counties", "60% of counties","40% of counties", "20% of counties"), replvls = c(.25, .5, .75, 1), replabs = c("25", "50", "75", "100"), descrip = "ctySeq", numReplicates = 10)
+# dot_coefCompareReplicates(baseCtySeq, ctyPlotFormats)
+# 
+# ## missing stratified county sequence
+# baseMissSeq <- c("8a_iliSum_v2-6", "8a_iliSum_v2-6_m20", "8a_iliSum_v2-6_m40", "8a_iliSum_v2-6_m60", "8a_iliSum_v2-6_m80")
+# missPlotFormats <- list(w = 6, h = 3, lvls = baseMissSeq, labs = c("complete", "missing 20%", "missing 40%", "missing 60%", "missing 80%"), replvls = c(.25, .5, .75, 1), replabs = c("25", "50", "75", "100"), descrip = "missSeq", numReplicates = 10)
+# dot_coefCompareReplicates(baseMissSeq, missPlotFormats)
+# 
+# ## missing season sequence
+# baseSeasSeq <- c("8a_iliSum_v2-6", "8a_iliSum_v2-6_s6", "8a_iliSum_v2-6_s4", "8a_iliSum_v2-6_s2")
+# seasPlotFormats <- list(w = 6, h = 3, lvls = baseSeasSeq, labs = c("complete", "missing 1", "missing 3","missing 5"), replvls = c(.25, .5, .75, 1), replabs = c("25", "50", "75", "100"), descrip = "seasSeq", numReplicates = 10)
+# dot_coefCompareReplicates(baseSeasSeq, seasPlotFormats)
 
 
 ###############################################################################
@@ -146,7 +146,7 @@ dot_coefCompareReplicates(baseSeasSeq, seasPlotFormats)
 ###############################################################################
 # ### DOT PLOTS - Region comparison ###################
 regSeq_modCodeLs <- paste0("8a_iliSum_v2-6_R", c("1&2&3", "4&6", "5&7", "8&9&10"))
-regSeq_plotFormats <- list(w = 6, h = 5, lvls = regSeq_modCodeLs, labs = c("R1&2 BOS-NY-PHL", "R4&6 ATL-DAL", "R5&7 CHI-KS", "R8-10 DENV-SF-SEATT"), descrip = "regSeq")
+regSeq_plotFormats <- list(w = 6, h = 5, lvls = regSeq_modCodeLs, labs = c("R1-3 BOS-NY-PHL", "R4&6 ATL-DAL", "R5&7 CHI-KS", "R8-10 DENV-SF-SEATT"), descrip = "regSeq")
 dot_coefCompare(regSeq_modCodeLs, regSeq_plotFormats)
 
 ###############################################################################
