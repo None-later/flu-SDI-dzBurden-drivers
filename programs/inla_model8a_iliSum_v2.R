@@ -156,7 +156,8 @@ for (i in 1:length(modCodeLs)){
   dicData <- unlist(c(modCodeStr, s, as.character(Sys.Date()), mod$dic$dic, sum(log(mod$cpo$cpo), na.rm=TRUE), sum(mod$cpo$failure, na.rm=TRUE), use.names=FALSE))
   dicData2 <- as.data.frame(matrix(dicData, nrow = 1), byrow = TRUE)
   names(dicData2) <- c("modCodeStr", "season", "exportDate", "DIC", "CPO", "cpoFail")
-  # write DIC & CPO summaries svExport_dic, dicData2)
+  # write DIC & CPO summaries 
+  # export_DIC(path_csvExport_dic, dicData2)
 
   #### write DIC and CPO for individual observations #### 
   # file path

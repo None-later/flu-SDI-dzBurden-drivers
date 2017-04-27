@@ -21,9 +21,9 @@ source("source_export_inlaDiagnostics.R") # plot_diag_scatter_hurdle function
 source("source_clean_response_functions_cty.R") # cty response functions
 
 #### set these! ################################
-dbCodeStr <- "_ilinDt_Octfit_2009p_span0.4_degree2"
-seasons <- c(10)
-modCodeStr <- "9a_iliSum_2009p_v2-3"
+dbCodeStr <- "_ilinDt_Octfit_span0.4_degree2"
+seasons <- c(3:9)
+modCodeStr <- "9a_iliSum_v1-6"
 likString <- "normal"; likStrings <- c(likString)
 source("source_calculate_residuals_shift1.R") # calculate_residuals function depends on model
 
@@ -66,46 +66,46 @@ if ("binomial" %in% likStrings){
 }
 
 ### model fit ###
-if ("gamma" %in% likStrings | "poisson" %in% likStrings){
+if ("gamma" %in% likStrings | "normal" %in% likStrings | "poisson" %in% likStrings){
   # # correlogram: Moran's I vs. distance
   # path_plotExport_correlogram <- paste0(path_plotExport, sprintf("/diag_correlog_%s_%s", likString, modCodeStr))
   # importPlot_correlogram(path_csvExport, path_plotExport_correlogram, path_list)
 
   # scatter: predicted vs. observed data (yhat - nonzero) + 95%CI vs. y nonzero observed
   path_plotExport_predVsObs <- paste0(path_plotExport, sprintf("/diag_predVsObs_%s_%s.png", likString, modCodeStr))
-  plot_diag_scatter_hurdle(path_csvExport, path_plotExport_predVsObs, likString, "y1", "mean", TRUE)
+  plot_diag_scatter_hurdle_spatiotemporal(path_csvExport, path_plotExport_predVsObs, likString, "y1", "mean", TRUE)
 
   # scatter: standardized residuals vs. fitted (yhat - nonzero model only)
   path_plotExport_residVsPred <- paste0(path_plotExport, sprintf("/diag_residVsPred_%s_%s.png", likString, modCodeStr))
-  plot_diag_scatter_hurdle(path_csvExport, path_plotExport_residVsPred, likString, "mean", "yhat_resid", FALSE)
+  plot_diag_scatter_hurdle_spatiotemporal(path_csvExport, path_plotExport_residVsPred, likString, "mean", "yhat_resid", FALSE)
 
-  # scatter: raw residuals vs. fitted (yhat - nonzero model only)
-  path_plotExport_residVsPred2 <- paste0(path_plotExport, sprintf("/diag_rawresidVsPred_%s_%s.png", likString, modCodeStr))
-  plot_diag_scatter_hurdle(path_csvExport, path_plotExport_residVsPred2, likString, "mean", "yhat_rawresid", FALSE)
+  # # scatter: raw residuals vs. fitted (yhat - nonzero model only)
+  # path_plotExport_residVsPred2 <- paste0(path_plotExport, sprintf("/diag_rawresidVsPred_%s_%s.png", likString, modCodeStr))
+  # plot_diag_scatter_hurdle_spatiotemporal(path_csvExport, path_plotExport_residVsPred2, likString, "mean", "yhat_rawresid", FALSE)
 
   # scatter: standardized residuals vs. observed y_nonzero (yhat - gamma model only)
   path_plotExport_residVsObs <- paste0(path_plotExport, sprintf("/diag_residVsObs_%s_%s.png", likString, modCodeStr))
-  plot_diag_scatter_hurdle(path_csvExport, path_plotExport_residVsObs, likString, "y1", "yhat_resid", FALSE)
+  plot_diag_scatter_hurdle_spatiotemporal(path_csvExport, path_plotExport_residVsObs, likString, "y1", "yhat_resid", FALSE)
 
-  # scatter: raw residuals vs. observed y_nonzero (yhat - gamma model only)
-  path_plotExport_residVsObs2 <- paste0(path_plotExport, sprintf("/diag_rawresidVsObs_%s_%s.png", likString, modCodeStr))
-  plot_diag_scatter_hurdle(path_csvExport, path_plotExport_residVsObs2, likString, "y1", "yhat_rawresid", FALSE)
+  # # scatter: raw residuals vs. observed y_nonzero (yhat - gamma model only)
+  # path_plotExport_residVsObs2 <- paste0(path_plotExport, sprintf("/diag_rawresidVsObs_%s_%s.png", likString, modCodeStr))
+  # plot_diag_scatter_hurdle_spatiotemporal(path_csvExport, path_plotExport_residVsObs2, likString, "y1", "yhat_rawresid", FALSE)
 
   # scatter: predicted SD vs. predicted
   path_plotExport_predsdVsPred <- paste0(path_plotExport, sprintf("/diag_predsdVsPred_%s_%s.png", likString, modCodeStr))
-  plot_diag_scatter_hurdle(path_csvExport, path_plotExport_predsdVsPred, likString, "mean", "sd", FALSE)
+  plot_diag_scatter_hurdle_spatiotemporal(path_csvExport, path_plotExport_predsdVsPred, likString, "mean", "sd", FALSE)
 
-  # scatter: predicted SD vs. observed y_nonzero
-  path_plotExport_predsdVsObs <- paste0(path_plotExport, sprintf("/diag_predsdVsObs_%s_%s.png", likString, modCodeStr))
-  plot_diag_scatter_hurdle(path_csvExport, path_plotExport_predsdVsObs, likString, "y1", "sd", FALSE)
+  # # scatter: predicted SD vs. observed y_nonzero
+  # path_plotExport_predsdVsObs <- paste0(path_plotExport, sprintf("/diag_predsdVsObs_%s_%s.png", likString, modCodeStr))
+  # plot_diag_scatter_hurdle_spatiotemporal(path_csvExport, path_plotExport_predsdVsObs, likString, "y1", "sd", FALSE)
 
-  # scatter: predicted SD vs. raw residuals
-  path_plotExport_predsdVsResid2 <- paste0(path_plotExport, sprintf("/diag_predsdVsRawresid_%s_%s.png", likString, modCodeStr))
-  plot_diag_scatter_hurdle(path_csvExport, path_plotExport_predsdVsResid2, likString, "yhat_rawresid", "sd", FALSE)
+  # # scatter: predicted SD vs. raw residuals
+  # path_plotExport_predsdVsResid2 <- paste0(path_plotExport, sprintf("/diag_predsdVsRawresid_%s_%s.png", likString, modCodeStr))
+  # plot_diag_scatter_hurdle_spatiotemporal(path_csvExport, path_plotExport_predsdVsResid2, likString, "yhat_rawresid", "sd", FALSE)
 
-  # scatter: predicted SD vs. standardized residuals
-  path_plotExport_predsdVsResid <- paste0(path_plotExport, sprintf("/diag_predsdVsResid_%s_%s.png", likString, modCodeStr))
-  plot_diag_scatter_hurdle(path_csvExport, path_plotExport_predsdVsResid, likString, "yhat_resid", "sd", FALSE)
+  # # scatter: predicted SD vs. standardized residuals
+  # path_plotExport_predsdVsResid <- paste0(path_plotExport, sprintf("/diag_predsdVsResid_%s_%s.png", likString, modCodeStr))
+  # plot_diag_scatter_hurdle_spatiotemporal(path_csvExport, path_plotExport_predsdVsResid, likString, "yhat_resid", "sd", FALSE)
 }
 
 #### diagnostics by season #################################
