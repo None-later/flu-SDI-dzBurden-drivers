@@ -1017,12 +1017,12 @@ model9a_iliSum_2009p_v7 <- function(filepathList){
   print(filepathList)
   
   # list of continental states
-  statesOnly <- read_csv(filepathList$path_abbr_st, col_types = "__c", col_names = c("stateID"), skip = 1) 
+  statesOnly <- read_csv(filepathList$path_abbr_st, col_types = "__c", col_names = c("stateID"), skip = 1)
   continentalOnly <- statesOnly %>% filter(!(stateID %in% c("02", "15"))) %>% unlist
-  
+
   #### import data ####
   # IMS Health based tables
-  mod_cty_df <- cleanR_iliSum_2009p_shift1_cty(filepathList) 
+  mod_cty_df <- cleanR_iliSum_2009p_shift1_cty(filepathList)
   imsCov_cty_df <- cleanO_imsCoverage_cty()
   imsCareseek_cty_df <- cleanO_imsCareseekTot_cty() # 1/5/17 visitsPerPop from sdi flu data
   # all county tables
@@ -1037,9 +1037,13 @@ model9a_iliSum_2009p_v7 <- function(filepathList){
   wonderPollution_cty_df <- cleanX_wonderAirParticulateMatter_cty_2009p()
   acsOnePersonHH_cty_df <- cleanX_acsOnePersonHH_cty()
   protectedPriorSeas_df <- cleanX_protectedFromPrevSeason_cty_2009p(filepathList)
-  # all state tables 
+  # all state tables
   # childVax_st_df <- cleanX_brfssnhfsChildVaxCov_st_2009p()
-  # adultVax_st_df <- cleanX_brfssnhfsAdultVaxCov_st_2009p() 
+  # adultVax_st_df <- cleanX_brfssnhfsAdultVaxCov_st_2009p()
+  # grab regionID
+  regionID_df <- cleanX_cdcFluview_H3A_region() %>% 
+    distinct(region, fips) %>%
+    rename(fips_st = fips, regionID = region)
   
   # graph index IDs
   graphIdx_df <- clean_graphIDx(filepathList, "county")
@@ -1059,7 +1063,8 @@ model9a_iliSum_2009p_v7 <- function(filepathList){
     # full_join(childVax_st_df, by = c("season", "st")) %>%
     # full_join(adultVax_st_df, by = c("season", "st")) %>%
     mutate(fips_st = substring(fips, 1, 2)) %>% # region is linked by state fips code 
-    full_join(protectedPriorSeas_df, by = c("season", "fips")) %>%
+    full_join(regionID_df, by = c("fips_st")) %>%
+    full_join(protectedPriorSeas_df, by = c("year", "fips")) %>%
     full_join(narrSpecHum_cty_df, by = c("season", "fips")) %>%
     full_join(wonderPollution_cty_df, by = c("season", "fips")) %>%
     full_join(acsOnePersonHH_cty_df, by = c("fips", "year")) %>%

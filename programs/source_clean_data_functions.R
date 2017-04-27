@@ -825,10 +825,13 @@ cleanX_protectedFromPrevSeason_cty_2009p <- function(filepathList){
   adultProtection <- 0.075
   
   output <- full_join(elderlyPopDat, adultPopDat, by = c("year", "fips")) %>%
-    mutate(protectionPrevSeason = sum(prod(elderly, elderlyProtection), prod(adult, adultProtection))) %>%
+    rowwise() %>%
+    mutate(eldProduct = prod(elderly, elderlyProtection)) %>%
+    mutate(adProduct = prod(adult, adultProtection)) %>%
+    mutate(protectionPrevSeason = sum(eldProduct, adProduct)) %>%
+    ungroup %>%
     mutate(protectionPrevSeason = ifelse(is.na(protectionPrevSeason), 0, protectionPrevSeason)) %>%
-    select(fips, season, protectionPrevSeason) %>%
-    ungroup
+    select(fips, year, protectionPrevSeason) 
   
   return(output)
 }

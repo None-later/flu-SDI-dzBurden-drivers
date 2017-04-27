@@ -78,7 +78,8 @@ cleanR_iliSum_2009p_shift1_cty <- function(filepathList){
   print(match.call())
   
   # pop data: fips, county, st, season, year, pop, lat lon
-  pop_data <- clean_pop_cty(filepathList)
+  pop_data <- clean_pop_cty(filepathList) %>%
+    filter(season == 9)
   
   # 7/18/16: add incl.analysis indicator
   # grab disease burden metric (e.g., ilinDt): match "ili" 1+ times
@@ -87,17 +88,17 @@ cleanR_iliSum_2009p_shift1_cty <- function(filepathList){
   iliSum_data <- read_csv(filepathList$path_response_cty, col_types = "icllcd") %>%
     filter(metric == sprintf("%s.sum", dbCode)) %>%
     select(-metric) %>%
-    rename(y = burden)
+    rename(y = burden) %>%
+    filter(season == 10) %>%
+    mutate(season = 9)
   
   # merge final data
-  return_data <- full_join(iliSum_data, pop_data, by = c("season", "fips")) %>%
+  return_data <- left_join(iliSum_data, pop_data, by = c("season", "fips")) %>%
     select(fips, county, st, stateID, lat, lon, season, year, pop, y, has.epi, incl.analysis) %>%
     mutate(y1 = y+1) %>% # 12/15/16 add 1 to all seasonal intensity values
     group_by(season) %>%
     mutate(E = weighted.mean(y1, pop, na.rm = TRUE)) %>%
-    ungroup %>%
-    filter(season == 10) %>%
-    mutate(season = 9)
+    ungroup 
   
   return(return_data)
 }
