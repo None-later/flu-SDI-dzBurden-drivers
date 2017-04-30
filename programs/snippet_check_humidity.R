@@ -88,12 +88,12 @@ modDat2 <- left_join(modDat, summStatsDat %>% filter(effectType == "stID"), by =
   rename(error = mean) %>% select(-effectType) %>%
   rowwise %>%
   # mutate(yPlot = (beta0 + (beta_humidity*X_humidity) + (beta_imscoverage*O_imscoverage) + stID + ctyID + regID)) %>%
-  mutate(yPlot = (stID + ctyID + regID + seasID + error)) %>%
+  mutate(yPlot = (stID + ctyID + regID + seasID + error)) %>% # stID + ctyID + regID + seasID + error
   ungroup
 
 setwd(getSrcDirectory(function(x){}))
 for (s in 3:9){
-  exportPath <- sprintf("../graph_outputs/snippet_check_humidity/choro_humidity_imscoverage_S%s.png", s)
+  exportPath <- sprintf("../graph_outputs/snippet_check_humidity/choro_stID_ctyID_regID_seasID_error_S%s.png", s)
   seasDat <- modDat2 %>% filter(season == s)
   plot_countyChoro(exportPath, seasDat, "yPlot", "tier", FALSE)
 }
