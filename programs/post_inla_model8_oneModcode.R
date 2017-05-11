@@ -22,8 +22,8 @@ source("source_export_inlaDiagnostics.R") # plot_diag_scatter_hurdle function
 source("source_clean_response_functions_cty.R") # cty response functions
 
 #### set these! ################################
-dbCodeStr <- "_ilinDt_Octfit_2009p_span0.4_degree2" # _ilinDt_Octfit_span0.4_degree2
-seasons <- c(10)
+dbCodeStr <- "_ilinDt_Octfit_span0.4_degree2" # _ilinDt_Octfit_span0.4_degree2
+seasons <- c(3:9)
 
 ## seasLs for historical season sequence
 # seasLs <- list(c(3:4,6:9), c(3:4,6,9), c(7,9), c(3,5:9), c(5,7:9), c(7,9), c(3:8), c(5:8), c(5:6), c(3:4,6:9), c(3:4,8:9), c(3:4), c(3:8), c(3:5,8), c(3,5), c(3:8), c(5:8), c(5,7), c(3:6,7:9), c(4:5,7,9), c(5,9), c(3:5,7:9), c(5,7:9), c(7:8), c(3,5:9), c(3,5:6,8), c(5:6)) 
@@ -34,10 +34,10 @@ seasons <- c(10)
 # modCodeStrLs <- paste0("8a_iliSum_v2-6_R", labLs)
 
 # modCodeStrLs <- paste0("8f_wksToEpi_v", 1:2, "-2")
-modCodeStrLs <- c("9a_iliSum_2009p_v1-1")
+modCodeStrLs <- c("8e_epiDur_v2-3_rmStFx", "8e_epiDur_v2-3_rmSeasFx")
 
-likString <- "normal"; likStrings <- c(likString)
-source("source_calculate_residuals_shift1.R") # calculate_residuals function (source_calculate_residuals_shift1.R for iliSum; source_calculate_residuals.R for epiDur, wksToEpi)
+likString <- "poisson"; likStrings <- c(likString)
+source("source_calculate_residuals.R") # calculate_residuals function (source_calculate_residuals_shift1.R for iliSum; source_calculate_residuals.R for epiDur, wksToEpi)
 
 #### IMPORT FILEPATHS #################################
 setwd('../reference_data')
@@ -85,9 +85,9 @@ for (i in 1:length(modCodeStrLs)){
   ### model fit ###
   if ("gamma" %in% likStrings | "normal" %in% likStrings | "poisson" %in% likStrings){
     # 1/8/17 only coded up for iliSum response
-    # correlogram: Moran's I vs. distance
-    path_plotExport_correlogram <- paste0(path_plotExport, sprintf("/diag_correlog_%s_%s", likString, modCodeStr))
-    importPlot_correlogram(path_csvExport, path_plotExport_correlogram, path_list, likString)
+    # # correlogram: Moran's I vs. distance
+    # path_plotExport_correlogram <- paste0(path_plotExport, sprintf("/diag_correlog_%s_%s", likString, modCodeStr))
+    # importPlot_correlogram(path_csvExport, path_plotExport_correlogram, path_list, likString)
 
     # scatter: predicted vs. observed data (yhat - nonzero) + 95%CI vs. y nonzero observed
     path_plotExport_predVsObs <- paste0(path_plotExport, sprintf("/diag_predVsObs_%s_%s.png", likString, modCodeStr))
