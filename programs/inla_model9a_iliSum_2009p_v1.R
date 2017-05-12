@@ -149,7 +149,7 @@ names(dicData2) <- c("modCodeStr", "season", "exportDate", "DIC", "CPO", "cpoFai
 # write DIC & CPO to file
 export_DIC(path_csvExport_dic, dicData2)
 
-#### write DIC and CPO for individual observations #### 
+#### write DIC and CPO for individual observations ####
 # file path
 path_csvExport_cpoPIT <- paste0(path_csvExport, sprintf("/cpoPIT_observations_%s.csv", modCodeStr))
 # write CPO and PIT for each observation to file

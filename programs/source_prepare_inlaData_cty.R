@@ -1060,9 +1060,9 @@ model9a_iliSum_2009p_v7 <- function(filepathList){
     full_join(ahrfHosp_cty_df, by = c("year", "fips")) %>%
     full_join(popDens_cty_df, by = c("year", "fips")) %>%
     full_join(housDens_cty_df, by = c("year", "fips")) %>%
+    mutate(fips_st = substring(fips, 1, 2)) %>% # region is linked by state fips code 
     full_join(childVax_st_df, by = c("season", "fips_st")) %>%
     full_join(adultVax_st_df, by = c("season", "fips_st")) %>%
-    mutate(fips_st = substring(fips, 1, 2)) %>% # region is linked by state fips code 
     full_join(regionID_df, by = c("fips_st")) %>%
     full_join(protectedPriorSeas_df, by = c("year", "fips")) %>%
     full_join(narrSpecHum_cty_df, by = c("season", "fips")) %>%
