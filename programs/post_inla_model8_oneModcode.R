@@ -34,7 +34,7 @@ seasons <- c(3:9)
 # modCodeStrLs <- paste0("8a_iliSum_v2-6_R", labLs)
 
 # modCodeStrLs <- paste0("8f_wksToEpi_v", 1:2, "-2")
-modCodeStrLs <- c("8e_epiDur_v2-3_rmStFx", "8e_epiDur_v2-3_rmSeasFx")
+modCodeStrLs <- c("8e_epiDur_v2-3_rmCtyFx")
 
 likString <- "poisson"; likStrings <- c(likString)
 source("source_calculate_residuals.R") # calculate_residuals function (source_calculate_residuals_shift1.R for iliSum; source_calculate_residuals.R for epiDur, wksToEpi)

@@ -20,7 +20,7 @@ require(RColorBrewer); require(ggplot2) # export_inlaData_st dependencies
 
 #### set these! ################################
 dbCodeStr <- "_ilinDt_Octfit_span0.4_degree2"
-modCodeStr <- "8e_epiDur_v2-3_rmRegFx"
+modCodeStr <- "8e_epiDur_v2-3_rmFixed"
 rdmFx_RV <- "phi"
 likString <- "poisson"
 dig <- 4 # number of digits in the number of elements at this spatial scale (~3000 counties -> 4 digits)
@@ -69,17 +69,17 @@ modData <- model8e_epiDur_v7(path_list) # with driver & sampling effort variable
 
 formula <- Y ~ -1 + 
   f(ID_nonzero, model = "iid") +
-  f(fips_nonzero, model = "iid") + 
+  f(fips_nonzero, model = "iid") +
   f(graphIdx_nonzero, model = "besag", graph = path_adjMxExport_cty) +
   f(fips_st_nonzero, model = "iid") +
-  # f(regionID_nonzero, model = "iid") + 
+  f(regionID_nonzero, model = "iid") +
   f(season_nonzero, model = "iid") +
-  intercept_nonzero + 
-  O_imscoverage_nonzero + O_careseek_nonzero + O_insured_nonzero + X_poverty_nonzero + X_child_nonzero + X_adult_nonzero + X_hospaccess_nonzero + X_popdensity_nonzero + X_housdensity_nonzero + 
-  X_vaxcovI_nonzero + X_vaxcovE_nonzero + 
-  X_H3A_nonzero + X_B_nonzero + 
-  X_priorImmunity_nonzero + X_humidity_nonzero + X_pollution_nonzero + X_singlePersonHH_nonzero + 
-  X_H3A_nonzero*X_adult_nonzero + X_B_nonzero*X_child_nonzero
+  intercept_nonzero #+ 
+  # O_imscoverage_nonzero + O_careseek_nonzero + O_insured_nonzero + X_poverty_nonzero + X_child_nonzero + X_adult_nonzero + X_hospaccess_nonzero + X_popdensity_nonzero + X_housdensity_nonzero +
+  # X_vaxcovI_nonzero + X_vaxcovE_nonzero + 
+  # X_H3A_nonzero + X_B_nonzero + 
+  # X_priorImmunity_nonzero + X_humidity_nonzero + X_pollution_nonzero + X_singlePersonHH_nonzero + 
+  # X_H3A_nonzero*X_adult_nonzero + X_B_nonzero*X_child_nonzero
 
 #### export formatting ####
 # diagnostic plot export directories
