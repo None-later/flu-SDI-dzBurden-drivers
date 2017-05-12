@@ -870,7 +870,7 @@ forest_coefDistr_fixedEffects <- function(modCodeStr){
   measFormats <- list(w=2, h=2.75)
   
   # import summary stats data
-  fullDf <- read_csv(string_coef_fname(modCodeStr), col_types = "ccd_cccddddd__")
+  fullDf <- read_csv(string_coef_fname(modCodeStr), col_types = "ccd_cccddddd__") 
   
   # prepare data for plotting
   coefDf <- calculate_95CI(fullDf) %>%
