@@ -110,21 +110,21 @@ mod <- inla(formula,
 
 #### write random and group effect identities ####
 # file path
-path_csvExport_ids <- paste0(path_csvExport, sprintf("/ids_%s_S%s.csv", modCodeStr, s))
+path_csvExport_ids <- paste0(path_csvExport, sprintf("/ids_%s.csv", modCodeStr))
 # write identity codes to file
 export_ids(path_csvExport_ids, modData_full)
 
 
 #### write fixed and random effects summary statistics ####
 # file path
-path_csvExport_summaryStats <- paste0(path_csvExport, sprintf("/summaryStats_%s_S%s.csv", modCodeStr, s))
+path_csvExport_summaryStats <- paste0(path_csvExport, sprintf("/summaryStats_%s.csv", modCodeStr))
 # write all summary statistics to file
 export_summaryStats_hurdle_likString(path_csvExport_summaryStats, mod, rdmFx_RV, modCodeStr, dbCodeStr, s, likString) # assuming hyperpar, fixed always exist
 
 
 #### process fitted values for each model ################################
 # gamma model processing
-path_csvExport_fittedNonzero <- paste0(path_csvExport, sprintf("/summaryStatsFitted_%s_%s_S%s.csv", likString, modCodeStr, s))
+path_csvExport_fittedNonzero <- paste0(path_csvExport, sprintf("/summaryStatsFitted_%s_%s.csv", likString, modCodeStr))
 dummy_nz <- mod$summary.fitted.values[1:nrow(modData_full),]
 mod_nz_fitted <- export_summaryStats_fitted_hurdle(path_csvExport_fittedNonzero, dummy_nz, modData_full, modCodeStr, dbCodeStr, s)
 
