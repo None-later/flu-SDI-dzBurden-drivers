@@ -1038,8 +1038,8 @@ model9a_iliSum_2009p_v7 <- function(filepathList){
   acsOnePersonHH_cty_df <- cleanX_acsOnePersonHH_cty()
   protectedPriorSeas_df <- cleanX_protectedFromPrevSeason_cty_2009p(filepathList)
   # all state tables
-  # childVax_st_df <- cleanX_brfssnhfsChildVaxCov_st_2009p()
-  # adultVax_st_df <- cleanX_brfssnhfsAdultVaxCov_st_2009p()
+  childVax_st_df <- cleanX_nhfsBRFSSChildVaxCov_st_2009p()
+  adultVax_st_df <- cleanX_nhfsBRFSSAdultVaxCov_st_2009p()
   # grab regionID
   regionID_df <- cleanX_cdcFluview_H3A_region() %>% 
     distinct(region, fips) %>%
@@ -1060,8 +1060,8 @@ model9a_iliSum_2009p_v7 <- function(filepathList){
     full_join(ahrfHosp_cty_df, by = c("year", "fips")) %>%
     full_join(popDens_cty_df, by = c("year", "fips")) %>%
     full_join(housDens_cty_df, by = c("year", "fips")) %>%
-    # full_join(childVax_st_df, by = c("season", "st")) %>%
-    # full_join(adultVax_st_df, by = c("season", "st")) %>%
+    full_join(childVax_st_df, by = c("season", "fips_st")) %>%
+    full_join(adultVax_st_df, by = c("season", "fips_st")) %>%
     mutate(fips_st = substring(fips, 1, 2)) %>% # region is linked by state fips code 
     full_join(regionID_df, by = c("fips_st")) %>%
     full_join(protectedPriorSeas_df, by = c("year", "fips")) %>%
@@ -1080,8 +1080,8 @@ model9a_iliSum_2009p_v7 <- function(filepathList){
     mutate(X_hospaccess = centerStandardize(hospitalAccess)) %>%
     mutate(X_popdensity = centerStandardize(popDensity)) %>%
     mutate(X_housdensity = centerStandardize(housDensity)) %>%
-    # mutate(X_vaxcovI = centerStandardize(infantAnyVax)) %>%
-    # mutate(X_vaxcovE = centerStandardize(elderlyAnyVax)) %>%
+    mutate(X_vaxcovC = centerStandardize(childMonoVax)) %>%
+    mutate(X_vaxcovA = centerStandardize(adultMonoVax)) %>%
     mutate(X_priorImmunity = centerStandardize(protectionPrevSeason)) %>%
     mutate(X_humidity = centerStandardize(humidity)) %>%
     mutate(X_pollution = centerStandardize(avg_pm)) %>%
@@ -1090,7 +1090,7 @@ model9a_iliSum_2009p_v7 <- function(filepathList){
     filter(fips_st %in% continentalOnly) %>%
     filter(!is.na(graphIdx_st)) %>% # rm data not in graph
     mutate(logE = log(E), y1 = log(y1)) %>% # model response y1 = log(y+1)
-    select(-stateID, -adjProviderCoverage, -visitsPerPopT, -insured, -poverty, -child, -adult, -hospitalAccess, -popDensity, -housDensity, -protectionPrevSeason, -humidity, -avg_pm, -perc_hh_1p) %>%
+    select(-stateID, -adjProviderCoverage, -visitsPerPopT, -insured, -poverty, -child, -adult, -hospitalAccess, -popDensity, -housDensity, -childMonoVax, -adultMonoVax, -protectionPrevSeason, -humidity, -avg_pm, -perc_hh_1p) %>%
     filter(season == 9) %>%
     mutate(season = 10) %>%
     mutate(ID = seq_along(fips))

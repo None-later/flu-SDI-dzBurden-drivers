@@ -953,59 +953,49 @@ cleanX_brfssAdultAnyVaxCov_st <- function(){
 }
 ################################
 
-cleanX_brfssnhfsChildVaxCov_st_2009p <- function(){
-  # clean monovalent vaccination coverage by state for 6mo-17yo
+cleanX_nhfsBRFSSChildVaxCov_st_2009p <- function(){
+  # clean 2009p vaccination coverage by state among children aged 6 mos to 17 yrs
   print(match.call())
   
   con <- dbConnect(RMySQL::MySQL(), group = "rmysql-fludrivers")
   dbListTables(con)
   
-  # dbListFields(con, "immunity_nisBRFSSVaxCoverage_state")
-  # # sel.statement <- "SELECT * from immunity_nisBRFSSVaxCoverage_state limit 5"
-  # sel.statement <- "SELECT season, state AS st, scale, vaxlevel, agegroup, coverage, interval95 from immunity_nisBRFSSVaxCoverage_state where scale = 'State' and agegroup = 'elderly' and vaxlevel = 'anyvax'"
-  # dummy <- dbGetQuery(con, sel.statement)
+  dbListFields(con, "immunity_nhfsBRFSSMonovalentVaxCoverage_state")
+  # sel.statement <- "SELECT * from immunity_nhfsBRFSSMonovalentVaxCoverage_state limit 5"
+  sel.statement <- "SELECT Location as fips_st, Scale, demog, Est from immunity_nhfsBRFSSMonovalentVaxCoverage_state where Scale = 'State' and demog = 'children'"
+  dummy <- dbGetQuery(con, sel.statement)
   
-  # dbDisconnect(con)
+  dbDisconnect(con)
   
-  # origDat <- tbl_df(dummy) %>%
-  #   select(season, st, coverage) %>%
-  #   rename(elderlyAnyVax = coverage)
-  
-  # # 6/7/16: duplicate season 7 data to fill in missing data for seasons 8 and 9
-  # dupDat <- origDat %>%
-  #   filter(season == 7)
-  
-  # output <- bind_rows(origDat, dupDat %>% mutate(season = 8), dupDat %>% mutate(season = 9)) %>%
-  #   arrange(season, st)
+  output <- tbl_df(dummy) %>%
+    mutate(season = 9) %>%
+    select(season, fips_st, Est) %>%
+    rename(childMonoVax = Est) %>%
+    arrange(fips_st)
   
   return(output)
 }
 ################################
 
-cleanX_brfssnhfsAdultVaxCov_st_2009p <- function(){
-  # clean monovalent vaccination coverage by state for >=18yo
+cleanX_nhfsBRFSSAdultVaxCov_st_2009p <- function(){
+  # clean 2009p vaccination coverage by state among adults 18 yrs and above
   print(match.call())
   
   con <- dbConnect(RMySQL::MySQL(), group = "rmysql-fludrivers")
   dbListTables(con)
   
-  # dbListFields(con, "immunity_nisBRFSSVaxCoverage_state")
-  # # sel.statement <- "SELECT * from immunity_nisBRFSSVaxCoverage_state limit 5"
-  # sel.statement <- "SELECT season, state AS st, scale, vaxlevel, agegroup, coverage, interval95 from immunity_nisBRFSSVaxCoverage_state where scale = 'State' and agegroup = 'elderly' and vaxlevel = 'anyvax'"
-  # dummy <- dbGetQuery(con, sel.statement)
+  dbListFields(con, "immunity_nhfsBRFSSMonovalentVaxCoverage_state")
+  # sel.statement <- "SELECT * from immunity_nhfsBRFSSMonovalentVaxCoverage_state limit 5"
+  sel.statement <- "SELECT Location as fips_st, Scale, demog, Est from immunity_nhfsBRFSSMonovalentVaxCoverage_state where Scale = 'State' and demog = 'adults_over18'"
+  dummy <- dbGetQuery(con, sel.statement)
   
-  # dbDisconnect(con)
+  dbDisconnect(con)
   
-  # origDat <- tbl_df(dummy) %>%
-  #   select(season, st, coverage) %>%
-  #   rename(elderlyAnyVax = coverage)
-  
-  # # 6/7/16: duplicate season 7 data to fill in missing data for seasons 8 and 9
-  # dupDat <- origDat %>%
-  #   filter(season == 7)
-  
-  # output <- bind_rows(origDat, dupDat %>% mutate(season = 8), dupDat %>% mutate(season = 9)) %>%
-  #   arrange(season, st)
+  output <- tbl_df(dummy) %>%
+    mutate(season = 9) %>%
+    select(season, fips_st, Est) %>%
+    rename(adultMonoVax = Est) %>%
+    arrange(fips_st)
   
   return(output)
 }
