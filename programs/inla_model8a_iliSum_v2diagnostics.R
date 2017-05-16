@@ -19,7 +19,7 @@ INLA:::inla.dynload.workaround()
 require(RColorBrewer); require(ggplot2) # export_inlaData_st dependencies
 
 # single code
-modCodeLs <- c("8a_iliSum_v2-6_rmSeasFx")
+modCodeLs <- c("8a_iliSum_v2-6_rmCtyFx")
 
 for (i in 1:length(modCodeLs)){
   
@@ -76,11 +76,11 @@ for (i in 1:length(modCodeLs)){
   
   formula <- Y ~ -1 +
     f(ID_nonzero, model = "iid") +
-    f(fips_nonzero, model = "iid") +
+    # f(fips_nonzero, model = "iid") +
     f(graphIdx_nonzero, model = "besag", graph = path_adjMxExport_cty) +
     f(fips_st_nonzero, model = "iid") +
     f(regionID_nonzero, model = "iid") +
-    # f(season_nonzero, model = "iid") +
+    f(season_nonzero, model = "iid") +
     intercept_nonzero + 
     O_imscoverage_nonzero + O_careseek_nonzero + O_insured_nonzero + X_poverty_nonzero + X_child_nonzero + X_adult_nonzero + X_hospaccess_nonzero + X_popdensity_nonzero + X_housdensity_nonzero +
     X_vaxcovI_nonzero + X_vaxcovE_nonzero +
