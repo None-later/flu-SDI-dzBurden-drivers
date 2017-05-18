@@ -93,6 +93,14 @@ label_ecol_predictors <- function(){
     return(dfLabels)
 }
 ################################
+label_ecol_predictors_2009p <- function(){
+  cleanRV <- c("humidity", "pollution", "popdensity", "housdensity", "child", "adult", "vaxcovC", "vaxcovA", "priorImmunity", "hospaccess", "singlePersonHH", "poverty")
+  pltLabels <- c("humidity", "pollution", "popDensity", "householdSize", "child", "adult", "childVacc", "adultVacc", "priorImmunity", "hospAccess", "onePersonHH", "poverty")
+  
+  dfLabels <- tbl_df(data.frame(RV = cleanRV, pltLabs = pltLabels, stringsAsFactors = FALSE))
+  return(dfLabels)
+}
+################################
 label_meas_predictors <- function(){
     cleanRV <- c("insured", "imscoverage", "careseek")
     pltLabels <- c("insured", "claimsCoverage", "careseeking")
@@ -119,6 +127,15 @@ label_seas_predictors <- function(){
 }
 
 ################################
+label_reg_predictors <- function(){
+  cleanRV <- paste0("R", 1:10)
+  pltLabels <- c("R1 Boston", "R2 New York", "R3 Philadelphia", "R4 Atlanta", "R5 Chicago", "R6 Dallas", "R7 Kansas City", "R8 Denver", "R9 San Francisco", "R10 Seattle")
+  
+  dfLabels <- tbl_df(data.frame(RV = cleanRV, pltLabs = pltLabels, stringsAsFactors = FALSE))
+  return(dfLabels)
+}
+
+################################
 label_base_modCodeStr <- function(repCodeLs){
   base_modCodeStr <- repCodeLs[which(nchar(repCodeLs) == min(nchar(repCodeLs)))]
   return(base_modCodeStr)
@@ -130,7 +147,8 @@ calculate_95CI <- function(summDat){
   print(match.call())
   
   returnDat <- summDat %>%
-    mutate(LB = mean-(2*sd), UB = mean+(2*sd)) %>%
+    # mutate(LB = mean-(2*sd), UB = mean+(2*sd)) %>% # 5/15/17 change to exported quantiles
+    rename(LB = q_025, UB = q_975) %>%
     mutate(signif = ifelse(UB < 0 | LB > 0, TRUE, FALSE))
   return(returnDat)
 }
@@ -141,7 +159,8 @@ indicate_signif <- function(summDat){
   print(match.call())
   
   returnDat <- summDat %>%
-    mutate(LB = mean-(2*sd), UB = mean+(2*sd)) %>%
+    # mutate(LB = mean-(2*sd), UB = mean+(2*sd)) %>% # 5/15/17 change to exported quantiles
+    rename(LB = q_025, UB = q_975) %>%
     mutate(signif2 = ifelse(UB < 0, "-1", ifelse(LB > 0, "1", NA)))
   return(returnDat)
 }
@@ -323,8 +342,8 @@ import_regionValidationILI <- function(modCodeStr, iFormats){
     rename(reg = regionID)
   
   iliDat <- import_cdcRegILI() 
-  fitDat <- read_csv(string_fit_fname(modCodeStr), col_types = "c_d_c_dd______") %>%
-    mutate(LB = mean-(2*sd), UB = mean+(2*sd))
+  fitDat <- read_csv(string_fit_fname(modCodeStr), col_types = "c_d_c_ddd_d___") %>%
+    rename(LB = q_025, UB = q_975) #5/15/17
   
   fullDat <- left_join(fitDat, cw, by = "fips") %>%
     left_join(iliDat, by = c("reg", "season")) 
@@ -365,8 +384,8 @@ import_regionValidationViral <- function(modCodeStr, iFormats){
     rename(reg = regionID)
   
   vDat <- import_cdcRegViral()
-  fitDat <- read_csv(string_fit_fname(modCodeStr), col_types = "c_d_c_dd______") %>%
-    mutate(LB = mean-(2*sd), UB = mean+(2*sd))
+  fitDat <- read_csv(string_fit_fname(modCodeStr), col_types = "c_d_c_ddd_d___") %>%
+    rename(LB = q_025, UB = q_975)
   
   fullDat <- left_join(fitDat, cw, by = "fips") %>%
     left_join(vDat, by = c("reg", "season")) 
@@ -492,20 +511,119 @@ choro_obsFit_seasIntensityRR_multiSeason <- function(modCodeStr, pltFormats, fil
   
 }
 ################################
-forest_coefDistr_stateEffects <- function(modCodeStr){
+forest_coefDistr_stateStructuredEffects <- function(modCodeStr){
   print(match.call())
   
   # plot formatting
   stLabels <- read_csv(string_ids_fname(modCodeStr), col_types = "____c__c") %>% distinct(graphIdx_st, st)
-  exportFname <- paste0(string_msFig_folder(), "forest_coefState_", modCodeStr, ".png")
+  exportFname <- paste0(string_msFig_folder(), "forest_coefStateStructured_", modCodeStr, ".png")
   plotFormats <- list(w=6, h=2)
 
-  # import season coef data
+  # import state structured coef data
   importDat <- read_csv(string_coef_fname(modCodeStr), col_types = "ccd_cccddddd__") 
   coefDat <- importDat %>%
     filter(effectType == 'structured_st') %>%
     clean_RVnames(.) %>%
     mutate(RV = factor(RV, levels = stLabels$graphIdx_st, labels = stLabels$st))
+  
+  # prepare data for plotting
+  plotDat <- calculate_95CI(coefDat) 
+  
+  # plot 
+  plot_coefDistr_RV(plotDat, exportFname, plotFormats)
+}
+
+################################
+forest_coefDistr_stateEffects <- function(modCodeStr){
+  print(match.call())
+  
+  # plot formatting
+  stLabels <- read_csv(string_ids_fname(modCodeStr), col_types = "_c__c___") %>%
+    mutate(fips_st = substring(fips, 1, 2)) %>% 
+    distinct(fips_st, st)
+  exportFname <- paste0(string_msFig_folder(), "forest_coefState_", modCodeStr, ".png")
+  plotFormats <- list(w=6, h=2)
+
+  # import state coef data
+  importDat <- read_csv(string_coef_fname(modCodeStr), col_types = "ccd_cccddddd__") 
+  coefDat <- importDat %>%
+    filter(effectType == 'stID') %>%
+    clean_RVnames(.) %>%
+    mutate(RV = factor(RV, levels = stLabels$fips_st, labels = stLabels$st))
+  
+  # prepare data for plotting
+  plotDat <- calculate_95CI(coefDat) 
+  
+  # plot 
+  plot_coefDistr_RV(plotDat, exportFname, plotFormats)
+}
+
+################################
+forest_coefDistr_regionEffects <- function(modCodeStr){
+  print(match.call())
+  
+  # plot formatting
+  regLabels <- label_reg_predictors()
+  exportFname <- paste0(string_msFig_folder(), "forest_coefReg_", modCodeStr, ".png")
+  plotFormats <- list(w=6, h=2.5)
+
+  # import region coef data
+  importDat <- read_csv(string_coef_fname(modCodeStr), col_types = "ccd_cccddddd__") 
+
+  coefDat <- importDat %>%
+    filter(effectType == 'regID') %>%
+    mutate(RV = factor(RV, levels = regLabels$RV, labels = regLabels$pltLabs))
+
+  # prepare data for plotting
+  plotDat <- calculate_95CI(coefDat) 
+  
+  # plot 
+  plot_coefDistr_RV(plotDat, exportFname, plotFormats)
+}
+
+################################
+forest_coefDistr_ctyEffects_sample <- function(modCodeStr){
+  print(match.call())
+  
+  set.seed(45761)
+
+  # plot formatting
+  exportFname <- paste0(string_msFig_folder(), "forest_coefCty_sample_", modCodeStr, ".png")
+  plotFormats <- list(w=4, h=2)
+  
+  # import season coef data
+  importDat <- read_csv(string_coef_fname(modCodeStr), col_types = "ccd_cccddddd__") 
+  View(importDat %>% filter(effectType == "spatial"))
+  coefDat <- importDat %>%
+    filter(effectType == 'spatial') %>%
+    sample_n(50) %>%
+    clean_RVnames(.) %>%
+    mutate(RV = as.factor(RV))
+  
+  # prepare data for plotting
+  plotDat <- calculate_95CI(coefDat) 
+  
+  # plot 
+  plot_coefDistr_RV(plotDat, exportFname, plotFormats)
+}
+
+################################
+forest_coefDistr_errorEffects_sample <- function(modCodeStr){
+  print(match.call())
+  
+  set.seed(329)
+
+  # plot formatting
+  exportFname <- paste0(string_msFig_folder(), "forest_coefErr_sample_", modCodeStr, ".png")
+  plotFormats <- list(w=4, h=2)
+  
+  # import season coef data
+  importDat <- read_csv(string_coef_fname(modCodeStr), col_types = "ccd_cccddddd__") 
+  coefDat <- importDat %>%
+    filter(effectType == 'error') %>%
+    sample_n(50) %>%
+    clean_RVnames(.) %>%
+    mutate(RV = as.factor(RV))
   
   # prepare data for plotting
   plotDat <- calculate_95CI(coefDat) 
@@ -719,6 +837,7 @@ scatter_residFit_epiDuration_multiSeason <- function(modCodeStr, pltFormats, fil
   ggsave(exportFname, plotOutput, height = h, width = w, dpi = dp)
 }
 ################################
+
 scatter_obsFit_seasInt_epiDur_multiSeason <- function(modCodeLs, pltFormats, filepathList){
   # scatterplot of observed seasonal intensity RR vs. observed epidemic duration, by season
   print(match.call())
@@ -745,7 +864,8 @@ scatter_obsFit_seasInt_epiDur_multiSeason <- function(modCodeLs, pltFormats, fil
     gather(valueType, value, Observed:Fitted) %>%
     spread(modCodeStr, value) %>%
     mutate(season = paste0("S", season)) %>%
-    mutate(season = factor(season, levels = seasDf$RV, labels = seasDf$pltLabs))
+    mutate(season = factor(season, levels = seasDf$RV, labels = seasDf$pltLabs)) %>%
+    mutate(valueType = factor(valueType, levels = c("Observed", "Fitted")))
 
   exportFname <- paste0(string_msFig_folder(), "scatter_obs_seasInt_epiDur_multiSeason", ".png")
   
@@ -858,11 +978,15 @@ forest_coefDistr_seasEffects <- function(modCodeStr){
 }
 
 ################################
-forest_coefDistr_fixedEffects <- function(modCodeStr){
+forest_coefDistr_fixedEffects <- function(modCodeStr, is2009p){
   print(match.call())
   
   # plot formatting
-  ecolLabels <- label_ecol_predictors()
+  if (is2009p == TRUE){
+    ecolLabels <- label_ecol_predictors_2009p()
+  }else{
+    ecolLabels <- label_ecol_predictors()
+  }
   ecolFname <- paste0(string_msFig_folder(), "forest_coefEcol_", modCodeStr, ".png")
   ecolFormats <- list(w=6, h=2.75)
   measLabels <- label_meas_predictors()
@@ -907,7 +1031,7 @@ plot_coefDistr_RV <- function(plotDat, exportFname, pltFormats){
     scale_colour_manual(limits = c(TRUE, FALSE), values = c("#008837", "grey75")) +
     guides(colour = FALSE) +
     theme_bw() + 
-    theme(axis.title.x=element_blank(), axis.text.x=element_text(angle=45, vjust=1, hjust=1), axis.text=element_text(size=14), text = element_text(size = 14))
+    theme(axis.title.x=element_blank(), axis.text.x=element_text(angle=45, vjust=1, hjust=1), axis.text=element_text(size=10), text = element_text(size = 10))
 
   ggsave(exportFname, plotOutput, height = h, width = w, dpi = dp)
 }
@@ -1053,7 +1177,7 @@ choro_fitCompareReplicates <- function(baseCodeLs, pltFormats){
   # import complete model fitData
   completeCode <- baseCodeLs[which(nchar(baseCodeLs)==min(nchar(baseCodeLs)))]
   completeDat <- read_csv(string_fit_fname(completeCode), col_types = "c_d_c_dd______") %>%
-      mutate(LB = mean-(1*sd), UB = mean+(1*sd)) %>%
+      mutate(LB = mean-(1*sd), UB = mean+(1*sd)) %>% # 5/15/17 okay approximation because we are looking at overlap between posteriors (not 95% CI)
       select(modCodeStr, season, fips, LB, UB)
 
   # import replicates for each baseCode

@@ -49,8 +49,8 @@ setwd(dirname(sys.frame(1)$ofile))
 # scatter_obsFit_excessSeasIntensityRR_multiSeason("8a_iliSum_v2-6", obsFit_plotFormats_scatter, path_list)
 # scatter_residFit_logSeasIntensity_multiSeason("8a_iliSum_v2-6", obsFit_plotFormats_scatter, path_list)
 
-# forest_coefDistr_stateEffects("8a_iliSum_v6-3")
-
+# forest_coefDistr_stateStructuredEffects("8a_iliSum_v6-3")
+# 
 # plotFormats_scatter_regionValidationViral <- list(w = 4, h = 4, xmax = 30)
 # scatter_regionValidationViral("8a_iliSum_v2-6", plotFormats_scatter_regionValidationViral)
 
@@ -93,15 +93,21 @@ setwd(dirname(sys.frame(1)$ofile))
 ###############################################################################
 ### MULTI-SEASON MODELS ###################
 # allCombs_modCodeLs <- c("8a_iliSum_v2-6", "8e_epiDur_v2-3", "8a_iliSum_v3-6", "8a_iliSum_v4-6")
-# for (code in allCombs_modCodeLs){
-#   choro_stateEffects(code)
-#   forest_coefDistr_seasEffects(code)
-#   forest_coefDistr_fixedEffects(code) # multi-season fixed effects
-# }
+allCombs_modCodeLs <- c("9a_iliSum_2009p_v1-2") # pandemic model
+for (code in allCombs_modCodeLs){
+  # choro_stateEffects(code)
+  # 5/17/17 account for variability within different random effects
+  forest_coefDistr_seasEffects(code)
+  # forest_coefDistr_regionEffects(code)
+  forest_coefDistr_stateEffects(code) #8a V3-6 and 8a V4-6 don't have graphIdx_st in ids file
+  forest_coefDistr_ctyEffects_sample(code)
+  # forest_coefDistr_errorEffects_sample(code)
+  forest_coefDistr_fixedEffects(code, TRUE) # multi-season fixed effects, T/F is2009p
+}
 
 
 ###############################################################################
-### FOREST PLOTS - Single season ###################
+# ### FOREST PLOTS - Single season ###################
 # singleSeas_modCodeLs <- c("9a_iliSum_v2-4", "9e_epiDur_v2-2")
 # for (code in singleSeas_modCodeLs){
 #   forest_coefDistr_fixedEffects_singleSeason(code)
@@ -110,7 +116,7 @@ setwd(dirname(sys.frame(1)$ofile))
 
 ###############################################################################
 ### DOT PLOTS - Replicate comparison ###################
-## missing county sequence
+# ## missing county sequence
 # baseCtySeq <- c("8a_iliSum_v2-6", "8a_iliSum_v2-6_c80", "8a_iliSum_v2-6_c60", "8a_iliSum_v2-6_c40", "8a_iliSum_v2-6_c20")
 # ctyPlotFormats <- list(w = 6, h = 3, lvls = baseCtySeq, labs = c("complete", "80% of counties", "60% of counties","40% of counties", "20% of counties"), replvls = c(.25, .5, .75, 1), replabs = c("25", "50", "75", "100"), descrip = "ctySeq", numReplicates = 10)
 # dot_coefCompareReplicates(baseCtySeq, ctyPlotFormats)
@@ -124,7 +130,7 @@ setwd(dirname(sys.frame(1)$ofile))
 # baseSeasSeq <- c("8a_iliSum_v2-6", "8a_iliSum_v2-6_s6", "8a_iliSum_v2-6_s4", "8a_iliSum_v2-6_s2")
 # seasPlotFormats <- list(w = 6, h = 3, lvls = baseSeasSeq, labs = c("complete", "missing 1", "missing 3","missing 5"), replvls = c(.25, .5, .75, 1), replabs = c("25", "50", "75", "100"), descrip = "seasSeq", numReplicates = 10)
 # dot_coefCompareReplicates(baseSeasSeq, seasPlotFormats)
-
+# 
 
 ###############################################################################
 ### FIT CHOROS - Replicate comparison ###################
@@ -145,32 +151,32 @@ setwd(dirname(sys.frame(1)$ofile))
 
 ###############################################################################
 # ### DOT PLOTS - Region comparison ###################
-regSeq_modCodeLs <- paste0("8a_iliSum_v2-6_R", c("1&2&3", "4&6", "5&7", "8&9&10"))
-regSeq_plotFormats <- list(w = 6, h = 5, lvls = regSeq_modCodeLs, labs = c("R1-3 BOS-NY-PHL", "R4&6 ATL-DAL", "R5&7 CHI-KS", "R8-10 DENV-SF-SEATT"), descrip = "regSeq")
-dot_coefCompare(regSeq_modCodeLs, regSeq_plotFormats)
+# regSeq_modCodeLs <- paste0("8a_iliSum_v2-6_R", c("1&2&3", "4&6", "5&7", "8&9&10"))
+# regSeq_plotFormats <- list(w = 6, h = 5, lvls = regSeq_modCodeLs, labs = c("R1-3 BOS-NY-PHL", "R4&6 ATL-DAL", "R5&7 CHI-KS", "R8-10 DENV-SF-SEATT"), descrip = "regSeq")
+# dot_coefCompare(regSeq_modCodeLs, regSeq_plotFormats)
 
 ###############################################################################
 # ### DOT PLOTS - Direct comparison ###################
 # repLs <- c("", paste0("-", 4))
-# # compare the sequence from a single replicate against the complete model 
+# # compare the sequence from a single replicate against the complete model
 # for(rep in repLs){
 #   ctySeq <- paste0(c("8a_iliSum_v2-6_c80", "8a_iliSum_v2-6_c60", "8a_iliSum_v2-6_c40", "8a_iliSum_v2-6_c20"), rep)
 #   seasSeq <- paste0(c("8a_iliSum_v2-6_s6", "8a_iliSum_v2-6_s4", "8a_iliSum_v2-6_s2"), rep)
 #   missSeq <- paste0(c("8a_iliSum_v2-6_m20", "8a_iliSum_v2-6_m40", "8a_iliSum_v2-6_m60", "8a_iliSum_v2-6_m80"), rep)
-
+# 
 #   ctySeq_modCodeLs <- c("8a_iliSum_v2-6", ctySeq)
 #   ctySeq_plotFormats <- list(w = 6, h = 3, lvls = ctySeq_modCodeLs, labs = c("complete", "80% of counties", "60% of counties","40% of counties", "20% of counties"), descrip = paste0("ctySeq", rep))
 #   dot_coefCompare(ctySeq_modCodeLs, ctySeq_plotFormats)
-
+# 
 #   seasSeq_modCodeLs <- c("8a_iliSum_v2-6", seasSeq)
 #   seasSeq_plotFormats <- list(w = 6, h = 3, lvls = seasSeq_modCodeLs, labs = c("complete", "missing 1", "missing 3", "missing 5"), descrip = paste0("seasSeq", rep))
 #   dot_coefCompare(seasSeq_modCodeLs, seasSeq_plotFormats)
-
+# 
 #   missSeq_modCodeLs <- c("8a_iliSum_v2-6", missSeq)
 #   missSeq_plotFormats <- list(w = 6, h = 3, lvls = missSeq_modCodeLs, labs = c("complete", "missing 20%", "missing 40%", "missing 60%", "missing 80%"), descrip = paste0("missSeq", rep))
 #   dot_coefCompare(missSeq_modCodeLs, missSeq_plotFormats)
 # }as.c
-
+# 
 # ageSeq_modCodeLs <- c("8a_iliSum_v2-6", "8a_iliSum_v3-6", "8a_iliSum_v4-6")
 # ageSeq_plotFormats <- list(w = 6, h = 3, lvls = ageSeq_modCodeLs, labs = c("total", "children", "adults"), descrip = "ageSeq")
 # dot_coefCompare(ageSeq_modCodeLs, ageSeq_plotFormats)
