@@ -22,8 +22,8 @@ source("source_export_inlaDiagnostics.R") # plot_diag_scatter_hurdle function
 source("source_clean_response_functions_cty.R") # cty response functions
 
 #### set these! ################################
-dbCodeStr <- "_ilinDt_Octfit_2009p_span0.4_degree2" # _ilinDt_Octfit_span0.4_degree2
-seasons <- c(10)
+dbCodeStr <- "_ilinDt_Octfit_span0.4_degree2" # _ilinDt_Octfit_span0.4_degree2
+seasons <- c(3:9)
 
 ## seasLs for historical season sequence
 # seasLs <- list(c(3:4,6:9), c(3:4,6,9), c(7,9), c(3,5:9), c(5,7:9), c(7,9), c(3:8), c(5:8), c(5:6), c(3:4,6:9), c(3:4,8:9), c(3:4), c(3:8), c(3:5,8), c(3,5), c(3:8), c(5:8), c(5,7), c(3:6,7:9), c(4:5,7,9), c(5,9), c(3:5,7:9), c(5,7:9), c(7:8), c(3,5:9), c(3,5:6,8), c(5:6)) 
@@ -34,7 +34,7 @@ seasons <- c(10)
 # modCodeStrLs <- paste0("8a_iliSum_v2-6_R", labLs)
 
 # modCodeStrLs <- paste0("8f_wksToEpi_v", 1:2, "-2")
-modCodeStrLs <- c("9a_iliSum_2009p_v2-4")
+modCodeStrLs <- c("8a_iliSum_v2-6_rmCtyFx")
 
 likString <- "normal"; likStrings <- c(likString)
 source("source_calculate_residuals_shift1.R") # calculate_residuals function (source_calculate_residuals_shift1.R for iliSum; source_calculate_residuals.R for epiDur, wksToEpi)
