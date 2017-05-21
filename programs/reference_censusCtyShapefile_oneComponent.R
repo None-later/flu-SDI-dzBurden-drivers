@@ -98,3 +98,4 @@ ID_crosswalk["fips"] <- paste0(ID_crosswalk$STATE, ID_crosswalk$COUNTY)
 ID_crosswalk["graphIdx"] <- seq_along(ID_crosswalk$fips)
 write_csv(ID_crosswalk, 'US_county_graph_index.csv')
 # exported 10/30/16
+
