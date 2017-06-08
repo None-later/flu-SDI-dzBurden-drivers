@@ -25,15 +25,20 @@ dbCodeStr <- "_ilinDt_Octfit_span0.4_degree2"
 setwd('../reference_data')
 path_abbr_st <- paste0(getwd(), "/state_abbreviations_FIPS.csv")
 path_latlon_cty <- paste0(getwd(), "/cty_pop_latlon.csv")
+path_latlon_st <- paste0(getwd(), "/state_latlon.csv")
 setwd("../R_export")
 path_response_cty <- paste0(getwd(), sprintf("/dbMetrics_periodicReg%s_analyzeDB_cty.csv", dbCodeStr))
+path_response_st <- paste0(getwd(), sprintf("/dbMetrics_periodicReg%s_analyzeDB_st.csv", dbCodeStr))
 path_list <- list(path_abbr_st = path_abbr_st,
+                  path_latlon_st = path_latlon_st,
                   path_latlon_cty = path_latlon_cty,
+                  path_response_st = path_response_st,
                   path_response_cty = path_response_cty)
 
 ################################
 ## MAIN ##
 setwd(dirname(sys.frame(1)$ofile))
+
 
 ## PLOTS ##
 ###############################################################################
@@ -41,7 +46,10 @@ setwd(dirname(sys.frame(1)$ofile))
 # obsFit_plotFormats_one <- list(w = 7, h = 3.5)
 # choro_obsFit_seasIntensityRR_oneSeason("8a_iliSum_v2-6", obsFit_plotFormats_one, path_list)
 
-# obsFit_plotFormats_multi <- list(w = 4.25, h = 8, rmSeas = "2006-07", popCode = "")
+fit_plotFormats_one <- list(w = 3.1, h = 2.5, popCode = "")
+choro_fit_seasIntensityRR_oneSeason("8a_iliSum_v2-6", fit_plotFormats_one, path_list)
+
+# obsFit_plotFormats_multi <- list(w = 4.25, h = 9, popCode = "") # add (rmSeas = "2006-07") arg if needed and (h = 8)
 # choro_obsFit_seasIntensityRR_multiSeason("8a_iliSum_v2-6", obsFit_plotFormats_multi, path_list)
 
 # obsFit_plotFormats_scatter <- list(w = 6, h = 4)
@@ -56,6 +64,9 @@ setwd(dirname(sys.frame(1)$ofile))
 
 ###############################################################################
 ### EPIDEMIC DURATION - total population ###################
+# fit_plotFormats_one <- list(w = 3, h = 2.3, popCode = "")
+# choro_fit_epiDuration_oneSeason("8e_epiDur_v2-3", fit_plotFormats_one, path_list)
+
 # obsFit_plotFormats_multi_epiDur <- list(w = 4.25, h = 9, popCode = "")
 # choro_obsFit_epiDuration_multiSeason("8e_epiDur_v2-3", obsFit_plotFormats_multi_epiDur, path_list)
 
@@ -69,41 +80,41 @@ setwd(dirname(sys.frame(1)$ofile))
 # scatter_obsFit_seasInt_epiDur_multiSeason(c("8a_iliSum_v2-6", "8e_epiDur_v2-3"), pltFormats_epiDur_seasInt, path_list)
 
 ###############################################################################
-### SEASONAL INTENSITY - age-specific population ###################
+### AGGREGATION BIAS: DIFFERENCE BETWEEN COUNTY-STATE ###################
 
-# obsFit_plotFormats_scatter_age <- list(w = 6, h = 3, ageLabs = c("Children", "Adults"))
-# scatter_obsFit_seasIntensityRR_multiSeason_age(c("8a_iliSum_v3-6", "8a_iliSum_v4-6"), obsFit_plotFormats_scatter_age, path_list)
+# test <- import_fit_aggBias_seasIntensityRR("8a_iliSum_v2-6", "10a_iliSum_v1-2", path_list)
 
-# modCodeLs_regionValidation <- c("8a_iliSum_v2-6", "8a_iliSum_v3-6", "8a_iliSum_v4-6")
-# ageVec <- c("total", "child", "adult")
-# xmaxVec <- c(3.75, 1.5, 1.5)
-# for (i in 1:length(modCodeLs_regionValidation)){
-# 	plotFormats_scatter_regionValidation <- list(w = 4, h = 4, age = ageVec[i], xmax = xmaxVec[i])
-#   scatter_regionValidationILI(modCodeLs_regionValidation[i], plotFormats_scatter_regionValidation)
-# }
+# fit_aggBias_plotFormats_one <- list(w = 3, h = 2.5)
+# choro_fit_aggBias_seasIntensityRR_oneSeason("8a_iliSum_v2-6", "10a_iliSum_v1-2", fit_aggBias_plotFormats_one, path_list)
 
+# fit_aggBias_plotFormats_mult <- list(w = 7, h = 4.25)
+# choro_fit_aggBias_seasIntensityRR_multiSeason("8a_iliSum_v2-6", "10a_iliSum_v1-2", fit_aggBias_plotFormats_mult, path_list)
 
-# # not in appendix
-# obsFit_plotFormats_child <- list(w = 5, h = 9, popCode = "_child")
-# choro_obsFit_seasIntensityRR_multiSeason("8a_iliSum_v3-6", obsFit_plotFormats_child, path_list)
-# obsFit_plotFormats_adult <- list(w = 5, h = 9, popCode = "_adult")
-# choro_obsFit_seasIntensityRR_multiSeason("8a_iliSum_v4-6", obsFit_plotFormats_adult, path_list)
+###############################################################################
+### STATE SEASONAL INTENSITY MODELS ###################
+
+# fit_plotFormats_choroSt_one <- list(w = 3.15, h = 2.5, popCode = "")
+# choroSt_fit_seasIntensityRR_oneSeason("10a_iliSum_v1-2", fit_plotFormats_choroSt_one, path_list)
+
+# obsFit_plotFormats_choroSt_multi <- list(w = 4.25, h = 9, popCode = "", manualBreaks = seq(-4,3,by=1))
+# choroSt_obsFit_seasIntensityRR_multiSeason("10a_iliSum_v1-2", obsFit_plotFormats_choroSt_multi, path_list)
 
 
 ###############################################################################
 ### MULTI-SEASON MODELS ###################
 # allCombs_modCodeLs <- c("8a_iliSum_v2-6", "8e_epiDur_v2-3", "8a_iliSum_v3-6", "8a_iliSum_v4-6")
-allCombs_modCodeLs <- c("9a_iliSum_2009p_v1-2") # pandemic model
-for (code in allCombs_modCodeLs){
-  # choro_stateEffects(code)
-  # 5/17/17 account for variability within different random effects
-  forest_coefDistr_seasEffects(code)
-  # forest_coefDistr_regionEffects(code)
-  forest_coefDistr_stateEffects(code) #8a V3-6 and 8a V4-6 don't have graphIdx_st in ids file
-  forest_coefDistr_ctyEffects_sample(code)
-  # forest_coefDistr_errorEffects_sample(code)
-  forest_coefDistr_fixedEffects(code, TRUE) # multi-season fixed effects, T/F is2009p
-}
+# allCombs_modCodeLs <- c("8a_iliSum_v2-6", "8e_epiDur_v2-3")
+# allCombs_modCodeLs <- c("9a_iliSum_2009p_v1-2") # pandemic model
+# for (code in allCombs_modCodeLs){
+#   choro_stateEffects(code)
+#   # 5/17/17 account for variability within different random effects
+#   forest_coefDistr_seasEffects(code)
+#   forest_coefDistr_regionEffects(code)
+#   forest_coefDistr_stateEffects(code) #8a V3-6 and 8a V4-6 don't have graphIdx_st in ids file
+#   forest_coefDistr_ctyEffects_sample(code)
+#   forest_coefDistr_errorEffects_sample(code)
+#   forest_coefDistr_fixedEffects(code, TRUE) # multi-season fixed effects, T/F is2009p
+# }
 
 
 ###############################################################################
