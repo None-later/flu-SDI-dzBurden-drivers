@@ -45,6 +45,7 @@ cleanR_iliSum_shift1_st <- function(filepathList){
   
   # grab disease burden metric (e.g., ilinDt): match "ili" 1+ times
   dbCode <- grep("ili+", strsplit(filepathList$path_response_st, "_")[[1]], value=T)
+
   # clean data
   iliSum_data <- read_csv(filepathList$path_response_st, col_types = "icllcd") %>%
     filter(metric == sprintf("%s.sum", dbCode)) %>%
@@ -62,6 +63,32 @@ cleanR_iliSum_shift1_st <- function(filepathList){
     mutate(E = weighted.mean(y1, pop, na.rm=TRUE)) %>%
     ungroup %>%
     filter(season >= 3 & season <= 9)
+  
+  return(return_data)
+}
+################################  
+
+cleanR_iliSum_shift1_st_aggBias <- function(filepathList){
+  # clean response variable: ilinDt.sum
+  print(match.call())
+  
+  # grab disease burden metric (e.g., ilinDt): match "ili" 1+ times
+  dbCode <- grep("ili+", strsplit(filepathList$path_response_st, "_")[[1]], value=T)
+  # clean data
+  iliSum_data <- read_csv(filepathList$path_response_st, col_types = "icllcd") %>%
+    filter(metric == sprintf("%s.sum", dbCode)) %>%
+    select(-metric) %>%
+    rename(y = burden, abbr_st = state)
+  
+  print(filepathList$path_response_st)
+  print(summary(iliSum_data))
+  pop_data <- clean_pop_st(filepathList) # 4/12/16 all 51 pops are there
+  
+  return_data <- full_join(iliSum_data, pop_data, by = c("season", "abbr_st")) %>% # 4/12/16 full_join so pops don't drop 
+    mutate(logy1_st = log(y+1)) %>%
+    filter(season >= 3 & season <= 9) %>%
+    select(abbr_st, season, logy1_st) %>%
+    rename(st = abbr_st)
   
   return(return_data)
 }
