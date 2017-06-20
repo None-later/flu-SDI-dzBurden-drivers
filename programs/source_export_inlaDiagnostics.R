@@ -773,7 +773,7 @@ importPlot_coefDistr_RV_spatiotemporal <- function(path_csvExport, path_plotExpo
   }
   
   coefDf <- fullDf %>%
-    mutate(LB = mean-(2*sd), UB = mean+(2*sd)) %>%
+    mutate(LB = q_025, UB = q_975) %>%
     mutate(signif = ifelse(UB < 0 | LB > 0, TRUE, FALSE)) %>%
     filter(!grepl("intercept", RV)) 
   

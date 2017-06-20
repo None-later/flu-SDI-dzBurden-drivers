@@ -12,14 +12,14 @@
 
 require(readr); require(dplyr); require(tidyr)
 require(DBI); require(RMySQL) # read tables from mysql database
-
+source("source_export_msFigs.R")
 
 #### functions ################################
 
 string_fit_fname <- function(modCodeStr){
   if(substring(modCodeStr, 2, 2) == 'a'){
     fname <- paste0(dirname(sys.frame(1)$ofile), "/../R_export/inlaModelData_export/", modCodeStr, "/summaryStatsFitted_normal_", modCodeStr, ".csv")
-  } else if (substring(modCodeStr, 2, 2) == 'e'){
+  } else if (substring(modCodeStrd, 2, 2) == 'e'){
     fname <- paste0(dirname(sys.frame(1)$ofile), "/../R_export/inlaModelData_export/", modCodeStr, "/summaryStatsFitted_poisson_", modCodeStr, ".csv")
   }
   return(fname)
@@ -65,6 +65,7 @@ report_observed_predicted_pearsonCorr <- function(modCodeStr){
 
 	print(sprintf("For %s, Pearson's R = %s between observations and predicted means.", modCodeStr, pearson))
 }
+
 
 ################################
 ## MAIN ##

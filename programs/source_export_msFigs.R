@@ -137,6 +137,20 @@ label_reg_predictors <- function(){
 }
 
 ################################
+label_prec_terms <- function(){
+  cleanRV <- c("Precision for ID_nonzero",
+    "Precision for fips_nonzero",
+    "Precision for graphIdx_nonzero",
+    "Precision for fips_st_nonzero",
+    "Precision for regionID_nonzero",
+    "Precision for season_nonzero")
+  pltLabels <- c("observation error", "county iid", "county CAR", "state iid", "region iid", "season iid") 
+
+  dfLabels <- tbl_df(data.frame(RV = cleanRV, pltLabs = pltLabels, stringsAsFactors = FALSE))
+  return(dfLabels)
+}
+
+################################
 label_base_modCodeStr <- function(repCodeLs){
   base_modCodeStr <- repCodeLs[which(nchar(repCodeLs) == min(nchar(repCodeLs)))]
   return(base_modCodeStr)
@@ -388,6 +402,26 @@ import_county_geomMap <- function(){
 }
 
 ################################
+import_county_oneState_geomMap <- function(stateName){
+    print(match.call())
+
+    countyMap <- map_data("county", regions = stateName)
+    data(county.fips)
+    polynameSplit <- tstrsplit(county.fips$polyname, ",")
+    county_geomMap <- tbl_df(county.fips) %>%
+        mutate(fips = substr.Right(paste0("0", fips), 5)) %>%
+        mutate(region = polynameSplit[[1]]) %>%
+        mutate(subregion = polynameSplit[[2]]) %>%
+        full_join(countyMap, by = c("region", "subregion")) %>%
+        filter(!is.na(polyname) & !is.na(long)) %>%
+        rename(state = region, county = subregion) %>%
+        rename(region = fips) %>%
+        select(-polyname)
+  
+  return(county_geomMap)
+}
+
+################################
 import_regionValidationILI <- function(modCodeStr, iFormats){
   print(match.call())
   
@@ -543,7 +577,7 @@ choro_fit_seasIntensityRR_oneSeason <- function(modCodeStr, pltFormats, filepath
     gather(fig, bin, Observed:Fitted) %>%
     filter(fig == "Fitted") %>%
     mutate(fig = factor(fig, levels = c("Fitted"))) %>%
-    mutate(bin = factor(bin, levels = factorlvls, labels = factorlvls, ordered = TRUE))
+    mutate(bin = factor(bin, levels = factorlvls, labels = factorlvls, ordered = TRUE)) 
   print(levels(plotDat$bin))
  
   seasLs <- plotDat %>% distinct(season) %>% unlist
@@ -762,8 +796,8 @@ choro_obsFit_seasIntensityRR_multiSeason <- function(modCodeStr, pltFormats, fil
   
   ggsave(exportFname, choro, height = h, width = w, dpi = dp)
   
-  
 }
+
 ################################
 choro_fit_aggBias_seasIntensityRR_oneSeason <- function(modCodeStr_cty, modCodeStr_st, pltFormats, filepathList){
   print(match.call())
@@ -859,6 +893,110 @@ choro_fit_aggBias_seasIntensityRR_multiSeason <- function(modCodeStr_cty, modCod
   
   ggsave(exportFname, choro, height = h, width = w, dpi = dp)
 
+}
+################################
+choro_stCty_fit_seasIntensityRR_oneSeason <- function(modCodeStr_cty, modCodeStr_st, pltFormats, filepathList){
+    print(match.call())
+    # side-by-side choropleths of state and county fitted values for a single state (seasonal intensity RR)
+
+    # plot formatting
+    w <- pltFormats$w; h <- pltFormats$h; dp <- 300
+    stName <- pltFormats$stName
+    stFips <- import_stAbbr()[which(import_stAbbr()$State==stName),]$fips
+    if (is.null(pltFormats$legendStep)){
+        legendStep <- 0.3
+    } else{
+        legendStep <- pltFormats$legendStep
+    }
+
+    # import county and state seasonal intensity RR
+    prepDat <- import_fit_aggBias_seasIntensityRR(modCodeStr_cty, modCodeStr_st, filepathList) %>%
+        left_join(import_stAbbr(), by = c("fips_st"="fips")) %>%
+        filter(State == stName)
+
+    # import county and state map information
+    ctyMap <- import_county_oneState_geomMap(stName)
+    stMap <- map_data("state", regions = stName)
+
+    seasLs <- prepDat %>% distinct(season) %>% unlist
+    for (s in seasLs){
+
+        exportFname <- paste0(string_msFig_folder(), "choro_stCty_fit_seasIntensityRR_st", stFips, "_S", s, ".png")
+        seasDat <- prepDat %>% filter(season == s)
+
+        # set breaks based on distribution of county and state RR
+        allValues <- c(seasDat$fit_rr_cty, seasDat$fit_rr_st)
+        breaks <- seq(floor(min(allValues, na.rm = TRUE)), ceiling(max(allValues, na.rm = TRUE)), by = legendStep)
+        prepDat2 <- seasDat %>%
+            mutate(rrCty = cut(fit_rr_cty, breaks, right = TRUE, include.lowest = TRUE, ordered_result = TRUE)) %>%
+            mutate(rrSt = cut(fit_rr_st, breaks, right = TRUE, include.lowest = TRUE, ordered_result = TRUE))
+
+        factorlvls <- levels(prepDat2$rrCty)
+
+        pltDat <- prepDat2 %>%
+            select(season, fips, fips_st, State, rrCty, rrSt) %>%
+            gather(fig, bin, rrCty:rrSt) %>%
+            mutate(fig = factor(fig, levels = c("rrSt", "rrCty"), labels = c("State", "County"))) %>%
+            mutate(bin = factor(bin, levels = factorlvls, labels = factorlvls, ordered = TRUE)) #%>%
+            # mutate(bin = droplevels(bin))
+        print(breaks)
+        print(range(allValues))
+        print(levels(pltDat$bin))
+
+        # plot
+        choro <- ggplot() +
+          geom_map(data = ctyMap, map = ctyMap, aes(x = long, y = lat, map_id = region)) +
+          geom_map(data = pltDat, map = ctyMap, aes(fill = bin, map_id = fips), color = "grey25", size = 0.025) +
+          scale_fill_brewer(name = "Relative Risk", palette = "OrRd", na.value = "grey60", drop = FALSE) +
+          expand_limits(x = ctyMap$long, y = ctyMap$lat) +
+          theme_minimal() +
+          theme(text = element_text(size = 10), axis.ticks = element_blank(), axis.text = element_blank(), axis.title = element_blank(), panel.grid = element_blank(), legend.position = "bottom",legend.margin = margin(), legend.box.margin = margin()) +
+          guides(fill = guide_legend(nrow = 2)) +
+          facet_wrap(~fig, nrow=1)
+        
+        ggsave(exportFname, choro, height = h, width = w, dpi = dp)
+
+    }
+
+}
+
+################################
+scatter_corr_fitVariance_aggBias <- function(modCodeStr_cty, modCodeStr_st, pltFormats, filepathList){
+    print(match.call())
+    # state-level scatterplot of variance of fitted values and sum of absolute value in aggregation bias measure
+    # Is there more heterogeneity within states that have greater under or overestimation?
+
+    # plot formatting
+    w <- pltFormats$w; h <- pltFormats$h; dp <- 300
+    seasDf <- label_seas_predictors()
+
+    # import error between county and state seasonal intensity RR
+    importDat <- import_fit_aggBias_seasIntensityRR(modCodeStr_cty, modCodeStr_st, filepathList)
+
+    plotDat <- importDat %>%
+        group_by(fips_st, season) %>%
+        summarise(fitVar = var(fit_rr_cty), magAggBias = sum(abs(fit_rrDiff_stCty), na.rm=TRUE)) %>%
+        ungroup %>% 
+        mutate(season = paste0("S", season)) %>%
+        mutate(season = factor(season, levels = seasDf$RV, labels = seasDf$pltLabs))
+
+    # print correlation 
+    print(cor(plotDat$fitVar, plotDat$magAggBias, use = "complete.obs", method = "pearson")) # spearman 0.535, peason 0.429
+    print(cor.test(plotDat$fitVar, plotDat$magAggBias, method = "spearman", alternative = "two.sided"))
+
+    exportFname <- paste0(string_msFig_folder(), "scatter_fitVariance_aggBias.png")
+
+    # plot
+    plotOutput <- ggplot(plotDat, aes(x = magAggBias, y = fitVar)) +
+        geom_point(alpha = 0.7) + 
+        scale_x_continuous("Absolute Magnitude of Error") +
+        scale_y_continuous("Variance of Fitted Value Means") +
+        theme_bw() + 
+        theme(text = element_text(size = 13), legend.margin = margin(), legend.position = "bottom") +
+        facet_wrap(~season, nrow = 2)
+  
+    ggsave(exportFname, plotOutput, height = h, width = w, dpi = dp)  
+    return(plotDat)
 }
 
 ################################
@@ -975,6 +1113,29 @@ forest_coefDistr_errorEffects_sample <- function(modCodeStr){
     sample_n(50) %>%
     clean_RVnames(.) %>%
     mutate(RV = as.factor(RV))
+  
+  # prepare data for plotting
+  plotDat <- calculate_95CI(coefDat) 
+  
+  # plot 
+  plot_coefDistr_RV(plotDat, exportFname, plotFormats)
+}
+
+################################
+forest_coefDistr_precisionTerms <- function(modCodeStr){
+  print(match.call())
+  
+  # plot formatting
+  precLabels <- label_prec_terms()
+  exportFname <- paste0(string_msFig_folder(), "forest_coefPrecision_", modCodeStr, ".png")
+  plotFormats <- list(w=4, h=2)
+
+  # import state structured coef data
+  importDat <- read_csv(string_coef_fname(modCodeStr), col_types = "ccd_cccddddd__") 
+  coefDat <- importDat %>%
+    filter(effectType == 'hyperpar') %>%
+    mutate(RV = factor(RV, levels = precLabels$RV, labels = precLabels$pltLabs)) %>%
+    filter(!is.na(RV))
   
   # prepare data for plotting
   plotDat <- calculate_95CI(coefDat) 

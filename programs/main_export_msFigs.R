@@ -46,8 +46,8 @@ setwd(dirname(sys.frame(1)$ofile))
 # obsFit_plotFormats_one <- list(w = 7, h = 3.5)
 # choro_obsFit_seasIntensityRR_oneSeason("8a_iliSum_v2-6", obsFit_plotFormats_one, path_list)
 
-fit_plotFormats_one <- list(w = 3.1, h = 2.5, popCode = "")
-choro_fit_seasIntensityRR_oneSeason("8a_iliSum_v2-6", fit_plotFormats_one, path_list)
+# fit_plotFormats_one <- list(w = 3.1, h = 2.5, popCode = "")
+# choro_fit_seasIntensityRR_oneSeason("8a_iliSum_v2-6", fit_plotFormats_one, path_list)
 
 # obsFit_plotFormats_multi <- list(w = 4.25, h = 9, popCode = "") # add (rmSeas = "2006-07") arg if needed and (h = 8)
 # choro_obsFit_seasIntensityRR_multiSeason("8a_iliSum_v2-6", obsFit_plotFormats_multi, path_list)
@@ -58,9 +58,12 @@ choro_fit_seasIntensityRR_oneSeason("8a_iliSum_v2-6", fit_plotFormats_one, path_
 # scatter_residFit_logSeasIntensity_multiSeason("8a_iliSum_v2-6", obsFit_plotFormats_scatter, path_list)
 
 # forest_coefDistr_stateStructuredEffects("8a_iliSum_v6-3")
+forest_coefDistr_precisionTerms("8a_iliSum_v2-6")
 # 
 # plotFormats_scatter_regionValidationViral <- list(w = 4, h = 4, xmax = 30)
 # scatter_regionValidationViral("8a_iliSum_v2-6", plotFormats_scatter_regionValidationViral)
+
+
 
 ###############################################################################
 ### EPIDEMIC DURATION - total population ###################
@@ -89,6 +92,20 @@ choro_fit_seasIntensityRR_oneSeason("8a_iliSum_v2-6", fit_plotFormats_one, path_
 
 # fit_aggBias_plotFormats_mult <- list(w = 7, h = 4.25)
 # choro_fit_aggBias_seasIntensityRR_multiSeason("8a_iliSum_v2-6", "10a_iliSum_v1-2", fit_aggBias_plotFormats_mult, path_list)
+
+# stCty_fit_plotFormats_one <- list(w = 3, h = 1.9, stName = "south carolina")
+# choro_stCty_fit_seasIntensityRR_oneSeason("8a_iliSum_v2-6", "10a_iliSum_v1-2", stCty_fit_plotFormats_one, path_list)
+
+# stCty_fit_plotFormats_one <- list(w = 3.1, h = 1.9, stName = "montana", legendStep = 0.5)
+# choro_stCty_fit_seasIntensityRR_oneSeason("8a_iliSum_v2-6", "10a_iliSum_v1-2", stCty_fit_plotFormats_one, path_list)
+
+# stCty_fit_plotFormats_one <- list(w = 3.1, h = 1.9, stName = "kansas", legendStep = 0.5)
+# choro_stCty_fit_seasIntensityRR_oneSeason("8a_iliSum_v2-6", "10a_iliSum_v1-2", stCty_fit_plotFormats_one, path_list)
+
+
+# # Is there more heterogeneity within states that have greater under or overestimation?
+# scatter_fitVariance_aggBias_plotFormats <- list(w = 6, h = 4)
+# test <- scatter_corr_fitVariance_aggBias("8a_iliSum_v2-6", "10a_iliSum_v1-2", scatter_fitVariance_aggBias_plotFormats, path_list)
 
 ###############################################################################
 ### STATE SEASONAL INTENSITY MODELS ###################
