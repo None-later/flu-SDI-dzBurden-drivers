@@ -13,9 +13,10 @@ require(ggplot2)
 require(dplyr)
 require(readr)
 require(RColorBrewer)
-require(ggcounty)
+# require(ggcounty)
 require(scales)
 require(classInt)
+require(maps)
 
 ################################################################
 
@@ -60,7 +61,7 @@ choroplots_cty <- function(dummyDat, params, plotparams){
   h <- plotparams$h; w <- plotparams$w; dp <- plotparams$dp
   
   # county map
-  us <- ggcounty.us()
+  us <- map_data("county")
   gg <- us$g
   
   # create aggregate df for all processed seasons
@@ -106,7 +107,7 @@ choroplots_cty_1yr <- function(dummyDat, params, plotparams){
   h <- plotparams$h; w <- plotparams$w; dp <- plotparams$dp
   
   # county map
-  us <- ggcounty.us()
+  us <- map_data("county")
   gg <- us$g
   
   # process bin categories for each season separately
@@ -144,8 +145,8 @@ choroplots_zip3_1yr <- function(fullDat, zipShapefile, params, plotparams){
   # import plot parameters
   h <- plotparams$h; w <- plotparams$w; dp <- plotparams$dp
   
-  # grab lat/lon bounds for continental US
-  gg <- ggcounty.us()$g
+  # # grab lat/lon bounds for continental US
+  # gg <- ggcounty.us()$g
   
   # process bin categories for each season separately
   for (s in seas){

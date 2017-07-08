@@ -18,6 +18,7 @@ require(dplyr)
 require(RColorBrewer)
 require(scales)
 require(broom)
+require(maptools)
 
 setwd(dirname(sys.frame(1)$ofile))
 source("source_EDA_plots.R")
@@ -25,8 +26,8 @@ source("source_EDA_plots.R")
 #### SET THESE! ################################
 dbCodeStr <- "_ilinDt_Octfit_span0.4_degree2"
 dbCode <- grep("ili+", strsplit(dbCodeStr, "_")[[1]], value=T)
-dbMetric <- "iliPeak" # "iliSum", "iliPeak"
-dbLabel <- "Peak Intensity" # "Seasonal Intensity", "Peak Intensity"
+dbMetric <- "iliSum" # "iliSum", "iliPeak"
+dbLabel <- "Seasonal Intensity" # "Seasonal Intensity", "Peak Intensity"
 
 #### import data ################################
 # zip3 shapefile
