@@ -1519,10 +1519,10 @@ choro_stateEffects <- function(modCodeStr){
     clean_RVnames(.) %>%
     mutate(fips = substr.Right(paste0("0", RV), 2)) %>%
     left_join(import_stAbbr(), by = "fips") 
-
+  View(coefDat)
   # prepare data for plotting
   plotDat <- indicate_signif(coefDat)
-
+  View(plotDat)
   # plot
   choro <- ggplot(plotDat, aes(map_id = State)) +
     geom_map(aes(fill = signif2), map = states_map, color = "grey50") +

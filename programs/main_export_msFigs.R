@@ -58,7 +58,7 @@ setwd(dirname(sys.frame(1)$ofile))
 # scatter_residFit_logSeasIntensity_multiSeason("8a_iliSum_v2-6", obsFit_plotFormats_scatter, path_list)
 
 # forest_coefDistr_stateStructuredEffects("8a_iliSum_v6-3")
-forest_coefDistr_precisionTerms("8a_iliSum_v2-6")
+# forest_coefDistr_precisionTerms("8a_iliSum_v2-6")
 # 
 # plotFormats_scatter_regionValidationViral <- list(w = 4, h = 4, xmax = 30)
 # scatter_regionValidationViral("8a_iliSum_v2-6", plotFormats_scatter_regionValidationViral)
@@ -116,6 +116,7 @@ forest_coefDistr_precisionTerms("8a_iliSum_v2-6")
 # obsFit_plotFormats_choroSt_multi <- list(w = 4.25, h = 9, popCode = "", manualBreaks = seq(-4,3,by=1))
 # choroSt_obsFit_seasIntensityRR_multiSeason("10a_iliSum_v1-2", obsFit_plotFormats_choroSt_multi, path_list)
 
+# choro_stateEffects("10a_iliSum_v1-2") # no states were significant
 
 ###############################################################################
 ### MULTI-SEASON MODELS ###################
