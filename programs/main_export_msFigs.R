@@ -70,6 +70,9 @@ setwd(dirname(sys.frame(1)$ofile))
 # fit_plotFormats_one <- list(w = 3, h = 2.3, popCode = "")
 # choro_fit_epiDuration_oneSeason("8e_epiDur_v2-3", fit_plotFormats_one, path_list)
 
+obsFit_plotFormats_one <- list(w = 7, h = 3.5)
+choro_obsFit_epiDuration_oneSeason("8e_epiDur_v2-3", obsFit_plotFormats_one, path_list)
+
 # obsFit_plotFormats_multi_epiDur <- list(w = 4.25, h = 9, popCode = "")
 # choro_obsFit_epiDuration_multiSeason("8e_epiDur_v2-3", obsFit_plotFormats_multi_epiDur, path_list)
 

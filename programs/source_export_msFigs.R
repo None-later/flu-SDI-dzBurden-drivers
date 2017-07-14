@@ -1234,6 +1234,63 @@ scatter_residFit_logSeasIntensity_multiSeason <- function(modCodeStr, pltFormats
 }
 ################################
 
+choro_obsFit_epiDuration_oneSeason <- function(modCodeStr, pltFormats, filepathList){
+  # plot side-by-side choropleths for the observed and fitted epidemic duration
+  print(match.call())
+  
+  # plot formatting
+  w <- pltFormats$w; h <- pltFormats$h; dp <- 300
+  popCode <- pltFormats$popCode
+  if (is.null(pltFormats$legendStep)){
+    legendStep <- 1
+  } else{
+    legendStep <- pltFormats$legendStep
+  }
+  
+  # import and clean observed and fitted epidemic duration
+  prepDat <- import_obsFit_epiDuration(modCodeStr, filepathList)
+  
+  # set breaks based on distribution of observed data
+  breaks <- seq(floor(min(prepDat$obs_y, na.rm = TRUE)), ceiling(max(prepDat$obs_y, na.rm = TRUE)), by = 3)
+  prepDat2 <- prepDat %>%
+    mutate(Observed = cut(obs_y, breaks, right = TRUE, include.lowest = TRUE, ordered_result = TRUE)) %>%
+    mutate(Fitted = cut(fit_y, breaks, right = TRUE, include.lowest = TRUE, ordered_result = TRUE))
+  factorlvls <- levels(prepDat2$Observed)
+  
+  plotDat <- prepDat2 %>%
+    select(season, fips, Observed, Fitted) %>%
+    gather(fig, bin, Observed:Fitted) %>%
+    mutate(fig = factor(fig, levels = c("Observed", "Fitted"))) %>%
+    mutate(bin = factor(bin, levels = factorlvls, labels = factorlvls, ordered = TRUE))
+  print(levels(plotDat$bin))
+  
+  seasLs <- plotDat %>% distinct(season) %>% unlist
+  for (s in seasLs){
+    
+    exportFname <- paste0(string_msFig_folder(), "choro_obsFit_epiDuration", popCode, "_S", s, ".png")
+    pltDat <- plotDat %>% filter(season == s)
+    
+    # import county mapping info
+    ctyMap <- import_county_geomMap()
+    
+    # plot
+    choro <- ggplot() +
+      geom_map(data = ctyMap, map = ctyMap, aes(x = long, y = lat, map_id = region)) +
+      geom_map(data = pltDat, map = ctyMap, aes(fill = bin, map_id = fips), color = "grey25", size = 0.025) +
+      scale_fill_brewer(name = "Duration\n(Weeks)", palette = "OrRd", na.value = "grey60", drop = FALSE) +
+      expand_limits(x = ctyMap$long, y = ctyMap$lat) +
+      theme_minimal() +
+      theme(text = element_text(size = 15), axis.ticks = element_blank(), axis.text = element_blank(), axis.title = element_blank(), panel.grid = element_blank(), legend.position = "bottom") +
+      facet_wrap(~fig, nrow=1)
+    
+    ggsave(exportFname, choro, height = h, width = w, dpi = dp)
+    
+  }
+  
+}
+
+################################
+
 choro_obsFit_epiDuration_multiSeason <- function(modCodeStr, pltFormats, filepathList){
   # plot side-by-side choropleths for the observed and fitted epidemic duration (multiple years)
   print(match.call())
