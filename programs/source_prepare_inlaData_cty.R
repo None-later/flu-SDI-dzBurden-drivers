@@ -374,6 +374,7 @@ model8a_iliSum_v7 <- function(filepathList){
     mutate(logE = log(E), y1 = log(y1)) %>% # model response y1 = log(y+1)
     select(-stateID, -adjProviderCoverage, -visitsPerPopT, -insured, -poverty, -child, -adult, -hospitalAccess, -popDensity, -housDensity, -infantAnyVax, -elderlyAnyVax, -prop_H3_a, -prop_b_all, -protectionPrevSeason, -humidity, -avg_pm, -perc_hh_1p) %>%
     filter(season %in% 3:9) %>%
+    mutate(seasonID = season-2) %>%
     mutate(ID = seq_along(fips))
   
   return(full_df)

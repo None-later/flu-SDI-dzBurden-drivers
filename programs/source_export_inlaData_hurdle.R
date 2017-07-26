@@ -420,6 +420,15 @@ export_summaryStats_hurdle_likString <- function(exportPath, modelOutput, rdmFxT
       select(RV, effectType, likelihood, mean, sd, q_025, q_5, q_975, mode, kld)
     summaryComplete <- bind_rows(summaryComplete, summaryRandomSeas)
   }
+  # 7/25/17: add seasonID AR1 term
+  if (!is.null(modelOutput$summary.random$seasonID_nonzero)){
+    names(modelOutput$summary.random$seasonID_nonzero) <- c("RV", names(modelOutput$summary.fixed))
+    summaryRandomSeas <- modelOutput$summary.random$seasonID_nonzero %>% mutate(likelihood = likString) %>%
+      mutate(RV = paste0("S", RV)) %>%
+      mutate(effectType = "seasonAR1") %>%
+      select(RV, effectType, likelihood, mean, sd, q_025, q_5, q_975, mode, kld)
+    summaryComplete <- bind_rows(summaryComplete, summaryRandomSeas)
+  }
   # 10/26/16: added error term for each observation
   if (!is.null(modelOutput$summary.random$ID_nonzero)){
     names(modelOutput$summary.random$ID_nonzero) <- c("RV", names(modelOutput$summary.fixed))
