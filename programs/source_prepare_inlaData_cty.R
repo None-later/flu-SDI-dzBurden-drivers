@@ -374,7 +374,7 @@ model8a_iliSum_v7 <- function(filepathList){
     mutate(logE = log(E), y1 = log(y1)) %>% # model response y1 = log(y+1)
     select(-stateID, -adjProviderCoverage, -visitsPerPopT, -insured, -poverty, -child, -adult, -hospitalAccess, -popDensity, -housDensity, -infantAnyVax, -elderlyAnyVax, -prop_H3_a, -prop_b_all, -protectionPrevSeason, -humidity, -avg_pm, -perc_hh_1p) %>%
     filter(season %in% 3:9) %>%
-    mutate(seasonID = season-2) %>%
+    mutate(seasonID = season-2)%>%
     mutate(ID = seq_along(fips))
   
   return(full_df)
@@ -1750,21 +1750,25 @@ convert_hurdleModel_nz_spatiotemporal <- function(modData_seas){
   
   # covariate matrix for nonzero lik: response, predictors, random effects & offset
   # 10/30/16 control flow for graph Idx # 12/20/16 graph Idx st
-  if(is.null(modData_seas$graphIdx) & is.null(modData_seas$graphIdx_st)){
+  if(is.null(modData_seas$graphIdx) & is.null(modData_seas$graphIdx_st) & is.null(modData_seas$seasonID)){
     Mx_nz <- modData_seas %>%
       select(contains("X_"), contains("O_"), fips, fips_st, regionID, ID, logE, season) %>%
       mutate(intercept = 1) 
-  } else if(is.null(modData_seas$graphIdx_st) & !is.null(modData_seas$graphIdx)){
+  } else if(is.null(modData_seas$graphIdx_st) & !is.null(modData_seas$graphIdx) & is.null(modData_seas$seasonID)){
     Mx_nz <- modData_seas %>%
       select(contains("X_"), contains("O_"), fips, fips_st, regionID, ID, logE, season, graphIdx) %>%
       mutate(intercept = 1) 
-  } else if(!is.null(modData_seas$graphIdx_st) & is.null(modData_seas$graphIdx)){
+  } else if(!is.null(modData_seas$graphIdx_st) & is.null(modData_seas$graphIdx) & is.null(modData_seas$seasonID)){
     Mx_nz <- modData_seas %>%
       select(contains("X_"), contains("O_"), fips, fips_st, regionID, ID, logE, season, graphIdx_st) %>%
       mutate(intercept = 1)
-  } else{
+  } else if(!is.null(modData_seas$graphIdx_st) & !is.null(modData_seas$graphIdx) & is.null(modData_seas$seasonID)){
     Mx_nz <- modData_seas %>%
       select(contains("X_"), contains("O_"), fips, fips_st, regionID, ID, logE, season, graphIdx, graphIdx_st) %>%
+      mutate(intercept = 1)
+  } else if(!is.null(modData_seas$graphIdx_st) & !is.null(modData_seas$graphIdx) & !is.null(modData_seas$seasonID)){
+    Mx_nz <- modData_seas %>%
+      select(contains("X_"), contains("O_"), fips, fips_st, regionID, ID, logE, season, graphIdx, graphIdx_st, seasonID) %>%
       mutate(intercept = 1)
   }
   colnames(Mx_nz) <- paste0(colnames(Mx_nz), "_nonzero")
