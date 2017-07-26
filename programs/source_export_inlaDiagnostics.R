@@ -70,7 +70,7 @@ plot_diag_scatter_hurdle_spatiotemporal <- function(path_csvExport, path_plotExp
   if (errorbar){
     plotDat3 <- plotDat2 %>% filter(!is.na(pltVar) & !is.na(xVar))
     plotOutput <- ggplot(plotDat3, aes(x = xVar, y = pltVar)) +
-      geom_pointrange(aes(ymin = q_025, ymax = q_975, colour = season), alpha = 0.3) +
+      geom_pointrange(aes(ymin = LB, ymax = UB, colour = season), alpha = 0.3) +
       scale_y_continuous(paste(yaxisVariable, "(95%CI)")) +
       xlab(xaxisVariable) +
       theme(legend.position = "bottom") +
@@ -820,6 +820,13 @@ importPlot_coefDistr_RV_spatiotemporal <- function(path_csvExport, path_plotExpo
       seasIds <- coefDf_lik %>% filter(effectType == 'season') %>% distinct(RV) %>% unlist 
       seasDat <- coefDf_lik %>% filter(effectType == 'season') %>% clean_RVnames(.) %>% mutate(RV = factor(RV, levels = seasIds))
       plot_coefDistr_RV(seasDat, path_plotExport_coefDistr, sprintf('season_%sLikelihood.png', lik))
+    }
+
+    # plot effects of season AR term
+    if (nrow(coefDf_lik %>% filter(effectType == 'seasonAR1')) > 0){
+      seasIds <- coefDf_lik %>% filter(effectType == 'seasonAR1') %>% distinct(RV) %>% unlist 
+      seasDat <- coefDf_lik %>% filter(effectType == 'seasonAR1') %>% clean_RVnames(.) %>% mutate(RV = as.factor(RV))
+      plot_coefDistr_RV(seasDat, path_plotExport_coefDistr, sprintf('seasonAR1_%sLikelihood.png', lik))
     }
     
     # plot effects of county spatial structure
