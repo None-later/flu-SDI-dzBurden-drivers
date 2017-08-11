@@ -62,3 +62,5 @@ formula <- y1 ~ 1 + O_imscoverage + O_careseek + O_insured + X_poverty + X_child
 
 modVif <- vif(lm(formula, data = dat))
 print(modVif)
+# there does not appear to be multicollinearity in the model without random effects
+# largest VIF is <3
