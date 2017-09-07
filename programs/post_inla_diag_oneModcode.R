@@ -18,6 +18,7 @@ source("source_prepare_inlaData_cty.R") # remove_gammaQQ_outliers
 source("source_export_inlaDiagnostics.R") # plot_diag_scatter_hurdle function, calculate_residuals
 source("source_clean_response_functions_cty.R") # cty response functions
 # source("source_variableSelection_cty.R") # prepare_allCov_iliSum_cty/_raw
+source("source_clean_data_functions.R") # functions to clean covariate data
 
 #### set these! ################################
 dbCodeStr <- "_ilinDt_Octfit_span0.4_degree2"
@@ -72,12 +73,12 @@ dir.create("./diag_errors", showWarnings = FALSE)
 setwd("./diag_errors")
 path_plotExport2 <- getwd()
 
-# index plot export directories
-setwd(dirname(sys.frame(1)$ofile))
-setwd(sprintf("../graph_outputs/inlaModelDiagnostics/%s", modCodeStr))
-dir.create("./diag_index", showWarnings = FALSE)
-setwd("./diag_index")
-path_plotExport3 <- getwd()
+# # index plot export directories
+# setwd(dirname(sys.frame(1)$ofile))
+# setwd(sprintf("../graph_outputs/inlaModelDiagnostics/%s", modCodeStr))
+# dir.create("./diag_index", showWarnings = FALSE)
+# setwd("./diag_index")
+# path_plotExport3 <- getwd()
 
 #### Residuals vs. predictors #################################
 # csv file export directories

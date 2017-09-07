@@ -250,7 +250,7 @@ importPlot_diag_scatter_predictors_spatiotemporal <- function(path_csvExport, pa
   
   #### clean data ####
   # calculate yhat residuals for gamma model only
-  if (grepl("gamma", likelihoodString) | grepl("poisson", likelihoodString)){
+  if (grepl("normal", likelihoodString) | grepl("poisson", likelihoodString)){
     plotDat <- calculate_residuals(plotDat, TRUE)
   }
   # list of varnames
