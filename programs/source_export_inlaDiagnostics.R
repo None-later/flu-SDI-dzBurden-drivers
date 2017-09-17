@@ -146,7 +146,7 @@ plot_diag_scatter_st_spatiotemporal <- function(path_csvExport, path_plotExport_
   if (errorbar){
     plotDat3 <- plotDat2 %>% filter(!is.na(pltVar) & !is.na(xVar))
     plotOutput <- ggplot(plotDat3, aes(x = xVar, y = pltVar)) +
-      geom_pointrange(aes(ymin = q_025, ymax = q_975, colour = season), alpha = 0.3) +
+      geom_pointrange(aes(ymin = LB, ymax = UB, colour = season), alpha = 0.3) +
       scale_y_continuous(paste(yaxisVariable, "(95%CI)")) +
       xlab(xaxisVariable) +
       theme(legend.position = "bottom") +
