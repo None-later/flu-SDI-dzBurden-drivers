@@ -70,8 +70,8 @@ setwd(dirname(sys.frame(1)$ofile))
 # fit_plotFormats_one <- list(w = 3, h = 2.3, popCode = "")
 # choro_fit_epiDuration_oneSeason("8e_epiDur_v2-3", fit_plotFormats_one, path_list)
 
-obsFit_plotFormats_one <- list(w = 7, h = 3.5)
-choro_obsFit_epiDuration_oneSeason("8e_epiDur_v2-3", obsFit_plotFormats_one, path_list)
+# obsFit_plotFormats_one <- list(w = 7, h = 3.5)
+# choro_obsFit_epiDuration_oneSeason("8e_epiDur_v2-3", obsFit_plotFormats_one, path_list)
 
 # obsFit_plotFormats_multi_epiDur <- list(w = 4.25, h = 9, popCode = "")
 # choro_obsFit_epiDuration_multiSeason("8e_epiDur_v2-3", obsFit_plotFormats_multi_epiDur, path_list)
@@ -88,38 +88,38 @@ choro_obsFit_epiDuration_oneSeason("8e_epiDur_v2-3", obsFit_plotFormats_one, pat
 ###############################################################################
 ### AGGREGATION BIAS: DIFFERENCE BETWEEN COUNTY-STATE ###################
 
-# test <- import_fit_aggBias_seasIntensityRR("8a_iliSum_v2-6", "10a_iliSum_v1-2", path_list)
+test <- import_fit_aggBias_seasIntensityRR("8a_iliSum_v2-6", "10a_iliSum_v2-3", path_list)
 
-# fit_aggBias_plotFormats_one <- list(w = 3, h = 2.5)
-# choro_fit_aggBias_seasIntensityRR_oneSeason("8a_iliSum_v2-6", "10a_iliSum_v1-2", fit_aggBias_plotFormats_one, path_list)
+fit_aggBias_plotFormats_one <- list(w = 3, h = 2.5)
+choro_fit_aggBias_seasIntensityRR_oneSeason("8a_iliSum_v2-6", "10a_iliSum_v2-3", fit_aggBias_plotFormats_one, path_list)
 
-# fit_aggBias_plotFormats_mult <- list(w = 7, h = 4.25)
-# choro_fit_aggBias_seasIntensityRR_multiSeason("8a_iliSum_v2-6", "10a_iliSum_v1-2", fit_aggBias_plotFormats_mult, path_list)
+fit_aggBias_plotFormats_mult <- list(w = 7, h = 4.25)
+choro_fit_aggBias_seasIntensityRR_multiSeason("8a_iliSum_v2-6", "10a_iliSum_v2-3", fit_aggBias_plotFormats_mult, path_list)
 
-# stCty_fit_plotFormats_one <- list(w = 3, h = 1.9, stName = "south carolina")
-# choro_stCty_fit_seasIntensityRR_oneSeason("8a_iliSum_v2-6", "10a_iliSum_v1-2", stCty_fit_plotFormats_one, path_list)
+stCty_fit_plotFormats_one <- list(w = 3, h = 1.9, stName = "south carolina")
+choro_stCty_fit_seasIntensityRR_oneSeason("8a_iliSum_v2-6", "10a_iliSum_v2-3", stCty_fit_plotFormats_one, path_list)
 
-# stCty_fit_plotFormats_one <- list(w = 3.1, h = 1.9, stName = "montana", legendStep = 0.5)
-# choro_stCty_fit_seasIntensityRR_oneSeason("8a_iliSum_v2-6", "10a_iliSum_v1-2", stCty_fit_plotFormats_one, path_list)
+stCty_fit_plotFormats_one <- list(w = 3.1, h = 1.9, stName = "montana", legendStep = 0.5)
+choro_stCty_fit_seasIntensityRR_oneSeason("8a_iliSum_v2-6", "10a_iliSum_v2-3", stCty_fit_plotFormats_one, path_list)
 
-# stCty_fit_plotFormats_one <- list(w = 3.1, h = 1.9, stName = "kansas", legendStep = 0.5)
-# choro_stCty_fit_seasIntensityRR_oneSeason("8a_iliSum_v2-6", "10a_iliSum_v1-2", stCty_fit_plotFormats_one, path_list)
+stCty_fit_plotFormats_one <- list(w = 3.1, h = 1.9, stName = "kansas", legendStep = 0.5)
+choro_stCty_fit_seasIntensityRR_oneSeason("8a_iliSum_v2-6", "10a_iliSum_v2-3", stCty_fit_plotFormats_one, path_list)
 
 
-# # Is there more heterogeneity within states that have greater under or overestimation?
-# scatter_fitVariance_aggBias_plotFormats <- list(w = 6, h = 4)
-# test <- scatter_corr_fitVariance_aggBias("8a_iliSum_v2-6", "10a_iliSum_v1-2", scatter_fitVariance_aggBias_plotFormats, path_list)
+# Is there more heterogeneity within states that have greater under or overestimation?
+scatter_fitVariance_aggBias_plotFormats <- list(w = 6, h = 4)
+test <- scatter_corr_fitVariance_aggBias("8a_iliSum_v2-6", "10a_iliSum_v2-3", scatter_fitVariance_aggBias_plotFormats, path_list)
 
 ###############################################################################
 ### STATE SEASONAL INTENSITY MODELS ###################
 
-# fit_plotFormats_choroSt_one <- list(w = 3.15, h = 2.5, popCode = "")
-# choroSt_fit_seasIntensityRR_oneSeason("10a_iliSum_v1-2", fit_plotFormats_choroSt_one, path_list)
+fit_plotFormats_choroSt_one <- list(w = 3.15, h = 2.5, popCode = "")
+choroSt_fit_seasIntensityRR_oneSeason("10a_iliSum_v2-3", fit_plotFormats_choroSt_one, path_list)
 
-# obsFit_plotFormats_choroSt_multi <- list(w = 4.25, h = 9, popCode = "", manualBreaks = seq(-4,3,by=1))
-# choroSt_obsFit_seasIntensityRR_multiSeason("10a_iliSum_v1-2", obsFit_plotFormats_choroSt_multi, path_list)
+obsFit_plotFormats_choroSt_multi <- list(w = 4.25, h = 9, popCode = "", manualBreaks = seq(-4,3,by=1))
+choroSt_obsFit_seasIntensityRR_multiSeason("10a_iliSum_v2-3", obsFit_plotFormats_choroSt_multi, path_list)
 
-# choro_stateEffects("10a_iliSum_v1-2") # no states were significant
+choro_stateEffects("10a_iliSum_v2-3") # no states were significant
 
 ###############################################################################
 ### MULTI-SEASON MODELS ###################
