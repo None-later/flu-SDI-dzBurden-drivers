@@ -88,22 +88,22 @@ setwd(dirname(sys.frame(1)$ofile))
 ###############################################################################
 ### AGGREGATION BIAS: DIFFERENCE BETWEEN COUNTY-STATE ###################
 
-test <- import_fit_aggBias_seasIntensityRR("8a_iliSum_v2-6", "10a_iliSum_v2-3", path_list)
+# test <- import_fit_aggBias_seasIntensityRR("8a_iliSum_v2-6", "10a_iliSum_v2-3", path_list)
 
-fit_aggBias_plotFormats_one <- list(w = 3, h = 2.5)
-choro_fit_aggBias_seasIntensityRR_oneSeason("8a_iliSum_v2-6", "10a_iliSum_v2-3", fit_aggBias_plotFormats_one, path_list)
+# fit_aggBias_plotFormats_one <- list(w = 3, h = 2.5)
+# choro_fit_aggBias_seasIntensityRR_oneSeason("8a_iliSum_v2-6", "10a_iliSum_v2-3", fit_aggBias_plotFormats_one, path_list)
 
-fit_aggBias_plotFormats_mult <- list(w = 7, h = 4.25)
-choro_fit_aggBias_seasIntensityRR_multiSeason("8a_iliSum_v2-6", "10a_iliSum_v2-3", fit_aggBias_plotFormats_mult, path_list)
+# fit_aggBias_plotFormats_mult <- list(w = 7, h = 4.25)
+# choro_fit_aggBias_seasIntensityRR_multiSeason("8a_iliSum_v2-6", "10a_iliSum_v2-3", fit_aggBias_plotFormats_mult, path_list)
 
 stCty_fit_plotFormats_one <- list(w = 3, h = 1.9, stName = "south carolina")
 choro_stCty_fit_seasIntensityRR_oneSeason("8a_iliSum_v2-6", "10a_iliSum_v2-3", stCty_fit_plotFormats_one, path_list)
 
-stCty_fit_plotFormats_one <- list(w = 3.1, h = 1.9, stName = "montana", legendStep = 0.5)
-choro_stCty_fit_seasIntensityRR_oneSeason("8a_iliSum_v2-6", "10a_iliSum_v2-3", stCty_fit_plotFormats_one, path_list)
+# stCty_fit_plotFormats_one <- list(w = 3.1, h = 1.9, stName = "montana", legendStep = 0.5)
+# choro_stCty_fit_seasIntensityRR_oneSeason("8a_iliSum_v2-6", "10a_iliSum_v2-3", stCty_fit_plotFormats_one, path_list)
 
-stCty_fit_plotFormats_one <- list(w = 3.1, h = 1.9, stName = "kansas", legendStep = 0.5)
-choro_stCty_fit_seasIntensityRR_oneSeason("8a_iliSum_v2-6", "10a_iliSum_v2-3", stCty_fit_plotFormats_one, path_list)
+# stCty_fit_plotFormats_one <- list(w = 3.1, h = 1.9, stName = "kansas", legendStep = 0.5)
+# choro_stCty_fit_seasIntensityRR_oneSeason("8a_iliSum_v2-6", "10a_iliSum_v2-3", stCty_fit_plotFormats_one, path_list)
 
 
 # Is there more heterogeneity within states that have greater under or overestimation?

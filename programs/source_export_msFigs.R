@@ -942,7 +942,7 @@ choro_stCty_fit_seasIntensityRR_oneSeason <- function(modCodeStr_cty, modCodeStr
         print(breaks)
         print(range(allValues))
         print(levels(pltDat$bin))
-
+        View(pltDat)
         # plot
         choro <- ggplot() +
           geom_map(data = ctyMap, map = ctyMap, aes(x = long, y = lat, map_id = region)) +
