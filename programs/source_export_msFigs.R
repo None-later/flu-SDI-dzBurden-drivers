@@ -280,6 +280,30 @@ import_fitReplicates <- function(repCodeLs){
 
   return(prepDat)
 }
+################################
+import_obsFitReplicates <- function(repCodeLs){
+  print(match.call())
+
+  # grab fitData from multiple models
+  fullDf <- tbl_df(data.frame(modCodeStr = c(), season = c(), fips = c(), mean = c(), LB = c(), UB = c(), y = c(), y1 = c()))
+  
+  for(repCode in repCodeLs){
+    modDat <- read_csv(string_fit_fname(repCode), col_types = "c_d_c_dd____dd")
+    fullDf <- bind_rows(fullDf, modDat)
+  }
+
+  # collapse data from multiple replicates
+  numReps <- length(repCodeLs)
+  base_modCodeStr <- label_base_modCodeStr(repCodeLs)
+  
+  prepDat <- fullDf %>%
+    mutate(LB = mean-(1*sd), UB = mean+(1*sd)) %>%
+    select(modCodeStr, season, fips, mean, LB, UB, y, y1) %>%
+    rename(y1_inmodel = y1) %>%
+    mutate(y1_orig = log(y+1))
+
+  return(prepDat)
+}
 
 ################################
 import_obsFit_seasIntensityRR <- function(modCodeStr, filepathList){
