@@ -328,7 +328,7 @@ import_obsFit_seasIntensityRR <- function(modCodeStr, filepathList){
   
   # prepare data for plotting breaks
   obsFitDat <- left_join(outDat, inDat, by = c("season", "fips")) %>%
-    mutate(obs_rr = obs_logy-logE, fit_rr = fit_logy-logE) %>%
+    mutate(obs_rr = obs_logy-logE, fit_rr = fit_logy-logE) %>% # exponentiated 10/6/17
     mutate(resid = (obs_logy - fit_logy)/fit_sd)
   
   return(obsFitDat)
@@ -351,7 +351,7 @@ import_obsFit_seasIntensityRR_st <- function(modCodeStr, filepathList){
     
     # prepare data for plotting breaks
   	obsFitDat <- left_join(outDat, inDat, by = c("season", "fips_st")) %>%
-    	mutate(obs_rr = obs_logy-logE, fit_rr = fit_logy-logE) %>%
+    	mutate(obs_rr = obs_logy-logE, fit_rr = fit_logy-logE) %>% # exponentiated 10/6/17
     	mutate(resid = (obs_logy - fit_logy)/fit_sd)
 
     return(obsFitDat)
@@ -379,7 +379,7 @@ import_obsFit_excessSeasIntensityRR <- function(modCodeStr, filepathList){
   # prepare data for plotting breaks
   obsFitDat <- left_join(outDat, iliSumDat, by = c("season", "fips")) %>%
     left_join(excessDat, by = c("season", "fips")) %>%
-    mutate(obs_rr = obs_logy-obs_logE, fit_rr = fit_logy-fit_logE) 
+    mutate(obs_rr = obs_logy-obs_logE, fit_rr = fit_logy-fit_logE)
   
   return(obsFitDat)
 }
@@ -558,7 +558,7 @@ choro_obsFit_seasIntensityRR_oneSeason <- function(modCodeStr, pltFormats, filep
     choro <- ggplot() +
       geom_map(data = ctyMap, map = ctyMap, aes(x = long, y = lat, map_id = region)) +
       geom_map(data = pltDat, map = ctyMap, aes(fill = bin, map_id = fips), color = "grey25", size = 0.025) +
-      scale_fill_brewer(name = "Relative Risk", palette = "OrRd", na.value = "grey60", drop = FALSE) +
+      scale_fill_brewer(name = "Log Relative Risk", palette = "OrRd", na.value = "grey60", drop = FALSE) +
       expand_limits(x = ctyMap$long, y = ctyMap$lat) +
       theme_minimal() +
       theme(text = element_text(size = 15), axis.ticks = element_blank(), axis.text = element_blank(), axis.title = element_blank(), panel.grid = element_blank(), legend.position = "bottom") +
@@ -617,7 +617,7 @@ choro_fit_seasIntensityRR_oneSeason <- function(modCodeStr, pltFormats, filepath
     choro <- ggplot() +
       geom_map(data = ctyMap, map = ctyMap, aes(x = long, y = lat, map_id = region)) +
       geom_map(data = pltDat, map = ctyMap, aes(fill = bin, map_id = fips), color = "grey25", size = 0.025) +
-      scale_fill_brewer(name = "Relative\nRisk", palette = "OrRd", na.value = "grey60", drop = FALSE) +
+      scale_fill_brewer(name = "Log Relative\nRisk", palette = "OrRd", na.value = "grey60", drop = FALSE) +
       expand_limits(x = ctyMap$long, y = ctyMap$lat) +
       theme_minimal() +
       theme(text = element_text(size = 10), axis.ticks = element_blank(), axis.text = element_blank(), axis.title = element_blank(), panel.grid = element_blank(), legend.position = "bottom")
@@ -675,7 +675,7 @@ choroSt_fit_seasIntensityRR_oneSeason <- function(modCodeStr, pltFormats, filepa
     # plot
     choro <- ggplot(pltDat, aes(map_id = State)) +
       geom_map(map = stMap, aes(fill = bin, map_id = State), color = "grey25", size = 0.025) +
-      scale_fill_brewer(name = "Relative Risk", palette = "OrRd", na.value = "grey60", drop = FALSE) +
+      scale_fill_brewer(name = "Log Relative Risk", palette = "OrRd", na.value = "grey60", drop = FALSE) +
       expand_limits(x = stMap$long, y = stMap$lat) +
       guides(fill = guide_legend(nrow = 2)) +
       theme_minimal() +
@@ -747,7 +747,7 @@ choroSt_obsFit_seasIntensityRR_multiSeason <- function(modCodeStr, pltFormats, f
   # plot
   choro <- ggplot(plotDat, aes(map_id = State)) +
     geom_map(map = stMap, aes(fill = bin, map_id = State), color = "grey25", size = 0.025) +
-    scale_fill_brewer(name = "Relative Risk", palette = "OrRd", na.value = "grey60", drop = FALSE) +
+    scale_fill_brewer(name = "Log Relative Risk", palette = "OrRd", na.value = "grey60", drop = FALSE) +
     expand_limits(x = stMap$long, y = stMap$lat) +
     theme_minimal() +
     theme(text = element_text(size = 12), axis.ticks = element_blank(), axis.text = element_blank(), axis.title = element_blank(), panel.grid = element_blank(), legend.position = "bottom", legend.margin = margin(), legend.box.margin = margin()) +
@@ -812,7 +812,7 @@ choro_obsFit_seasIntensityRR_multiSeason <- function(modCodeStr, pltFormats, fil
   choro <- ggplot() +
     geom_map(data = ctyMap, map = ctyMap, aes(x = long, y = lat, map_id = region)) +
     geom_map(data = plotDat, map = ctyMap, aes(fill = bin, map_id = fips), color = "grey25", size = 0.025) +
-    scale_fill_brewer(name = "Relative Risk", palette = "OrRd", na.value = "grey60", drop = FALSE) +
+    scale_fill_brewer(name = "Log Relative\nRisk", palette = "OrRd", na.value = "grey60", drop = FALSE) +
     expand_limits(x = ctyMap$long, y = ctyMap$lat) +
     theme_minimal() +
     theme(text = element_text(size = 14), axis.ticks = element_blank(), axis.text = element_blank(), axis.title = element_blank(), panel.grid = element_blank(), legend.position = "bottom", legend.margin = margin(t = 0, r = 0, b = 0, l = 0, unit = "pt"), legend.box.margin = margin(t = 0, r = 0, b = 0, l = 0, unit = "pt")) +
