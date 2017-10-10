@@ -1169,6 +1169,54 @@ forest_coefDistr_precisionTerms <- function(modCodeStr){
 }
 
 ################################
+scatter_obsFit_outOfSampleReplicates <- function(baseCodeLs, pltFormats){
+  print(match.call())
+    
+  # plot formatting
+  w <- pltFormats$w; h <- pltFormats$h; dp <- 300
+  modCodeStr <- substring(baseCodeLs[1], 1, nchar(baseCodeLs[1])-4) 
+
+  plotLabels <- data.frame(baseCodeStr = baseCodeLs, pltLabel = pltFormats$labs)
+  exportFname <- paste0(string_msFig_folder(), "scatter_obsFit_outOfSampleReplicates_", pltFormats$descrip, "_", modCodeStr, ".png")
+  
+  # data formatting
+  numReplicates <- pltFormats$numReplicates
+
+  ## grab fitData from multiple models ##
+  fullDf <- tbl_df(data.frame(modCodeStr = c(), season = c(), fips = c(), mean = c(), LB = c(), UB = c(), y = c(), y1_inmodel = c(), y1_orig = c()))
+
+  # import replicates for each baseCode
+  for (baseRepCode in baseCodeLs){
+    repCodeLs <- c(paste0(baseRepCode, ""), paste(baseRepCode, 1:(numReplicates-1), sep = "-"))
+    modDat <- import_obsFitReplicates(repCodeLs) 
+    fullDf <- bind_rows(fullDf, modDat)
+    print(paste(baseRepCode, "imported"))
+  }
+
+  plotDat <- fullDf %>%
+    filter(is.na(y1_inmodel)) %>%
+    dplyr::mutate(baseCodeStr = substring(modCodeStr, 1, min(nchar(fullDf$modCodeStr)))) %>%
+    left_join(plotLabels, by = c("baseCodeStr")) %>%
+    mutate(season = factor(season, levels = 3:9, labels = c("2002-03", "2003-04", "2004-05", "2005-06", "2006-07", "2007-08", "2008-09")))
+
+  # plot
+  plotOutput <- ggplot(plotDat, aes(x = y1_orig)) +
+    geom_pointrange(aes(ymin = LB, y = mean, ymax = UB, colour = season), alpha = 0.5) + 
+    geom_abline(aes(intercept = 0, slope = 1), colour = "grey50") +
+    scale_x_continuous("Observed") +
+    scale_y_continuous("Fitted") +
+    scale_colour_tableau() +
+    theme_bw() + 
+    theme(text = element_text(size = 13), legend.margin = margin(), legend.position = "bottom") +
+    facet_wrap(~pltLabel, nrow = 2)
+  
+  ggsave(exportFname, plotOutput, height = h, width = w, dpi = dp)
+
+  return(plotDat)
+  
+}
+
+################################
 scatter_obsFit_seasIntensityRR_multiSeason <- function(modCodeStr, pltFormats, filepathList){
   # scatterplot of observed vs fitted seasonal intensity RR values, by season
   print(match.call())
@@ -1312,7 +1360,6 @@ choro_obsFit_epiDuration_oneSeason <- function(modCodeStr, pltFormats, filepathL
   }
   
 }
-
 ################################
 
 choro_obsFit_epiDuration_multiSeason <- function(modCodeStr, pltFormats, filepathList){

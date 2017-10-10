@@ -46,11 +46,11 @@ setwd(dirname(sys.frame(1)$ofile))
 # obsFit_plotFormats_one <- list(w = 7, h = 3.5)
 # choro_obsFit_seasIntensityRR_oneSeason("8a_iliSum_v2-6", obsFit_plotFormats_one, path_list)
 
-fit_plotFormats_one <- list(w = 3.1, h = 2.5, popCode = "")
-choro_fit_seasIntensityRR_oneSeason("8a_iliSum_v2-6", fit_plotFormats_one, path_list)
+# fit_plotFormats_one <- list(w = 3.1, h = 2.5, popCode = "")
+# choro_fit_seasIntensityRR_oneSeason("8a_iliSum_v2-6", fit_plotFormats_one, path_list)
 
-obsFit_plotFormats_multi <- list(w = 4.25, h = 9, popCode = "") # add (rmSeas = "2006-07") arg if needed and (h = 8)
-choro_obsFit_seasIntensityRR_multiSeason("8a_iliSum_v2-6", obsFit_plotFormats_multi, path_list)
+# obsFit_plotFormats_multi <- list(w = 4.25, h = 9, popCode = "") # add (rmSeas = "2006-07") arg if needed and (h = 8)
+# choro_obsFit_seasIntensityRR_multiSeason("8a_iliSum_v2-6", obsFit_plotFormats_multi, path_list)
 
 # obsFit_plotFormats_scatter <- list(w = 6, h = 4)
 # scatter_obsFit_seasIntensityRR_multiSeason("8a_iliSum_v2-6", obsFit_plotFormats_scatter, path_list)
@@ -62,7 +62,6 @@ choro_obsFit_seasIntensityRR_multiSeason("8a_iliSum_v2-6", obsFit_plotFormats_mu
 # 
 # plotFormats_scatter_regionValidationViral <- list(w = 4, h = 4, xmax = 30)
 # scatter_regionValidationViral("8a_iliSum_v2-6", plotFormats_scatter_regionValidationViral)
-
 
 
 ###############################################################################
@@ -80,10 +79,12 @@ choro_obsFit_seasIntensityRR_multiSeason("8a_iliSum_v2-6", obsFit_plotFormats_mu
 # scatter_obsFit_epiDuration_multiSeason("8e_epiDur_v2-3", obsFit_plotFormats_scatter, path_list)
 # scatter_residFit_epiDuration_multiSeason("8e_epiDur_v2-3", obsFit_plotFormats_scatter, path_list)
 
+
 ###############################################################################
 ### EPIDEMIC DURATION vs. SEASONAL INTENSITY ###################
 # pltFormats_epiDur_seasInt <- list(w = 5, h = 8, modLabs = c("seasIntensity", "epiDuration"))
 # scatter_obsFit_seasInt_epiDur_multiSeason(c("8a_iliSum_v2-6", "8e_epiDur_v2-3"), pltFormats_epiDur_seasInt, path_list)
+
 
 ###############################################################################
 ### AGGREGATION BIAS: DIFFERENCE BETWEEN COUNTY-STATE ###################
@@ -113,11 +114,11 @@ choro_obsFit_seasIntensityRR_multiSeason("8a_iliSum_v2-6", obsFit_plotFormats_mu
 ###############################################################################
 ### STATE SEASONAL INTENSITY MODELS ###################
 
-fit_plotFormats_choroSt_one <- list(w = 3.15, h = 2.5, popCode = "", legendStep = 1)
-choroSt_fit_seasIntensityRR_oneSeason("10a_iliSum_v2-3", fit_plotFormats_choroSt_one, path_list)
+# fit_plotFormats_choroSt_one <- list(w = 3.15, h = 2.5, popCode = "", legendStep = 1)
+# choroSt_fit_seasIntensityRR_oneSeason("10a_iliSum_v2-3", fit_plotFormats_choroSt_one, path_list)
 
-obsFit_plotFormats_choroSt_multi <- list(w = 4.25, h = 9, popCode = "", manualBreaks = seq(-4,3,by=1)) 
-choroSt_obsFit_seasIntensityRR_multiSeason("10a_iliSum_v2-3", obsFit_plotFormats_choroSt_multi, path_list)
+# obsFit_plotFormats_choroSt_multi <- list(w = 4.25, h = 9, popCode = "", manualBreaks = seq(-4,3,by=1)) 
+# choroSt_obsFit_seasIntensityRR_multiSeason("10a_iliSum_v2-3", obsFit_plotFormats_choroSt_multi, path_list)
 
 # choro_stateEffects("10a_iliSum_v2-3") # no states were significant
 
@@ -180,6 +181,20 @@ choroSt_obsFit_seasIntensityRR_multiSeason("10a_iliSum_v2-3", obsFit_plotFormats
 # baseSeasSeq <- c("8a_iliSum_v2-6", "8a_iliSum_v2-6_s6", "8a_iliSum_v2-6_s4", "8a_iliSum_v2-6_s2")
 # seasPlotFormats <- list(w = 6, h = 2.25, lvls = baseSeasSeq[2:length(baseSeasSeq)], labs = c("missing 1", "missing 3","missing 5"), replvls = c(.25, .5, .75, 1), replabs = c("25", "50", "75", "100"), descrip = "seasSeq", repcodelength = 4, numReplicates = 10, nomatchThresh = 0.5)
 # choro_fitCompareReplicates(baseSeasSeq, seasPlotFormats)
+
+
+###############################################################################
+### SCATTER - obsFit out of sample replicates ###################
+# missing county sequence
+baseCtySeq <- c("8a_iliSum_v2-6_c80", "8a_iliSum_v2-6_c60", "8a_iliSum_v2-6_c40", "8a_iliSum_v2-6_c20")
+ctyPlotFormats <- list(w = 6, h = 4, lvls = baseCtySeq[1:length(baseCtySeq)], labs = c("80% of counties", "60% of counties", "40% of counties", "20% of counties"), descrip = "ctySeq", repcodelength = 5, numReplicates = 10)
+cty_outOfSample <- scatter_obsFit_outOfSampleReplicates(baseCtySeq, ctyPlotFormats)
+
+# missing stratified county sequence
+baseMissSeq <- c("8a_iliSum_v2-6_m20", "8a_iliSum_v2-6_m40", "8a_iliSum_v2-6_m60", "8a_iliSum_v2-6_m80")
+missPlotFormats <- list(w = 6, h = 4, lvls = baseMissSeq[1:length(baseMissSeq)], labs = c("missing 20%", "missing 40%", "missing 60%", "missing 80%"), descrip = "missSeq", repcodelength = 5, numReplicates = 10)
+miss_outOfSample <- scatter_obsFit_outOfSampleReplicates(baseMissSeq, missPlotFormats)
+
 
 ###############################################################################
 # ### DOT PLOTS - Region comparison ###################
