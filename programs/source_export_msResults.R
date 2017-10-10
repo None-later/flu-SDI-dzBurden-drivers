@@ -171,6 +171,19 @@ report_percentCtyMatch_replicates <- function(baseCodeLs, pltFormats){
   print(repgroupDat)
   return(repgroupDat)
 }
+################################
+report_riskResults <- function(modCodeStr, rvType, rvList){
+
+  modDat <- read_csv(string_coef_fname(modCodeStr), col_types = "c_d_cccd______")
+  repDat <- modDat %>% 
+    filter(effectType == rvType) %>%
+    filter(RV %in% rvList) %>%
+    mutate(expMean = exp(mean))
+
+  print(repDat)
+  return(repDat)
+
+}
 
 
 ################################
@@ -183,28 +196,43 @@ sink("msReport.txt", append = FALSE)
 # modCodeLs <- c("8a_iliSum_v2-6", "8a_iliSum_v3-6", "8a_iliSum_v4-6", "8e_epiDur_v2-3")
 # qstep <- 0.2
 
+################
 # for (code in modCodeLs){
 
 # 	report_observed_predicted_quantile_matches(code, qstep)
 # 	report_observed_predicted_pearsonCorr(code)
 # }
 
-fullDat <- report_total_ILI_claimsILINetVisits()
+# ################
+# fullDat <- report_total_ILI_claimsILINetVisits()
 
-## county missing sequence
-baseCtySeq <- c("8a_iliSum_v2-6", "8a_iliSum_v2-6_c80", "8a_iliSum_v2-6_c60", "8a_iliSum_v2-6_c40", "8a_iliSum_v2-6_c20")
-ctyPlotFormats <- list(lvls = baseCtySeq[2:length(baseCtySeq)],  labs = c("80% of counties", "60% of counties", "40% of counties", "20% of counties"), descrip = "ctySeq", repcodelength = 5, numReplicates = 10)
-ctySeq <- report_percentCtyMatch_replicates(baseCtySeq, ctyPlotFormats)
+# ################
+# ## county missing sequence
+# baseCtySeq <- c("8a_iliSum_v2-6", "8a_iliSum_v2-6_c80", "8a_iliSum_v2-6_c60", "8a_iliSum_v2-6_c40", "8a_iliSum_v2-6_c20")
+# ctyPlotFormats <- list(lvls = baseCtySeq[2:length(baseCtySeq)],  labs = c("80% of counties", "60% of counties", "40% of counties", "20% of counties"), descrip = "ctySeq", repcodelength = 5, numReplicates = 10)
+# ctySeq <- report_percentCtyMatch_replicates(baseCtySeq, ctyPlotFormats)
 
-## random missing sequence
-baseMissSeq <- c("8a_iliSum_v2-6", "8a_iliSum_v2-6_m20", "8a_iliSum_v2-6_m40", "8a_iliSum_v2-6_m60", "8a_iliSum_v2-6_m80")
-missPlotFormats <- list(lvls = baseMissSeq[2:length(baseMissSeq)], labs = c("missing 20%", "missing 40%", "missing 60%", "missing 80%"), descrip = "missSeq", repcodelength = 5, numReplicates = 10)
-missSeq <- report_percentCtyMatch_replicates(baseMissSeq, missPlotFormats)
+# ################
+# ## random missing sequence
+# baseMissSeq <- c("8a_iliSum_v2-6", "8a_iliSum_v2-6_m20", "8a_iliSum_v2-6_m40", "8a_iliSum_v2-6_m60", "8a_iliSum_v2-6_m80")
+# missPlotFormats <- list(lvls = baseMissSeq[2:length(baseMissSeq)], labs = c("missing 20%", "missing 40%", "missing 60%", "missing 80%"), descrip = "missSeq", repcodelength = 5, numReplicates = 10)
+# missSeq <- report_percentCtyMatch_replicates(baseMissSeq, missPlotFormats)
 
-## season missing sequence
-baseSeasSeq <- c("8a_iliSum_v2-6", "8a_iliSum_v2-6_s6", "8a_iliSum_v2-6_s4", "8a_iliSum_v2-6_s2")
-seasPlotFormats <- list(lvls = baseSeasSeq[2:length(baseSeasSeq)], labs = c("missing 1", "missing 3","missing 5"), descrip = "seasSeq", repcodelength = 4, numReplicates = 10)
-seassSeq <- report_percentCtyMatch_replicates(baseSeasSeq, seasPlotFormats)
+# ################
+# ## season missing sequence
+# baseSeasSeq <- c("8a_iliSum_v2-6", "8a_iliSum_v2-6_s6", "8a_iliSum_v2-6_s4", "8a_iliSum_v2-6_s2")
+# seasPlotFormats <- list(lvls = baseSeasSeq[2:length(baseSeasSeq)], labs = c("missing 1", "missing 3","missing 5"), descrip = "seasSeq", repcodelength = 4, numReplicates = 10)
+# seassSeq <- report_percentCtyMatch_replicates(baseSeasSeq, seasPlotFormats)
+
+################
+## report risks 
+hr_st_iliSum <- report_riskResults("8a_iliSum_v2-6", "stID", c("13", "24", "37", "45", "47", "51")) # GA, MD, NC, SC, TN, VA
+lr_st_iliSum <- report_riskResults("8a_iliSum_v2-6", "stID", c("20", "27", "28", "30", "49")) # KS, MN, MS, MT, UT
+hlr_seas_iliSum <- report_riskResults("8a_iliSum_v2-6", "season", c("S5", "S9"))
+
+hlr_reg_epiDur <- report_riskResults("8e_epiDur_v2-3", "regID", c("R4", "R7"))
+
+hr_st_iliSum09 <- report_riskResults("9a_iliSum_2009p_v1-2", "stID", c("24", "54", "51", "21", "47", "37", "45"))
 
 sink(type = "message")
 sink()
