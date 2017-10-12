@@ -18,12 +18,12 @@ require(rjags)
 require(tidyverse)
 require(R2jags)
 source("source_jags_posterior_plots.R")
-# version 1: set.seed(19)
+set.seed(19)
 
 #### set these ################################
 version <- 'v1'
 var <- list(span = 0.4, degree = 2)
-s <- 7
+s <- 5
 
 #### string formatting ################################
 code <- ''
