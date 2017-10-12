@@ -81,9 +81,9 @@ setwd(dirname(sys.frame(1)$ofile))
 
 
 ###############################################################################
-### EPIDEMIC DURATION vs. SEASONAL INTENSITY ###################
-pltFormats_epiDur_seasInt <- list(w = 5, h = 8, modLabs = c("seasIntensity", "epiDuration"))
-scatter_obsFit_seasInt_epiDur_multiSeason(c("8a_iliSum_v2-6", "8e_epiDur_v2-3"), pltFormats_epiDur_seasInt, path_list)
+# ### EPIDEMIC DURATION vs. SEASONAL INTENSITY ###################
+# pltFormats_epiDur_seasInt <- list(w = 5, h = 8, modLabs = c("seasIntensity", "epiDuration"))
+# scatter_obsFit_seasInt_epiDur_multiSeason(c("8a_iliSum_v2-6", "8e_epiDur_v2-3"), pltFormats_epiDur_seasInt, path_list)
 
 
 ###############################################################################
@@ -167,10 +167,14 @@ scatter_obsFit_seasInt_epiDur_multiSeason(c("8a_iliSum_v2-6", "8e_epiDur_v2-3"),
 
 ###############################################################################
 ### FIT CHOROS - Replicate comparison ###################
-# ## missing county sequence
-# baseCtySeq <- c("8a_iliSum_v2-6", "8a_iliSum_v2-6_c40", "8a_iliSum_v2-6_c20")
-# ctyPlotFormats <- list(w = 6, h = 2, lvls = baseCtySeq[2:length(baseCtySeq)], labs = c("40% of counties", "20% of counties"), replvls = c(.25, .5, .75, 1), replabs = c("25", "50", "75", "100"), descrip = "ctySeq", repcodelength = 5, numReplicates = 10, nomatchThresh = 0.5)
-# choro_fitCompareReplicates(baseCtySeq, ctyPlotFormats)
+## missing county sequence
+baseCtySeq <- c("8a_iliSum_v2-6", "8a_iliSum_v2-6_c40", "8a_iliSum_v2-6_c20")
+ctyPlotFormats <- list(w = 6, h = 2, lvls = baseCtySeq[2:length(baseCtySeq)], labs = c("40% of counties", "20% of counties"), replvls = c(.25, .5, .75, 1), replabs = c("25", "50", "75", "100"), descrip = "ctySeq", repcodelength = 5, numReplicates = 10, nomatchThresh = 0.1)
+choro_fitCompareReplicates(baseCtySeq, ctyPlotFormats)
+
+baseCtySeq <- c("8a_iliSum_v2-6", "8a_iliSum_v2-6_c10", "8a_iliSum_v2-6_c05")
+ctyPlotFormats <- list(w = 6, h = 2, lvls = baseCtySeq[2:length(baseCtySeq)], labs = c("10% of counties", "5% of counties"), replvls = c(.25, .5, .75, 1), replabs = c("25", "50", "75", "100"), descrip = "ctySeq2", repcodelength = 5, numReplicates = 3, nomatchThresh = 0.1)
+choro_fitCompareReplicates(baseCtySeq, ctyPlotFormats)
 # 
 # ## missing stratified county sequence
 # baseMissSeq <- c("8a_iliSum_v2-6", "8a_iliSum_v2-6_m60", "8a_iliSum_v2-6_m80")
