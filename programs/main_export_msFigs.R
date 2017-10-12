@@ -45,10 +45,10 @@ setwd(dirname(sys.frame(1)$ofile))
 ### SEASONAL INTENSITY - total population ###################
 # obsFit_plotFormats_one <- list(w = 7, h = 3.5)
 # choro_obsFit_seasIntensityRR_oneSeason("8a_iliSum_v2-6", obsFit_plotFormats_one, path_list)
-
+# 
 # fit_plotFormats_one <- list(w = 3.1, h = 2.5, popCode = "")
 # choro_fit_seasIntensityRR_oneSeason("8a_iliSum_v2-6", fit_plotFormats_one, path_list)
-
+# 
 # obsFit_plotFormats_multi <- list(w = 4.25, h = 9, popCode = "") # add (rmSeas = "2006-07") arg if needed and (h = 8)
 # choro_obsFit_seasIntensityRR_multiSeason("8a_iliSum_v2-6", obsFit_plotFormats_multi, path_list)
 
@@ -59,7 +59,7 @@ setwd(dirname(sys.frame(1)$ofile))
 
 # forest_coefDistr_stateStructuredEffects("8a_iliSum_v6-3")
 # forest_coefDistr_precisionTerms("8a_iliSum_v2-6")
-# 
+
 # plotFormats_scatter_regionValidationViral <- list(w = 4, h = 4, xmax = 30)
 # scatter_regionValidationViral("8a_iliSum_v2-6", plotFormats_scatter_regionValidationViral)
 
@@ -82,27 +82,27 @@ setwd(dirname(sys.frame(1)$ofile))
 
 ###############################################################################
 ### EPIDEMIC DURATION vs. SEASONAL INTENSITY ###################
-# pltFormats_epiDur_seasInt <- list(w = 5, h = 8, modLabs = c("seasIntensity", "epiDuration"))
-# scatter_obsFit_seasInt_epiDur_multiSeason(c("8a_iliSum_v2-6", "8e_epiDur_v2-3"), pltFormats_epiDur_seasInt, path_list)
+pltFormats_epiDur_seasInt <- list(w = 5, h = 8, modLabs = c("seasIntensity", "epiDuration"))
+scatter_obsFit_seasInt_epiDur_multiSeason(c("8a_iliSum_v2-6", "8e_epiDur_v2-3"), pltFormats_epiDur_seasInt, path_list)
 
 
 ###############################################################################
 ### AGGREGATION BIAS: DIFFERENCE BETWEEN COUNTY-STATE ###################
 
 # test <- import_fit_aggBias_seasIntensityRR("8a_iliSum_v2-6", "10a_iliSum_v2-3", path_list)
-
+# 
 # fit_aggBias_plotFormats_one <- list(w = 3, h = 2.5)
 # choro_fit_aggBias_seasIntensityRR_oneSeason("8a_iliSum_v2-6", "10a_iliSum_v2-3", fit_aggBias_plotFormats_one, path_list)
-
+# 
 # fit_aggBias_plotFormats_mult <- list(w = 7, h = 4.25)
 # choro_fit_aggBias_seasIntensityRR_multiSeason("8a_iliSum_v2-6", "10a_iliSum_v2-3", fit_aggBias_plotFormats_mult, path_list)
 
 # stCty_fit_plotFormats_one <- list(w = 3, h = 1.9, stName = "south carolina")
 # choro_stCty_fit_seasIntensityRR_oneSeason("8a_iliSum_v2-6", "10a_iliSum_v2-3", stCty_fit_plotFormats_one, path_list)
-
+# 
 # stCty_fit_plotFormats_one <- list(w = 3.1, h = 1.9, stName = "montana", legendStep = 0.5)
 # choro_stCty_fit_seasIntensityRR_oneSeason("8a_iliSum_v2-6", "10a_iliSum_v2-3", stCty_fit_plotFormats_one, path_list)
-
+# 
 # stCty_fit_plotFormats_one <- list(w = 3.1, h = 1.9, stName = "kansas", legendStep = 0.5)
 # choro_stCty_fit_seasIntensityRR_oneSeason("8a_iliSum_v2-6", "10a_iliSum_v2-3", stCty_fit_plotFormats_one, path_list)
 
@@ -116,7 +116,7 @@ setwd(dirname(sys.frame(1)$ofile))
 
 # fit_plotFormats_choroSt_one <- list(w = 3.15, h = 2.5, popCode = "", legendStep = 1)
 # choroSt_fit_seasIntensityRR_oneSeason("10a_iliSum_v2-3", fit_plotFormats_choroSt_one, path_list)
-
+# 
 # obsFit_plotFormats_choroSt_multi <- list(w = 4.25, h = 9, popCode = "", manualBreaks = seq(-4,3,by=1)) 
 # choroSt_obsFit_seasIntensityRR_multiSeason("10a_iliSum_v2-3", obsFit_plotFormats_choroSt_multi, path_list)
 
@@ -183,18 +183,25 @@ setwd(dirname(sys.frame(1)$ofile))
 # choro_fitCompareReplicates(baseSeasSeq, seasPlotFormats)
 
 
-###############################################################################
-### SCATTER - obsFit out of sample replicates ###################
-# missing county sequence
-baseCtySeq <- c("8a_iliSum_v2-6_c80", "8a_iliSum_v2-6_c60", "8a_iliSum_v2-6_c40", "8a_iliSum_v2-6_c20")
-ctyPlotFormats <- list(w = 6, h = 4, lvls = baseCtySeq[1:length(baseCtySeq)], labs = c("80% of counties", "60% of counties", "40% of counties", "20% of counties"), descrip = "ctySeq", repcodelength = 5, numReplicates = 10)
-cty_outOfSample <- scatter_obsFit_outOfSampleReplicates(baseCtySeq, ctyPlotFormats)
+# ###############################################################################
+# ### SCATTER - obsFit out of sample replicates ###################
+# # missing county sequence
+# baseCtySeq <- c("8a_iliSum_v2-6_c80", "8a_iliSum_v2-6_c60", "8a_iliSum_v2-6_c40", "8a_iliSum_v2-6_c20")
+# ctyPlotFormats <- list(w = 6, h = 4, lvls = baseCtySeq[1:length(baseCtySeq)], labs = c("80% of counties", "60% of counties", "40% of counties", "20% of counties"), descrip = "ctySeq", repcodelength = 5, numReplicates = 10)
+# cty_outOfSample <- scatter_obsFit_outOfSampleReplicates(baseCtySeq, ctyPlotFormats)
+# cor.test(cty_outOfSample$y1_orig, cty_outOfSample$mean, method = "pearson") # cor = .7509, p-value < 2.2e-16
 
-# missing stratified county sequence
-baseMissSeq <- c("8a_iliSum_v2-6_m20", "8a_iliSum_v2-6_m40", "8a_iliSum_v2-6_m60", "8a_iliSum_v2-6_m80")
-missPlotFormats <- list(w = 6, h = 4, lvls = baseMissSeq[1:length(baseMissSeq)], labs = c("missing 20%", "missing 40%", "missing 60%", "missing 80%"), descrip = "missSeq", repcodelength = 5, numReplicates = 10)
-miss_outOfSample <- scatter_obsFit_outOfSampleReplicates(baseMissSeq, missPlotFormats)
+# # missing stratified county sequence
+# baseMissSeq <- c("8a_iliSum_v2-6_m20", "8a_iliSum_v2-6_m40", "8a_iliSum_v2-6_m60", "8a_iliSum_v2-6_m80")
+# missPlotFormats <- list(w = 6, h = 4, lvls = baseMissSeq[1:length(baseMissSeq)], labs = c("missing 20%", "missing 40%", "missing 60%", "missing 80%"), descrip = "missSeq", repcodelength = 5, numReplicates = 10)
+# miss_outOfSample <- scatter_obsFit_outOfSampleReplicates(baseMissSeq, missPlotFormats)
+# cor.test(miss_outOfSample$y1_orig, miss_outOfSample$mean, method = "pearson") # cor = .8088, p-value < 2.2e-16
 
+# # missing season sequence
+# baseSeasSeq <- c("8a_iliSum_v2-6_s6", "8a_iliSum_v2-6_s4", "8a_iliSum_v2-6_s2")
+# seasPlotFormats <- list(w = 6, h = 4, lvls = baseSeasSeq[1:length(baseSeasSeq)], labs = c("missing 1", "missing 3","missing 5"), replvls = c(.25, .5, .75, 1), replabs = c("25", "50", "75", "100"), descrip = "seasSeq", repcodelength = 4, numReplicates = 10)
+# seas_outOfSample <- scatter_obsFit_outOfSampleReplicates(baseSeasSeq, seasPlotFormats)
+# cor.test(seas_outOfSample$y1_orig, seas_outOfSample$mean, method = "pearson") # cor = .6163, p-value < 2.2e-16
 
 ###############################################################################
 # ### DOT PLOTS - Region comparison ###################

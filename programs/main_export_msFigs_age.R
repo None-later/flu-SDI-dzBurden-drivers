@@ -15,7 +15,7 @@ source("source_export_msFigs.R")
 source("source_clean_response_functions_cty.R")
 
 ################################
-dbCodeStr <- "_ilinDt_Octfit_adult_span0.4_degree2"
+dbCodeStr <- "_ilinDt_Octfit_child_span0.4_degree2"
 
 ## PATHS ##
 setwd('../reference_data')
