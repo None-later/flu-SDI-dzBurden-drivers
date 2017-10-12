@@ -27,11 +27,11 @@ require(RColorBrewer); require(ggplot2) # export_inlaData_st dependencies
 
 # # NOT RUN
 # ncodes <- 2
-# nreps <- 10
-# repLs <- c(rep(1,ncodes), rep(2,ncodes), rep(3,ncodes), rep(4,ncodes), rep(5,ncodes), rep(6,ncodes), rep(7,ncodes), rep(8,ncodes), rep(9,ncodes), rep(9,ncodes), rep(10,ncodes))
+# nreps <- 4
+# repLs <- c(rep(2,ncodes), rep(3,ncodes), rep(4,ncodes), rep(5,ncodes))
 # modCodeLs <- paste0(rep(c("8a_iliSum_v2-6_c10-", "8a_iliSum_v2-6_c05-"), nreps), repLs)
 # keepLs <- rep(c(.1, .05), nreps)
-# seedLs <- c(rep(44,ncodes), rep(45,ncodes), rep(46,ncodes), rep(47,ncodes), rep(48,ncodes), rep(49,ncodes), rep(50,ncodes), rep(51,ncodes), rep(52,ncodes), rep(53,ncodes))
+# seedLs <- c(rep(45,ncodes), rep(46,ncodes), rep(47,ncodes), rep(48,ncodes))
 
 ## season replicate sequence
 # ncodes <- 3
@@ -41,17 +41,17 @@ require(RColorBrewer); require(ggplot2) # export_inlaData_st dependencies
 # keepLs <- rep(c(6, 4, 2), nreps)
 # seedLs <- c(rep(707,ncodes), rep(9067,ncodes), rep(8075,ncodes), rep(4430,ncodes), rep(999,ncodes))
 
-# # single code
-modCodeLs <- c("8a_iliSum_v2-6_c10-1") # "8a_iliSum_v2-6_c025" crashes...
-set.seed(44)
-keep <- .1
+# single code
+modCodeLs <- c("8a_iliSum_v2-6_c05-3") # "8a_iliSum_v2-6_c025" crashes...
+set.seed(469)
+keepLs <- c(.05)
 
 for (i in 1:length(modCodeLs)){
   
   #### set these! ################################
   dbCodeStr <- "_ilinDt_Octfit_span0.4_degree2"
   modCodeStr <- modCodeLs[i] 
-  # keep <- keepLs[i] # comment if single code
+  keep <- keepLs[i] # comment if single code
   # set.seed(seedLs[i]) # comment if single code
   rdmFx_RV <- "phi"
   likString <- "normal"
