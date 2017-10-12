@@ -73,6 +73,35 @@ cleanR_iliSum_shift1_cty <- function(filepathList){
 }
 ##########################################
 
+cleanR_iliSum_shift1_irDt_cty <- function(filepathList){
+  # clean response variable: irDt.sum plus 1; 10/12/17
+  print(match.call())
+  
+  # pop data: fips, county, st, season, year, pop, lat lon
+  pop_data <- clean_pop_cty(filepathList)
+  
+  # 7/18/16: add incl.analysis indicator
+  # grab disease burden metric (e.g., ilinDt): match "ir" 1+ times
+  dbCode <- grep("ir+", strsplit(filepathList$path_response_cty, "_")[[1]], value=T)
+  # clean burden data
+  iliSum_data <- read_csv(filepathList$path_response_cty, col_types = "icllcd") %>%
+    filter(metric == sprintf("%s.sum", dbCode)) %>%
+    select(-metric) %>%
+    rename(y = burden)
+  
+  # merge final data
+  return_data <- full_join(iliSum_data, pop_data, by = c("season", "fips")) %>%
+    select(fips, county, st, stateID, lat, lon, season, year, pop, y, has.epi, incl.analysis) %>%
+    mutate(y1 = y+1) %>% # 12/15/16 add 1 to all seasonal intensity values
+    group_by(season) %>%
+    mutate(E = weighted.mean(y1, pop, na.rm = TRUE)) %>%
+    ungroup %>%
+    filter(season >= 3 & season <= 9) # 12/12/16
+  
+  return(return_data)
+}
+##########################################
+
 cleanR_iliSum_shift1_cty_aggBias <- function(filepathList){
   # clean response variable: ilinDt.sum plus 1; 12/15/16 in preparation for aggBias modeling
   print(match.call())
@@ -431,6 +460,29 @@ cleanX_priorBurden_cty <- function(filepathList){
 }
 ##########################################
 
+cleanX_priorBurden_irDt_cty <- function(filepathList){
+  # clean data variable: irDt.sum for previous year; new 10/12/17
+  print(match.call())
+  
+  # grab disease burden metric (e.g., ilinDt): match "ili" 1+ times
+  dbCode <- grep("ir+", strsplit(filepathList$path_response_cty, "_")[[1]], value=T)
+
+  # grab total pop response, not adult or child one
+  total_path_response_cty <- gsub("_child", "", gsub("_adult", "", filepathList$path_response_cty))
+  
+  # clean burden data into prior immunity
+  output <- read_csv(total_path_response_cty, col_types = "icllcd") %>%
+    filter(metric == sprintf("%s.sum", dbCode)) %>%
+    select(-metric) %>%
+    rename(priorBurden = burden) %>%
+    mutate(season = season + 1) %>%
+    select(fips, season, priorBurden) %>%
+    filter(season >= 3 & season <= 9)
+  
+  return(output)
+}
+##########################################
+
 ##### COVARIATE DATA RELYING ON RESPONSE VARIABLE ##########################################
 cleanX_protectedFromPrevSeason_cty <- function(filepathList){
   # clean variable indicating protection conferred from infection during previous flu season: incorporates previous and current season subtype/type distributions (H1/H3/B) and strain similarity
@@ -450,6 +502,26 @@ cleanX_protectedFromPrevSeason_cty <- function(filepathList){
   
   return(output)
 }
+##########################################
+cleanX_protectedFromPrevSeason_irDt_cty <- function(filepathList){
+  # irDt version: clean variable indicating protection conferred from infection during previous flu season: incorporates previous and current season subtype/type distributions (H1/H3/B) and strain similarity
+  print(match.call())
+  
+  priorburdenDat <- cleanX_priorBurden_irDt_cty(filepathList) %>% mutate(fips_st = substr(fips, 1, 2)) # fips, season, priorBurden
+  protectedPropDat <- cleanX_multsrcSubtypeDistrStrainSim_reg() # season, region, estImmuneProp
+  cw <- cleanX_cdcFluview_H3_region() %>% select(region, fips) %>% rename(fips_st = fips) %>% distinct # region, fips_st
+  
+  output <- left_join(priorburdenDat, cw, by = c("fips_st")) %>%
+    left_join(protectedPropDat, by = c("season", "region")) %>%
+    rowwise %>% 
+    mutate(protectionPrevSeason = prod(priorBurden, estImmuneProp)) %>%
+    mutate(protectionPrevSeason = ifelse(is.na(protectionPrevSeason), 0, protectionPrevSeason)) %>%
+    select(fips, season, protectionPrevSeason) %>%
+    ungroup
+  
+  return(output)
+}
+
 
 ##### REFERENCE DATA ##########################################
 clean_graphIDx <- function(filepathList, spatial_scale){
