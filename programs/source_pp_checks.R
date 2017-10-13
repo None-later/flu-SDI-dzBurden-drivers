@@ -9,7 +9,7 @@
 ## install.packages("pkg", dependencies=TRUE, lib="/usr/local/lib/R/site-library") # in sudo R
 ## update.packages(lib.loc = "/usr/local/lib/R/site-library")
 
-require(dplyr); require(tidyr); require(readr)
+require(tidyverse)
 setwd(dirname(sys.frame(1)$ofile))
 
 #### functions for model data import and cleaning ################################

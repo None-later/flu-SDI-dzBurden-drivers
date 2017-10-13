@@ -12,10 +12,10 @@
 
 #### header #################################
 rm(list = ls())
-require(dplyr); require(tidyr); require(readr) # clean_data_functions dependencies
+require(tidyverse) # clean_data_functions dependencies
 require(maptools); require(spdep) # prepare_inlaData_st.R dependencies
 require(INLA) # main dependencies
-require(RColorBrewer); require(ggplot2) # export_inlaData_st dependencies
+require(RColorBrewer) # export_inlaData_st dependencies
 
 dbCodeStr <- "_irDt_Octfit_span0.4_degree2"
 # single code
@@ -106,7 +106,6 @@ for (i in 1:length(modCodeLs)){
     f(fips_st_nonzero, model = "iid") +
     f(regionID_nonzero, model = "iid") +
     f(season_nonzero, model = "iid") +
-    f(seasonID_nonzero, model = "ar1") +
     intercept_nonzero + O_imscoverage_nonzero + O_careseek_nonzero + O_insured_nonzero + X_poverty_nonzero + X_child_nonzero + X_adult_nonzero + X_hospaccess_nonzero + X_popdensity_nonzero + X_housdensity_nonzero + X_vaxcovI_nonzero + X_vaxcovE_nonzero + X_H3A_nonzero + X_B_nonzero + X_priorImmunity_nonzero + X_humidity_nonzero + X_pollution_nonzero + X_singlePersonHH_nonzero + X_H3A_nonzero*X_adult_nonzero + X_B_nonzero*X_child_nonzero + offset(logE_nonzero)
 
   #### export formatting ####

@@ -10,7 +10,7 @@
 ## install.packages("pkg", dependencies=TRUE, lib="/usr/local/lib/R/site-library") # in sudo R
 ## update.packages(lib.loc = "/usr/local/lib/R/site-library")
 
-require(RColorBrewer); require(ggplot2); require(dplyr); require(tidyr)
+require(RColorBrewer); require(tidyverse)
 # require(DBI); require(RMySQL) # read tables from mysql database
 require(ggthemes)
 

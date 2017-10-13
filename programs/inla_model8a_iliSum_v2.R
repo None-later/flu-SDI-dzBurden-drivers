@@ -12,7 +12,7 @@
 
 #### header #################################
 rm(list = ls())
-require(dplyr); require(tidyr); require(readr); require(DBI); require(RMySQL) # clean_data_functions dependencies
+require(tidyverse) # clean_data_functions dependencies
 require(maptools); require(spdep) # prepare_inlaData_st.R dependencies
 require(INLA) # main dependencies
 require(RColorBrewer); require(ggplot2) # export_inlaData_st dependencies
@@ -25,13 +25,13 @@ require(RColorBrewer); require(ggplot2) # export_inlaData_st dependencies
 # keepLs <- rep(c(.80, .60, .40, .20), nreps)
 # seedLs <- c(rep(998,ncodes))
 
-# # NOT RUN
-# ncodes <- 2
-# nreps <- 4
-# repLs <- c(rep(2,ncodes), rep(3,ncodes), rep(4,ncodes), rep(5,ncodes))
-# modCodeLs <- paste0(rep(c("8a_iliSum_v2-6_c10-", "8a_iliSum_v2-6_c05-"), nreps), repLs)
-# keepLs <- rep(c(.1, .05), nreps)
-# seedLs <- c(rep(45,ncodes), rep(46,ncodes), rep(47,ncodes), rep(48,ncodes))
+# New county Reps
+ncodes <- 3
+nreps <- 4
+repLs <- c(rep(1,ncodes), rep(2,ncodes), rep(3,ncodes), rep(4,ncodes), rep(5,ncodes), rep(6,ncodes), rep(7,ncodes), rep(8,ncodes), rep(9,ncodes),)
+modCodeLs <- paste0(rep(c("8a_iliSum_v2-6_c10-", "8a_iliSum_v2-6_c05-", "8a_iliSum_v2-6_c025-"), nreps), repLs)
+keepLs <- rep(c(.1, .05, .025), nreps)
+seedLs <- c(rep(44,ncodes), rep(450,ncodes), rep(469,ncodes), rep(47,ncodes), rep(480,ncodes), rep(499,ncodes), rep(502,ncodes), rep(511,ncodes), rep(52,ncodes))
 
 ## season replicate sequence
 # ncodes <- 3
@@ -41,10 +41,10 @@ require(RColorBrewer); require(ggplot2) # export_inlaData_st dependencies
 # keepLs <- rep(c(6, 4, 2), nreps)
 # seedLs <- c(rep(707,ncodes), rep(9067,ncodes), rep(8075,ncodes), rep(4430,ncodes), rep(999,ncodes))
 
-# single code
-modCodeLs <- c("8a_iliSum_v2-6_c05-3") # "8a_iliSum_v2-6_c025" crashes...
-set.seed(469)
-keepLs <- c(.05)
+# # single code
+# modCodeLs <- c("8a_iliSum_v2-6_c05-5") # "8a_iliSum_v2-6_c025" crashes...
+# set.seed(480)
+# keepLs <- c(.05)
 
 for (i in 1:length(modCodeLs)){
   
@@ -60,44 +60,68 @@ for (i in 1:length(modCodeLs)){
   
   #### SOURCE: clean and import model data #################################
   setwd(dirname(sys.frame(1)$ofile))
-  source("source_clean_response_functions_cty.R") # functions to clean response and IMS coverage data (cty)
-  source("source_clean_data_functions.R") # functions to clean covariate data
-  source("source_prepare_inlaData_cty.R") # functions to aggregate all data sources for model
   source("source_export_inlaData_cty.R") # functions to plot county-specific model diagnostics
   source("source_export_inlaData.R") # functions to plot general model diagnostics
   source("source_export_inlaData_hurdle.R") # data export functions for hurdle model
   source("source_pp_checks.R") # export cpo & pit observations
   
+  #### CUSTOM FUNCTIONS #################################
+  convert_hurdleModel_nz_spatiotemporal <- function(modData_seas){
+    # 10/11/16: prepare data seasonal model data for nonzero model component
+    print(match.call())
+
+    # bottom half response matrix with NA (binomial lik) and non-zeros/NA (gamma/normal lik)
+    Y_nz <- modData_seas %>%
+      select(y1) %>%
+      unlist
+
+    # covariate matrix for nonzero lik: response, predictors, random effects & offset
+    # 10/30/16 control flow for graph Idx # 12/20/16 graph Idx st
+    if(is.null(modData_seas$graphIdx) & is.null(modData_seas$graphIdx_st) & is.null(modData_seas$seasonID)){
+      Mx_nz <- modData_seas %>%
+        select(contains("X_"), contains("O_"), fips, fips_st, regionID, ID, logE, season) %>%
+        mutate(intercept = 1)
+    } else if(is.null(modData_seas$graphIdx_st) & !is.null(modData_seas$graphIdx) & is.null(modData_seas$seasonID)){
+      Mx_nz <- modData_seas %>%
+        select(contains("X_"), contains("O_"), fips, fips_st, regionID, ID, logE, season, graphIdx) %>%
+        mutate(intercept = 1)
+    } else if(!is.null(modData_seas$graphIdx_st) & is.null(modData_seas$graphIdx) & is.null(modData_seas$seasonID)){
+      Mx_nz <- modData_seas %>%
+        select(contains("X_"), contains("O_"), fips, fips_st, regionID, ID, logE, season, graphIdx_st) %>%
+        mutate(intercept = 1)
+    } else if(!is.null(modData_seas$graphIdx_st) & !is.null(modData_seas$graphIdx) & is.null(modData_seas$seasonID)){
+      Mx_nz <- modData_seas %>%
+        select(contains("X_"), contains("O_"), fips, fips_st, regionID, ID, logE, season, graphIdx, graphIdx_st) %>%
+        mutate(intercept = 1)
+    } else if(!is.null(modData_seas$graphIdx_st) & !is.null(modData_seas$graphIdx) & !is.null(modData_seas$seasonID)){
+      Mx_nz <- modData_seas %>%
+        select(contains("X_"), contains("O_"), fips, fips_st, regionID, ID, logE, season, graphIdx, graphIdx_st, seasonID) %>%
+        mutate(intercept = 1)
+    }
+    colnames(Mx_nz) <- paste0(colnames(Mx_nz), "_nonzero")
+
+    # convert matrix information to a list of lists/matrixes
+    modData_seas_lists <- list()
+    for (column in colnames(Mx_nz)){
+      modData_seas_lists[[column]] <- Mx_nz[[column]]
+    }
+    # add Y response vector as a list
+    modData_seas_lists[['Y']] <- Y_nz
+
+    return(modData_seas_lists)
+  }
+  ################################
+  substr.Right <- function(x, numchar){
+    return(substr(x, nchar(x)-(numchar-1), nchar(x)))
+  }
+
   #### FILEPATHS #################################
-  setwd('../reference_data')
-  path_abbr_st <- paste0(getwd(), "/state_abbreviations_FIPS.csv")
-  path_latlon_cty <- paste0(getwd(), "/cty_pop_latlon.csv")
-  
-  setwd('./UScounty_shapefiles')
-  path_adjMxExport_cty <- paste0(getwd(), "/US_county_adjacency.graph")
-  path_graphIdx_cty <- paste0(getwd(), "/US_county_graph_index.csv")
-  path_shape_cty <- paste0(getwd(), "/gz_2010_us_050_00_500k") # for dbf metadata only
-  
-  setwd('../stateFlightpassenger_graph')
-  path_graphExport_st <- paste0(getwd(), "/US_statePassenger_edgelist.txt")
-  path_graphIdx_st <- paste0(getwd(), "/US_statePassenger_graph_index.csv")
-  
-  setwd("../../R_export")
-  path_response_cty <- paste0(getwd(), sprintf("/dbMetrics_periodicReg%s_analyzeDB_cty.csv", dbCodeStr))
-  
-  # put all paths in a list to pass them around in functions
-  path_list <- list(path_abbr_st = path_abbr_st,
-                    path_latlon_cty = path_latlon_cty,
-                    path_shape_cty = path_shape_cty,
-                    path_adjMxExport_cty = path_adjMxExport_cty,
-                    path_response_cty = path_response_cty, 
-                    path_graphIdx_cty = path_graphIdx_cty,
-                    path_graphExport_st = path_graphExport_st,
-                    path_graphIdx_st = path_graphIdx_st)
+  file_dataImport <- paste0(getwd(), "/../R_export/inlaModelData_import/inlaImport_model8a_iliSum_v7.csv")
+  path_adjMxExport_cty <- paste0(getwd(), "/../reference_data/UScounty_shapefiles/US_county_adjacency.graph")
   
   #### MAIN #################################
   #### Import and process data ####
-  modData_full <- model8a_iliSum_v7(path_list) %>% 
+  modData_full <- read_csv(file_dataImport, col_types = cols(fips = col_character(), fips_st = col_character())) %>% 
     keep_randomCty(keep)
     # keep_randomSeas(keep)
     # remove_randomObs_stratifySeas(keep)
@@ -109,7 +133,6 @@ for (i in 1:length(modCodeLs)){
     f(fips_st_nonzero, model = "iid") +
     f(regionID_nonzero, model = "iid") +
     f(season_nonzero, model = "iid") +
-    f(seasonID_nonzero, model = "ar1") +
     intercept_nonzero + O_imscoverage_nonzero + O_careseek_nonzero + O_insured_nonzero + X_poverty_nonzero + X_child_nonzero + X_adult_nonzero + X_hospaccess_nonzero + X_popdensity_nonzero + X_housdensity_nonzero + X_vaxcovI_nonzero + X_vaxcovE_nonzero + X_H3A_nonzero + X_B_nonzero + X_priorImmunity_nonzero + X_humidity_nonzero + X_pollution_nonzero + X_singlePersonHH_nonzero + X_H3A_nonzero*X_adult_nonzero + X_B_nonzero*X_child_nonzero + offset(logE_nonzero)
   
   #### export formatting ####
