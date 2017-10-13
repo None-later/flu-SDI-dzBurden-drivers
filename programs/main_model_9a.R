@@ -172,8 +172,8 @@ ggsave(sprintf("forest_%s_%s_%s_S%s.png", modcode, metriccode, version, s), fore
 plot(x = md$y1, y = mout.summ_fit2$mean, xlab = "Observed", ylab = "Fitted")
 
 #### convergence diagnostics ################################
-gelman.diag(mcoda[,var.coda[1:4]])
-raftery.diag(mcoda[,var.coda[1:4]])
+gelman.diag(mcoda[,var.coda[1:23]])
+raftery.diag(mcoda[,var.coda[1:23]])
 
 # }
 

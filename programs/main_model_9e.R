@@ -1,9 +1,9 @@
 ## Name: Elizabeth Lee
 ## Date: 10/4/17
 ## Function: main code for jags model 9a_seasIntens single season
-## Notes: 
-## Data Source: 
-## 
+## Notes:
+## Data Source:
+##
 ## useful commands:
 ## install.packages("pkg", dependencies=TRUE, lib="/usr/local/lib/R/site-library") # in sudo R
 ## update.packages(lib.loc = "/usr/local/lib/R/site-library")
@@ -46,8 +46,8 @@ cd <- read_csv(paste0(herepath, "/../R_export/inlaModelData_import/inlaImport_mo
 md <- cd %>% filter(season == s & !is.na(O_careseek) & !is.na(graphIdx))
 
 #### create rjags data ################################
-var.names <- c(paste0("b", 0:19), "sigma_st", "sigma_reg", "y")
-var.coda <- c(paste0("b", 0:19), "sigma_st", "sigma_reg")
+var.names <- c(paste0("b", 0:19), "y") # , "sigma_st", "sigma_reg"
+var.coda <- c(paste0("b", 0:19)) # "sigma_st", "sigma_reg"
 var.coda2 <- c("y")
 jdata <- list(
   n.loc= nrow(md),
@@ -98,7 +98,7 @@ mout.full2 <- rbind(chain1b, chain2b)
 cty.forplots <- data.frame(scale = md$fips, for.plot = seq_along(md$fips), y.data = md$y1, stringsAsFactors = FALSE)
 
 # df for parameters
-mout.paramsg <- gather(mout.full, param, sample, b0:sigma_st) %>% mutate(param = as.character(param))
+mout.paramsg <- gather(mout.full, param, sample, b0:b9) %>% mutate(param = as.character(param)) # sigma_st
 mout.summ <- mout.paramsg %>%
   group_by(param) %>%
   summarise(q_025 = quantile(sample, .025), mean = mean(sample), q_975 = quantile(sample, .975)) %>%
@@ -108,13 +108,16 @@ mout.summ <- mout.paramsg %>%
 mout.paramsg_fit <- gather(mout.full2, param, sample, -chain, -iter) %>% mutate(param = as.character(param))
 mout.summ_fit <- mout.paramsg_fit %>%
   group_by(param) %>%
-  summarise(q_025 = quantile(sample, .025), mean = mean(sample), q_975 = quantile(sample, .975))
+  summarise(q_025 = quantile(sample, .025), mean = mean(sample), q_975 = quantile(sample, .975), sd = sd(sample))
 mout.summ_fit2 <- mout.summ_fit %>%
   mutate(id = as.numeric(gsub("]", "", gsub("y[", "", param, fixed=TRUE), fixed=TRUE))) %>%
   arrange(id)
-
+mfull <- bind_cols(mout.summ_fit2, md %>% select(fips, season, y1)) %>%
+  rename(yObs = y1) %>%
+  mutate(stdResid = (yObs-mean)/sd)
 
 #### write all dfs to file ################################
+setwd(dirname(sys.frame(1)$ofile))
 dir.create(sprintf('../R_export/jagsModelData_export/%s_%s', modcode, metriccode), showWarnings = FALSE)
 dir.create(sprintf('../R_export/jagsModelData_export/%s_%s/%s', modcode, metriccode, version), showWarnings = FALSE)
 setwd(sprintf('../R_export/jagsModelData_export/%s_%s/%s', modcode, metriccode, version))
@@ -131,7 +134,7 @@ indexes <- seq(1, max(cty.forplots %>% select(for.plot)), by=ct)
 plotWrapper <- list(w=w, h=h, ct=ct, indexes=indexes, modcode=modcode, seas=s, ct2=ct2, version=version, metriccode=metriccode)
 
 pltLabs <- data.frame(param = paste0("b", 0:19), label = c("intercept", "imscoverage", "careseek", "insured", "poverty", "child", "adult", "hospaccess", "popdensity", "housdensity", "vaxcovI", "vaxcovE", "H3A", "B", "priorImmunity", "humidity", "pollution", "singlePersonHH", "H3A-adult", "B-child"))
- 
+
 
 #### plot all posteriors ################################
 setwd(dirname(sys.frame(1)$ofile))
@@ -148,11 +151,11 @@ betanames <- grep("b+", var.coda, value = T)
 png(sprintf('beta_diag_%s_%s_%s_S%s.png', modcode, metriccode, version, s), width = w.pix, height = h.pix)
 plot(mcoda[,betanames], cex = sz)
 dev.off()
-# plot var params
-sigmanames <- grep("sigma", var.coda, value = T)
-png(sprintf('sigma_diag_%s_%s_%s_S%s.png', modcode, metriccode, version, s), width = w.pix, height = h.pix)
-plot(mcoda[,sigmanames], cex = sz)
-dev.off()
+# # plot var params
+# sigmanames <- grep("sigma", var.coda, value = T)
+# png(sprintf('sigma_diag_%s_%s_%s_S%s.png', modcode, metriccode, version, s), width = w.pix, height = h.pix)
+# plot(mcoda[,sigmanames], cex = sz)
+# dev.off()
 
 #### forest plots ################################
 forestDat <- mout.summ %>%
@@ -169,11 +172,14 @@ print(forest_params)
 ggsave(sprintf("forest_%s_%s_%s_S%s.png", modcode, metriccode, version, s), forest_params, width = 6, height = 4)
 
 #### observed vs fitted ################################
-plot(x = md$y1, y = mout.summ_fit2$mean, xlab = "Observed", ylab = "Fitted")
+plot(x = mfull$yObs, y = mfull$mean, xlab = "Observed", ylab = "Fitted")
+
+#### residuals vs fitted ################################
+plot(x = mfull$mean, y = mfull$stdResid, xlab = "Fitted", ylab = "Residual")
 
 #### convergence diagnostics ################################
-gelman.diag(mcoda[,var.coda[1:22]])
-raftery.diag(mcoda[,var.coda[1:22]])
+gelman.diag(mcoda[,var.coda[1:20]])
+raftery.diag(mcoda[,var.coda[1:20]])
 
 # }
 
