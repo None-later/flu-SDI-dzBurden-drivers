@@ -11,7 +11,7 @@
 ## update.packages(lib.loc = "/usr/local/lib/R/site-library")
 
 require(RColorBrewer); require(ggplot2); require(dplyr); require(tidyr)
-require(DBI); require(RMySQL) # read tables from mysql database
+# require(DBI); require(RMySQL) # read tables from mysql database
 require(ggthemes)
 
 
