@@ -167,14 +167,14 @@ setwd(dirname(sys.frame(1)$ofile))
 
 ###############################################################################
 ### FIT CHOROS - Replicate comparison ###################
-## missing county sequence
-baseCtySeq <- c("8a_iliSum_v2-6", "8a_iliSum_v2-6_c40", "8a_iliSum_v2-6_c20")
-ctyPlotFormats <- list(w = 6, h = 2, lvls = baseCtySeq[2:length(baseCtySeq)], labs = c("40% of counties", "20% of counties"), replvls = c(.25, .5, .75, 1), replabs = c("25", "50", "75", "100"), descrip = "ctySeq", repcodelength = 5, numReplicates = 10, nomatchThresh = 0.1)
-choro_fitCompareReplicates(baseCtySeq, ctyPlotFormats)
+# ## missing county sequence
+# baseCtySeq <- c("8a_iliSum_v2-6", "8a_iliSum_v2-6_c40", "8a_iliSum_v2-6_c20")
+# ctyPlotFormats <- list(w = 6, h = 2, lvls = baseCtySeq[2:length(baseCtySeq)], labs = c("40% of counties", "20% of counties"), replvls = c(.25, .5, .75, 1), replabs = c("25", "50", "75", "100"), descrip = "ctySeq", repcodelength = 5, numReplicates = 10, nomatchThresh = 0.1)
+# choro_fitCompareReplicates(baseCtySeq, ctyPlotFormats)
 
-baseCtySeq <- c("8a_iliSum_v2-6", "8a_iliSum_v2-6_c10", "8a_iliSum_v2-6_c05")
-ctyPlotFormats <- list(w = 6, h = 2, lvls = baseCtySeq[2:length(baseCtySeq)], labs = c("10% of counties", "5% of counties"), replvls = c(.25, .5, .75, 1), replabs = c("25", "50", "75", "100"), descrip = "ctySeq2", repcodelength = 5, numReplicates = 3, nomatchThresh = 0.1)
-choro_fitCompareReplicates(baseCtySeq, ctyPlotFormats)
+# baseCtySeq <- c("8a_iliSum_v2-6", "8a_iliSum_v2-6_c10", "8a_iliSum_v2-6_c05")
+# ctyPlotFormats <- list(w = 6, h = 2, lvls = baseCtySeq[2:length(baseCtySeq)], labs = c("10% of counties", "5% of counties"), replvls = c(.25, .5, .75, 1), replabs = c("25", "50", "75", "100"), descrip = "ctySeq2", repcodelength = 5, numReplicates = 3, nomatchThresh = 0.1)
+# choro_fitCompareReplicates(baseCtySeq, ctyPlotFormats)
 # 
 # ## missing stratified county sequence
 # baseMissSeq <- c("8a_iliSum_v2-6", "8a_iliSum_v2-6_m60", "8a_iliSum_v2-6_m80")
@@ -186,6 +186,12 @@ choro_fitCompareReplicates(baseCtySeq, ctyPlotFormats)
 # seasPlotFormats <- list(w = 6, h = 2.25, lvls = baseSeasSeq[2:length(baseSeasSeq)], labs = c("missing 1", "missing 3","missing 5"), replvls = c(.25, .5, .75, 1), replabs = c("25", "50", "75", "100"), descrip = "seasSeq", repcodelength = 4, numReplicates = 10, nomatchThresh = 0.5)
 # choro_fitCompareReplicates(baseSeasSeq, seasPlotFormats)
 
+###############################################################################
+### LINE - Identify replicate threshold ###################
+## missing county sequence
+baseCtySeq <- c("8a_iliSum_v2-6", "8a_iliSum_v2-6_c80", "8a_iliSum_v2-6_c60", "8a_iliSum_v2-6_c40", "8a_iliSum_v2-6_c20")
+ctyPlotFormats <- list(w = 6, h = 4, lvls = baseCtySeq[2:length(baseCtySeq)], labs = c("80% of counties", "60% of counties", "40% of counties", "20% of counties"), descrip = "ctySeq", repcodelength = 5, numReplicates = 10)
+test <- line_fitCompareReplicates_threshold(baseCtySeq, ctyPlotFormats)
 
 # ###############################################################################
 # ### SCATTER - obsFit out of sample replicates ###################

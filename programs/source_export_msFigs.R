@@ -1952,7 +1952,92 @@ choro_fitCompareReplicates <- function(baseCodeLs, pltFormats){
   ggsave(exportFname, choro, height = h, width = w, dpi = dp)
   
 }
+################################
+line_fitCompareReplicates_threshold <- function(baseCodeLs, pltFormats){
+  print(match.call())
 
+  stopifnot(length(baseCodeLs) >= 2L)
+  
+  # plot formatting
+  w <- pltFormats$w; h <- pltFormats$h; dp <- 300
+  seasLabels <- label_seas_predictors()
+  legendposition <- ifelse(length(baseCodeLs)>=4, "bottom", "left")
+  exportFname <- paste0(string_msFig_folder(), "line_fitCompareReplicates_threshold_", pltFormats$descrip, ".png")
+
+  # data formatting
+  numReplicates <- pltFormats$numReplicates
+  numSeas <- nrow(seasLabels)
+  repcodelength <- pltFormats$repcodelength
+  
+  ## grab fitData from multiple models ##
+  fullDf <- tbl_df(data.frame(modCodeStr = c(), season = c(), fips = c(), LB = c(), UB = c()))
+  
+  # import complete model fitData
+  completeCode <- baseCodeLs[which(nchar(baseCodeLs)==min(nchar(baseCodeLs)))]
+  completeDat <- read_csv(string_fit_fname(completeCode), col_types = "c_d_c_dd______") %>%
+      mutate(LB = mean-(1*sd), UB = mean+(1*sd)) %>% # 5/15/17 okay approximation because we are looking at overlap between posteriors (not 95% CI)
+      select(modCodeStr, season, fips, LB, UB)
+
+  # import replicates for each baseCode
+  baseRepCodeLs <- baseCodeLs[which(nchar(baseCodeLs)!=min(nchar(baseCodeLs)))]
+  for (baseRepCode in baseRepCodeLs){
+    repCodeLs <- c(paste0(baseRepCode, ""), paste(baseRepCode, 1:(numReplicates-1), sep = "-"))
+    modDat <- import_fitReplicates(repCodeLs) 
+    fullDf <- bind_rows(fullDf, modDat)
+    print(paste(baseRepCode, "imported"))
+  }
+
+  # clean and organize bound data  
+  prepDat <- bind_rows(fullDf, completeDat) %>%
+    gather(bound, value, LB:UB) %>%
+    mutate(bound_spread = paste(modCodeStr, bound, sep = "_")) %>%
+    arrange(modCodeStr, bound) 
+
+  # create bound dataframe
+  boundLs <- prepDat %>% distinct(bound_spread) %>% unlist
+  boundMx <- matrix(boundLs, ncol=2, byrow = TRUE)
+
+  # identify overlaps with complete model
+  spreadDat <- prepDat %>%
+    select(-bound, -modCodeStr) %>%
+    spread(bound_spread, value) 
+
+  # indicate overlap with all replicates
+  overlapDat <- spreadDat
+  for (i in 2:nrow(boundMx)){
+    newcol <- paste0("o_", substring(boundMx[i,1], 16, nchar(boundMx[i,1])-3))
+    overlapDat <- do.call(overlapping_intervals, list(df = overlapDat, intervalA_LB = boundMx[1,1], intervalA_UB = boundMx[1,2], intervalB_LB = boundMx[i,1], intervalB_UB = boundMx[i,2])) %>%
+      rename_(.dots = setNames("overlap", newcol))
+  }
+
+  # summarise across replicates and seasons
+  plotDat <- overlapDat %>%
+    select(season, fips, contains("o_")) %>%
+    gather(repcode, overlap, contains("o_")) %>%
+    mutate(repgroup = substring(repcode, 1, repcodelength)) %>%
+    group_by(fips, season, repgroup) %>%
+    summarise(mismatchedReps = (numReplicates-sum(as.numeric(overlap)))) %>% # replicates without overlaps
+    group_by(season, repgroup, mismatchedReps) %>%
+    summarise(numCty = length(fips)) %>%
+    mutate(mismatchedReps = factor(mismatchedReps, levels = as.character(0:10))) %>%
+    mutate(percCty = numCty/3105*100) %>%
+    mutate(RV = paste0("S", season)) %>%
+    full_join(seasLabels, by = c("RV")) 
+ 
+  # plot 
+  plotOutput <- ggplot(plotDat, aes(x = mismatchedReps, y = percCty, group = season)) +
+    geom_line(aes(colour = pltLabs)) +
+    scale_colour_tableau(name = "Flu Season") +
+    scale_x_discrete("Mismatched Replicates") +
+    scale_y_continuous("Percentage of Counties") +
+    theme_bw() +
+    theme(axis.text=element_text(size=12), panel.grid = element_blank(), legend.position=legendposition, legend.margin = margin(1,1,1,1, unit="pt")) +
+    facet_wrap(~repgroup)
+  ggsave(exportFname, plotOutput, height = h, width = w, dpi = dp)
+
+  return(plotDat)
+
+}
 ################################
 dot_coefCompare <- function(modCodeLs, pltFormats){
   # direct comparison
@@ -1995,7 +2080,6 @@ dot_coefCompare <- function(modCodeLs, pltFormats){
   ggsave(exportFname, plotOutput, height = h, width = w, dpi = dp)
   
 }
-
 ################################
 choro_fitCompare <- function(modCodeLs, pltFormats){
   print(match.call())
