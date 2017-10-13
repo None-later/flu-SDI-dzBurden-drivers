@@ -191,7 +191,13 @@ setwd(dirname(sys.frame(1)$ofile))
 ## missing county sequence
 baseCtySeq <- c("8a_iliSum_v2-6", "8a_iliSum_v2-6_c80", "8a_iliSum_v2-6_c60", "8a_iliSum_v2-6_c40", "8a_iliSum_v2-6_c20")
 ctyPlotFormats <- list(w = 6, h = 4, lvls = baseCtySeq[2:length(baseCtySeq)], labs = c("80% of counties", "60% of counties", "40% of counties", "20% of counties"), descrip = "ctySeq", repcodelength = 5, numReplicates = 10)
-test <- line_fitCompareReplicates_threshold(baseCtySeq, ctyPlotFormats)
+thresh_ctySeq <- line_fitCompareReplicates_threshold(baseCtySeq, ctyPlotFormats)
+
+## stratified missing county sequence
+baseMissSeq <- c("8a_iliSum_v2-6", "8a_iliSum_v2-6_m20", "8a_iliSum_v2-6_m40", "8a_iliSum_v2-6_m60", "8a_iliSum_v2-6_m80")
+missPlotFormats <- list(w = 6, h = 4, lvls = baseMissSeq[2:length(baseMissSeq)], labs = c("missing 20%", "missing 40%", "missing 60%", "missing 80%"), descrip = "missSeq", repcodelength = 5, numReplicates = 10)
+thresh_missSeq <- line_fitCompareReplicates_threshold(baseMissSeq, missPlotFormats)
+
 
 # ###############################################################################
 # ### SCATTER - obsFit out of sample replicates ###################
