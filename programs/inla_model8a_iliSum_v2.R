@@ -25,13 +25,13 @@ require(RColorBrewer); require(ggplot2) # export_inlaData_st dependencies
 # keepLs <- rep(c(.80, .60, .40, .20), nreps)
 # seedLs <- c(rep(998,ncodes))
 
-# New county Reps
-ncodes <- 3
-nreps <- 4
-repLs <- c(rep(1,ncodes), rep(2,ncodes), rep(3,ncodes), rep(4,ncodes), rep(5,ncodes), rep(6,ncodes), rep(7,ncodes), rep(8,ncodes), rep(9,ncodes),)
-modCodeLs <- paste0(rep(c("8a_iliSum_v2-6_c10-", "8a_iliSum_v2-6_c05-", "8a_iliSum_v2-6_c025-"), nreps), repLs)
-keepLs <- rep(c(.1, .05, .025), nreps)
-seedLs <- c(rep(44,ncodes), rep(450,ncodes), rep(469,ncodes), rep(47,ncodes), rep(480,ncodes), rep(499,ncodes), rep(502,ncodes), rep(511,ncodes), rep(52,ncodes))
+# # New county Reps
+# ncodes <- 3
+# nreps <- 4
+# repLs <- c(rep(1,ncodes), rep(2,ncodes), rep(3,ncodes), rep(4,ncodes), rep(5,ncodes), rep(6,ncodes), rep(7,ncodes), rep(8,ncodes), rep(9,ncodes),)
+# modCodeLs <- paste0(rep(c("8a_iliSum_v2-6_c10-", "8a_iliSum_v2-6_c05-", "8a_iliSum_v2-6_c025-"), nreps), repLs)
+# keepLs <- rep(c(.1, .05, .025), nreps)
+# seedLs <- c(rep(44,ncodes), rep(450,ncodes), rep(469,ncodes), rep(47,ncodes), rep(480,ncodes), rep(499,ncodes), rep(502,ncodes), rep(511,ncodes), rep(52,ncodes))
 
 ## season replicate sequence
 # ncodes <- 3
@@ -41,10 +41,10 @@ seedLs <- c(rep(44,ncodes), rep(450,ncodes), rep(469,ncodes), rep(47,ncodes), re
 # keepLs <- rep(c(6, 4, 2), nreps)
 # seedLs <- c(rep(707,ncodes), rep(9067,ncodes), rep(8075,ncodes), rep(4430,ncodes), rep(999,ncodes))
 
-# # single code
-# modCodeLs <- c("8a_iliSum_v2-6_c05-5") # "8a_iliSum_v2-6_c025" crashes...
-# set.seed(480)
-# keepLs <- c(.05)
+# single code
+modCodeLs <- c("8a_iliSum_v2-6_m80-6") 
+seedLs <-c(9065)
+keepLs <- c(.8)
 
 for (i in 1:length(modCodeLs)){
   
@@ -52,7 +52,7 @@ for (i in 1:length(modCodeLs)){
   dbCodeStr <- "_ilinDt_Octfit_span0.4_degree2"
   modCodeStr <- modCodeLs[i] 
   keep <- keepLs[i] # comment if single code
-  # set.seed(seedLs[i]) # comment if single code
+  set.seed(seedLs[i]) # comment if single code
   rdmFx_RV <- "phi"
   likString <- "normal"
   dig <- 4 # number of digits in the number of elements at this spatial scale (~3000 counties -> 4 digits)
@@ -114,7 +114,59 @@ for (i in 1:length(modCodeLs)){
   substr.Right <- function(x, numchar){
     return(substr(x, nchar(x)-(numchar-1), nchar(x)))
   }
-
+  ################################
+  remove_randomObs_stratifySeas <- function(full_df, proportion){
+    # remove x proportion of observations from each season
+    print(match.call())
+    
+    # return list of sampled Ids, among observations where !is.na(y1)
+    sample_ids <- full_df %>%
+      filter(!is.na(y1)) %>%
+      select(season, ID) %>%
+      group_by(season) %>%
+      sample_frac(size = proportion) %>% 
+      ungroup %>%
+      select(ID) %>%
+      unlist
+    # return original dataframe where y1 is NA for sampled ids
+    full_df2 <- full_df %>%
+      mutate(y1 = ifelse(ID %in% sample_ids, NA, y1))
+    
+    return(full_df2)
+  }
+  ################################
+  keep_randomSeas <- function(full_df, numSeas){
+    # keep x proportion of seasons
+    print(match.call())
+    
+    # return list of sampled seasons
+    sample_seasons <- full_df %>%
+      distinct(season) %>%
+      sample_n(size = numSeas) %>% 
+      unlist
+    # return original dataframe including only sample_seasons
+    full_df2 <- full_df %>%
+      mutate(y1 = ifelse(season %in% sample_seasons, y1, NA))
+    
+    return(full_df2)
+  }
+  ################################
+  keep_randomCty <- function(full_df, proportion){
+    # keep x proportion of counties across all seasons
+    print(match.call())
+    
+    # return list of sampled counties
+    sample_fips <- full_df %>%
+      distinct(fips) %>%
+      sample_frac(size = proportion) %>% 
+      unlist
+    # return original dataframe including only sample_fips
+    full_df2 <- full_df %>%
+      mutate(y1 = ifelse(fips %in% sample_fips, y1, NA))
+    
+    return(full_df2)
+  }
+  
   #### FILEPATHS #################################
   file_dataImport <- paste0(getwd(), "/../R_export/inlaModelData_import/inlaImport_model8a_iliSum_v7.csv")
   path_adjMxExport_cty <- paste0(getwd(), "/../reference_data/UScounty_shapefiles/US_county_adjacency.graph")
@@ -122,9 +174,9 @@ for (i in 1:length(modCodeLs)){
   #### MAIN #################################
   #### Import and process data ####
   modData_full <- read_csv(file_dataImport, col_types = cols(fips = col_character(), fips_st = col_character())) %>% 
-    keep_randomCty(keep)
+    # keep_randomCty(keep)
     # keep_randomSeas(keep)
-    # remove_randomObs_stratifySeas(keep)
+    remove_randomObs_stratifySeas(keep)
   
   formula <- Y ~ -1 +
     f(ID_nonzero, model = "iid") +
