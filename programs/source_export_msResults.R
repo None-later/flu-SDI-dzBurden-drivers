@@ -76,10 +76,12 @@ report_total_ILI_claimsILINetVisits <- function(){
   
   dbListFields(con, "flu")
   sel.statement <- "SELECT WEEK AS week, PATIENT_ZIP3 AS zip3, sum(ILI_m) AS ili, sum(ANY_DIAG_VISIT_CT) AS visits FROM flu WHERE SERVICE_PLACE = 'TOTAL' AND patient_zip3 = 'TOT' AND (MONTH(week) <= 4 OR MONTH(week) >= 11) AND AGEGROUP = 'TOTAL' GROUP BY WEEK, PATIENT_ZIP3"
-  dummy <- dbGetQuery(con, sel.statement)
+  sel.statement2 <- "SELECT WEEK AS week, PATIENT_ZIP3 AS zip3, sum(ILI_m) AS ili, sum(ANY_DIAG_VISIT_CT) AS visits FROM flu WHERE SERVICE_PLACE = 'TOTAL' AND patient_zip3 != 'TOT' AND (MONTH(week) <= 4 OR MONTH(week) >= 11) AND AGEGROUP = 'TOTAL' GROUP BY WEEK, PATIENT_ZIP3"
+  dummy <- dbGetQuery(con, sel.statement2)
   
   dbDisconnect(con)
 
+  View(dummy)
   summDat <- dummy %>%
     mutate(week = as.Date(week)) %>%
     mutate(season = ifelse(lubridate::month(week) >= 11, lubridate::year(week)-2000+1, lubridate::year(week)-2000)) %>%
@@ -203,8 +205,8 @@ sink("msReport.txt", append = FALSE)
 # 	report_observed_predicted_pearsonCorr(code)
 # }
 
-# ################
-# fullDat <- report_total_ILI_claimsILINetVisits()
+################
+fullDat <- report_total_ILI_claimsILINetVisits()
 
 # ################
 # ## county missing sequence
@@ -224,15 +226,15 @@ sink("msReport.txt", append = FALSE)
 # seasPlotFormats <- list(lvls = baseSeasSeq[2:length(baseSeasSeq)], labs = c("missing 1", "missing 3","missing 5"), descrip = "seasSeq", repcodelength = 4, numReplicates = 10)
 # seassSeq <- report_percentCtyMatch_replicates(baseSeasSeq, seasPlotFormats)
 
-################
-## report risks 
-hr_st_iliSum <- report_riskResults("8a_iliSum_v2-6", "stID", c("13", "24", "37", "45", "47", "51")) # GA, MD, NC, SC, TN, VA
-lr_st_iliSum <- report_riskResults("8a_iliSum_v2-6", "stID", c("20", "27", "28", "30", "49")) # KS, MN, MS, MT, UT
-hlr_seas_iliSum <- report_riskResults("8a_iliSum_v2-6", "season", c("S5", "S9"))
+# ################
+# ## report risks 
+# hr_st_iliSum <- report_riskResults("8a_iliSum_v2-6", "stID", c("13", "24", "37", "45", "47", "51")) # GA, MD, NC, SC, TN, VA
+# lr_st_iliSum <- report_riskResults("8a_iliSum_v2-6", "stID", c("20", "27", "28", "30", "49")) # KS, MN, MS, MT, UT
+# hlr_seas_iliSum <- report_riskResults("8a_iliSum_v2-6", "season", c("S5", "S9"))
 
-hlr_reg_epiDur <- report_riskResults("8e_epiDur_v2-3", "regID", c("R4", "R7"))
+# hlr_reg_epiDur <- report_riskResults("8e_epiDur_v2-3", "regID", c("R4", "R7"))
 
-hr_st_iliSum09 <- report_riskResults("9a_iliSum_2009p_v1-2", "stID", c("24", "54", "51", "21", "47", "37", "45"))
+# hr_st_iliSum09 <- report_riskResults("9a_iliSum_2009p_v1-2", "stID", c("24", "54", "51", "21", "47", "37", "45"))
 
 sink(type = "message")
 sink()

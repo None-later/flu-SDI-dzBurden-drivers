@@ -328,7 +328,7 @@ import_obsFit_seasIntensityRR <- function(modCodeStr, filepathList){
   
   # prepare data for plotting breaks
   obsFitDat <- left_join(outDat, inDat, by = c("season", "fips")) %>%
-    mutate(obs_rr = obs_logy-logE, fit_rr = fit_logy-logE) %>% # exponentiated 10/6/17
+    mutate(obs_rr = obs_logy-logE, fit_rr = fit_logy-logE) %>% # exponentiated & unexponentiated 10/19/17
     mutate(resid = (obs_logy - fit_logy)/fit_sd)
   
   return(obsFitDat)
@@ -351,7 +351,7 @@ import_obsFit_seasIntensityRR_st <- function(modCodeStr, filepathList){
     
     # prepare data for plotting breaks
   	obsFitDat <- left_join(outDat, inDat, by = c("season", "fips_st")) %>%
-    	mutate(obs_rr = obs_logy-logE, fit_rr = fit_logy-logE) %>% # exponentiated 10/6/17
+    	mutate(obs_rr = obs_logy-logE, fit_rr = fit_logy-logE) %>% # exponentiated & unexponentiated 10/19/17
     	mutate(resid = (obs_logy - fit_logy)/fit_sd)
 
     return(obsFitDat)
@@ -388,19 +388,22 @@ import_obsFit_excessSeasIntensityRR <- function(modCodeStr, filepathList){
 import_obsFit_epiDuration <- function(modCodeStr, filepathList){
   print(match.call())
   
+  # 10/26/17 modified for 8e_epiDur_log_v2-4
   # import fitted epiDur data 
   outDat <- read_csv(string_fit_fname(modCodeStr), col_types = "c_d_c_dd______") %>%
-    rename(fit_y = mean, fit_sd = sd) %>%
-    select(modCodeStr, season, fips, fit_y, fit_sd)
+    mutate(fit_y = exp(mean)) %>%
+    rename(fit_sd = sd) %>%
+    select(modCodeStr, season, fips, fit_y, mean, fit_sd)
   
   # import observed epidemic duration
   inDat <- cleanR_epiDur_cty(filepathList) %>%
     rename(obs_y = y1) %>%
-    select(season, fips, obs_y)
+    mutate(y1 = log(obs_y)) %>%
+    select(season, fips, obs_y, y1)
   
   # prepare data for plotting breaks
   obsFitDat <- left_join(outDat, inDat, by = c("season", "fips")) %>%
-    mutate(resid = (obs_y - fit_y)/fit_sd)
+    mutate(resid = (y1 - mean)/fit_sd)
   
   return(obsFitDat)
 }
@@ -558,7 +561,7 @@ choro_obsFit_seasIntensityRR_oneSeason <- function(modCodeStr, pltFormats, filep
     choro <- ggplot() +
       geom_map(data = ctyMap, map = ctyMap, aes(x = long, y = lat, map_id = region)) +
       geom_map(data = pltDat, map = ctyMap, aes(fill = bin, map_id = fips), color = "grey25", size = 0.025) +
-      scale_fill_brewer(name = "Log Relative\nSeasonal\nIntensity", palette = "OrRd", na.value = "grey60", drop = FALSE) +
+      scale_fill_brewer(name = "Log Epidemic\nIntensity", palette = "OrRd", na.value = "grey60", drop = FALSE) +
       expand_limits(x = ctyMap$long, y = ctyMap$lat) +
       theme_minimal() +
       theme(text = element_text(size = 15), axis.ticks = element_blank(), axis.text = element_blank(), axis.title = element_blank(), panel.grid = element_blank(), legend.position = "bottom") +
@@ -569,7 +572,6 @@ choro_obsFit_seasIntensityRR_oneSeason <- function(modCodeStr, pltFormats, filep
   }
   
 }
-
 ################################
 choro_fit_seasIntensityRR_oneSeason <- function(modCodeStr, pltFormats, filepathList){
   # plot single choropleth for the fitted relative risk of seasonal intensity by season
@@ -617,7 +619,7 @@ choro_fit_seasIntensityRR_oneSeason <- function(modCodeStr, pltFormats, filepath
     choro <- ggplot() +
       geom_map(data = ctyMap, map = ctyMap, aes(x = long, y = lat, map_id = region)) +
       geom_map(data = pltDat, map = ctyMap, aes(fill = bin, map_id = fips), color = "grey25", size = 0.025) +
-      scale_fill_brewer(name = "Log Relative\nSeasonal\nIntensity", palette = "OrRd", na.value = "grey60", drop = FALSE) +
+      scale_fill_brewer(name = "Log\nEpidemic\nIntensity", palette = "OrRd", na.value = "grey60", drop = FALSE) +
       expand_limits(x = ctyMap$long, y = ctyMap$lat) +
       theme_minimal() +
       theme(text = element_text(size = 10), axis.ticks = element_blank(), axis.text = element_blank(), axis.title = element_blank(), panel.grid = element_blank(), legend.position = "bottom")
@@ -675,7 +677,7 @@ choroSt_fit_seasIntensityRR_oneSeason <- function(modCodeStr, pltFormats, filepa
     # plot
     choro <- ggplot(pltDat, aes(map_id = State)) +
       geom_map(map = stMap, aes(fill = bin, map_id = State), color = "grey25", size = 0.025) +
-      scale_fill_brewer(name = "Log Relative\nSeasonal\nIntensity", palette = "OrRd", na.value = "grey60", drop = FALSE) +
+      scale_fill_brewer(name = "Log Epidemic\nIntensity", palette = "OrRd", na.value = "grey60", drop = FALSE) +
       expand_limits(x = stMap$long, y = stMap$lat) +
       guides(fill = guide_legend(nrow = 2)) +
       theme_minimal() +
@@ -686,7 +688,6 @@ choroSt_fit_seasIntensityRR_oneSeason <- function(modCodeStr, pltFormats, filepa
   }
   
 }
-
 ################################
 choroSt_obsFit_seasIntensityRR_multiSeason <- function(modCodeStr, pltFormats, filepathList){
   # plot side-by-side choropleths for the observed and fitted relative risk of seasonal intensity - state-level (multiple years)
@@ -747,7 +748,7 @@ choroSt_obsFit_seasIntensityRR_multiSeason <- function(modCodeStr, pltFormats, f
   # plot
   choro <- ggplot(plotDat, aes(map_id = State)) +
     geom_map(map = stMap, aes(fill = bin, map_id = State), color = "grey25", size = 0.025) +
-    scale_fill_brewer(name = "Log Relative\nSeasonal\nIntensity", palette = "OrRd", na.value = "grey60", drop = FALSE) +
+    scale_fill_brewer(name = "Log Epidemic\nIntensity", palette = "OrRd", na.value = "grey60", drop = FALSE) +
     expand_limits(x = stMap$long, y = stMap$lat) +
     theme_minimal() +
     theme(text = element_text(size = 12), axis.ticks = element_blank(), axis.text = element_blank(), axis.title = element_blank(), panel.grid = element_blank(), legend.position = "bottom", legend.margin = margin(), legend.box.margin = margin()) +
@@ -755,9 +756,7 @@ choroSt_obsFit_seasIntensityRR_multiSeason <- function(modCodeStr, pltFormats, f
   
   ggsave(exportFname, choro, height = h, width = w, dpi = dp)
 
-
 }
-
 ################################
 choro_obsFit_seasIntensityRR_multiSeason <- function(modCodeStr, pltFormats, filepathList){
   # plot side-by-side choropleths for the observed and fitted relative risk of seasonal intensity (multiple years)
@@ -812,7 +811,7 @@ choro_obsFit_seasIntensityRR_multiSeason <- function(modCodeStr, pltFormats, fil
   choro <- ggplot() +
     geom_map(data = ctyMap, map = ctyMap, aes(x = long, y = lat, map_id = region)) +
     geom_map(data = plotDat, map = ctyMap, aes(fill = bin, map_id = fips), color = "grey25", size = 0.025) +
-    scale_fill_brewer(name = "Log Relative\nSeasonal\nIntensity", palette = "OrRd", na.value = "grey60", drop = FALSE) +
+    scale_fill_brewer(name = "Log Epidemic\nIntensity", palette = "OrRd", na.value = "grey60", drop = FALSE) +
     expand_limits(x = ctyMap$long, y = ctyMap$lat) +
     theme_minimal() +
     theme(text = element_text(size = 14), axis.ticks = element_blank(), axis.text = element_blank(), axis.title = element_blank(), panel.grid = element_blank(), legend.position = "bottom", legend.margin = margin(t = 0, r = 0, b = 0, l = 0, unit = "pt"), legend.box.margin = margin(t = 0, r = 0, b = 0, l = 0, unit = "pt")) +
@@ -821,7 +820,6 @@ choro_obsFit_seasIntensityRR_multiSeason <- function(modCodeStr, pltFormats, fil
   ggsave(exportFname, choro, height = h, width = w, dpi = dp)
   
 }
-
 ################################
 choro_fit_aggBias_seasIntensityRR_oneSeason <- function(modCodeStr_cty, modCodeStr_st, pltFormats, filepathList){
   print(match.call())
@@ -860,17 +858,16 @@ choro_fit_aggBias_seasIntensityRR_oneSeason <- function(modCodeStr_cty, modCodeS
     choro <- ggplot() +
       geom_map(data = ctyMap, map = ctyMap, aes(x = long, y = lat, map_id = region)) +
       geom_map(data = pltDat, map = ctyMap, aes(fill = Fit_rrDiff, map_id = fips), color = "grey25", size = 0.025) +
-      scale_fill_manual(name = "Error", values = manualPalette, na.value = "grey60", drop = FALSE) +
+      scale_fill_manual(name = "Aggregation\nBias", values = manualPalette, na.value = "grey60", drop = FALSE) +
       expand_limits(x = ctyMap$long, y = ctyMap$lat) +
       theme_minimal() +
-      theme(text = element_text(size = 10), axis.ticks = element_blank(), axis.text = element_blank(), axis.title = element_blank(), panel.grid = element_blank(), legend.position = "bottom")
+      theme(text = element_text(size = 10), axis.ticks = element_blank(), axis.text = element_blank(), axis.title = element_blank(), panel.grid = element_blank(), legend.position = "bottom", legend.key.size = unit(.35, "cm"))
     
     ggsave(exportFname, choro, height = h, width = w, dpi = dp)
      
   }
 
 }
-
 ################################
 choro_fit_aggBias_seasIntensityRR_multiSeason <- function(modCodeStr_cty, modCodeStr_st, pltFormats, filepathList){
   print(match.call())
@@ -909,7 +906,7 @@ choro_fit_aggBias_seasIntensityRR_multiSeason <- function(modCodeStr_cty, modCod
   choro <- ggplot() +
     geom_map(data = ctyMap, map = ctyMap, aes(x = long, y = lat, map_id = region)) +
     geom_map(data = pltDat, map = ctyMap, aes(fill = Fit_rrDiff, map_id = fips), color = "grey25", size = 0.025) +
-    scale_fill_manual(name = "Error (State-County)", values = manualPalette, na.value = "grey60", drop = FALSE) +
+    scale_fill_manual(name = "Aggregation Bias\n(State-County)", values = manualPalette, na.value = "grey60", drop = FALSE) +
     expand_limits(x = ctyMap$long, y = ctyMap$lat) +
     theme_minimal() +
     theme(text = element_text(size = 10), axis.ticks = element_blank(), axis.text = element_blank(), axis.title = element_blank(), panel.grid = element_blank(), legend.position = "bottom") +
@@ -966,15 +963,15 @@ choro_stCty_fit_seasIntensityRR_oneSeason <- function(modCodeStr_cty, modCodeStr
         print(breaks)
         print(range(allValues))
         print(levels(pltDat$bin))
-        View(pltDat)
+        
         # plot
         choro <- ggplot() +
           geom_map(data = ctyMap, map = ctyMap, aes(x = long, y = lat, map_id = region)) +
           geom_map(data = pltDat, map = ctyMap, aes(fill = bin, map_id = fips), color = "grey25", size = 0.025) +
-          scale_fill_brewer(name = "Log Relative\nSeasonal\nIntensity", palette = "OrRd", na.value = "grey60", drop = FALSE) +
+          scale_fill_brewer(name = "Log Epidemic\nIntensity", palette = "OrRd", na.value = "grey60", drop = FALSE) +
           expand_limits(x = ctyMap$long, y = ctyMap$lat) +
           theme_minimal() +
-          theme(text = element_text(size = 10), axis.ticks = element_blank(), axis.text = element_blank(), axis.title = element_blank(), panel.grid = element_blank(), legend.position = "bottom",legend.margin = margin(), legend.box.margin = margin()) +
+          theme(text = element_text(size = 10), axis.ticks = element_blank(), axis.text = element_blank(), axis.title = element_blank(), panel.grid = element_blank(), legend.position = "bottom",legend.margin = margin(), legend.box.margin = margin(), legend.key.size=unit(.4, "cm")) +
           guides(fill = guide_legend(nrow = 2)) +
           facet_wrap(~fig, nrow=1)
         
@@ -1192,11 +1189,11 @@ scatter_obsFit_outOfSampleReplicates <- function(baseCodeLs, pltFormats){
     fullDf <- bind_rows(fullDf, modDat)
     print(paste(baseRepCode, "imported"))
   }
-
   plotDat <- fullDf %>%
     filter(is.na(y1_inmodel)) %>%
-    dplyr::mutate(baseCodeStr = substring(modCodeStr, 1, min(nchar(fullDf$modCodeStr)))) %>%
+    dplyr::mutate(baseCodeStr = ifelse(nchar(modCodeStr)==min(nchar(modCodeStr))| nchar(modCodeStr)==(min(nchar(modCodeStr))+1), modCodeStr, substring(modCodeStr, 1, nchar(modCodeStr)-2))) %>%
     left_join(plotLabels, by = c("baseCodeStr")) %>%
+    mutate(pltLabel = factor(pltLabel, levels = pltFormats$labs)) %>%
     mutate(season = factor(season, levels = 3:9, labels = c("2002-03", "2003-04", "2004-05", "2005-06", "2006-07", "2007-08", "2008-09")))
 
   # plot
@@ -1230,6 +1227,8 @@ scatter_obsFit_seasIntensityRR_multiSeason <- function(modCodeStr, pltFormats, f
     rename(Observed = obs_rr, Fitted = fit_rr) %>%
     mutate(season = paste0("S", season)) %>%
     mutate(season = factor(season, levels = seasDf$RV, labels = seasDf$pltLabs)) 
+
+  print(cor.test(plotDat$Observed, plotDat$Fitted, method = "pearson"))
 
   exportFname <- paste0(string_msFig_folder(), "scatter_obsFit_seasIntensityRR_multiSeason", ".png")
   
@@ -1388,7 +1387,7 @@ choro_obsFit_epiDuration_multiSeason <- function(modCodeStr, pltFormats, filepat
     mutate(bin = factor(bin, levels = factorlvls, labels = factorlvls, ordered = TRUE)) %>%
     mutate(season = paste0("S", season)) %>%
     mutate(season = factor(season, levels = seasDf$RV, labels = seasDf$pltLabs)) 
-  
+
   # control flow to remove a single season if necessary
   if(is.null(pltFormats$rmSeas)){
     plotDat <- prepDat3
@@ -1480,9 +1479,7 @@ choro_fit_epiDuration_oneSeason <- function(modCodeStr, pltFormats, filepathList
 
 	ggsave(exportFname, choro, height = h, width = w, dpi = dp)
 
-  }
-  
-  
+  } 
   
 }
 ################################
@@ -1497,9 +1494,11 @@ scatter_obsFit_epiDuration_multiSeason <- function(modCodeStr, pltFormats, filep
   
   # import and clean observed and fitted seasonal intensity RR 
   plotDat <- import_obsFit_epiDuration(modCodeStr, filepathList) %>%
-    rename(Observed = obs_y, Fitted = fit_y) %>%
+    mutate(Observed = obs_y, Fitted = fit_y) %>%
     mutate(season = paste0("S", season)) %>%
-    mutate(season = factor(season, levels = seasDf$RV, labels = seasDf$pltLabs)) 
+    mutate(season = factor(season, levels = seasDf$RV, labels = seasDf$pltLabs))
+
+  print(cor.test(plotDat$Observed, plotDat$Fitted, method = "pearson")) 
 
   exportFname <- paste0(string_msFig_folder(), "scatter_obsFit_epiDuration_multiSeason", ".png")
   
@@ -1580,7 +1579,7 @@ scatter_obsFit_seasInt_epiDur_multiSeason <- function(modCodeLs, pltFormats, fil
   # plot
   plotOutput <- ggplot(plotDat, aes(x = seasIntensity, y = epiDuration)) +
     geom_point(alpha = 0.7) + 
-    scale_x_continuous("Log Relative Seasonal Intensity") +
+    scale_x_continuous("Log Epidemic Intensity") +
     scale_y_continuous("Epidemic Duration (Weeks)") +
     theme_bw() + 
     theme(text = element_text(size = 13), legend.margin = margin(), legend.position = "bottom") +
@@ -1614,6 +1613,7 @@ scatter_obsFit_seasIntensityRR_multiSeason_age <- function(modCodeLs, pltFormats
     mutate(season = factor(season, levels = seasDf$RV, labels = seasDf$pltLabs)) %>%
     mutate(modCodeStr = factor(modCodeStr, levels = modCodeLs, labels = ageLabs))
   print(summary(plotDat))
+  print(cor.test(plotDat$Observed, plotDat$Fitted, method = "pearson"))
   
   exportFname <- paste0(string_msFig_folder(), "scatter_obsFit_seasIntensityRR_multiSeason_age", ".png")
   
@@ -1918,7 +1918,7 @@ choro_fitCompareReplicates <- function(baseCodeLs, pltFormats){
     newcol <- paste0("o_", substring(boundMx[i,1], 16, nchar(boundMx[i,1])-3))
     overlapDat <- do.call(overlapping_intervals, list(df = overlapDat, intervalA_LB = boundMx[1,1], intervalA_UB = boundMx[1,2], intervalB_LB = boundMx[i,1], intervalB_UB = boundMx[i,2])) %>%
       rename_(.dots = setNames("overlap", newcol))
-  }
+  } 
   
   # summarise across replicates and seasons
   onlyOverlapDat <- overlapDat %>%
@@ -1947,11 +1947,128 @@ choro_fitCompareReplicates <- function(baseCodeLs, pltFormats){
     expand_limits(x = ctyMap$long, y = ctyMap$lat) +
     theme_minimal() +
     theme(text = element_text(size = 16), axis.ticks = element_blank(), axis.text = element_blank(), axis.title = element_blank(), panel.grid = element_blank(), legend.margin = margin(t = 0, r = 0, b = 0, l = 0, unit = "pt"), legend.position = legendposition) +
-    facet_wrap(~modCodeStr, nrow=1)
+    facet_wrap(~modCodeStr, nrow=2)
   
   ggsave(exportFname, choro, height = h, width = w, dpi = dp)
   
 }
+################################
+line_fitCompareReplicates_visitVolume <- function(baseCodeLs, pltFormats){
+  print(match.call())
+
+  stopifnot(length(baseCodeLs) >= 2L)
+
+  # plot formatting
+  w <- pltFormats$w; h <- pltFormats$h; dp <- 300
+  exportFname <- paste0(string_msFig_folder(), "line_fitCompareReplicates_visitVolume_", pltFormats$descrip, ".png")
+  
+  # data formatting
+  numReplicates <- pltFormats$numReplicates
+
+  ## grab fitData from multiple models ##
+  fullDf <- tbl_df(data.frame(modCodeStr = c(), season = c(), fips = c(), mean = c(), LB = c(), UB = c(), y = c(), y1_inmodel = c(), y1_orig = c()))
+
+  # import complete model fitData
+  completeCode <- baseCodeLs[which(nchar(baseCodeLs)==min(nchar(baseCodeLs)))]
+  completeDat <- read_csv(string_fit_fname(completeCode), col_types = "c_d_c_dd____dd") %>%
+      mutate(LB = mean-(1*sd), UB = mean+(1*sd)) %>% # 5/15/17 okay approximation because we are looking at overlap between posteriors (not 95% CI)
+      select(modCodeStr, season, fips, mean, LB, UB, y, y1) %>%
+      rename(y1_inmodel = y1) %>%
+      mutate(y1_orig = log(y+1))
+
+  # import replicates for each baseCode
+  baseRepCodeLs <- baseCodeLs[which(nchar(baseCodeLs)!=min(nchar(baseCodeLs)))]
+  for (baseRepCode in baseRepCodeLs){
+    repCodeLs <- c(paste0(baseRepCode, ""), paste(baseRepCode, 1:(numReplicates-1), sep = "-"))
+    modDat <- import_obsFitReplicates(repCodeLs) 
+    fullDf <- bind_rows(fullDf, modDat)
+    print(paste(baseRepCode, "imported"))
+  }
+
+  ## Identify average visit volume for levels of missingness (avg across replicates) ##
+  setwd(dirname(sys.frame(1)$ofile))
+  inVisitDat <- read_csv(paste0(getwd(), "/../../scales/R_export/fullIndicAll_periodicReg_irDt_Octfit_span0.4_degree2_analyzeDB_cty.csv"), col_types = cols_only(fips = "c", season = "d", Thu.week = "D", flu.week = "l", viz = "d"))
+  vizDat <- inVisitDat %>%
+    filter(flu.week) %>%
+    group_by(fips, season) %>%
+    summarise(visits = sum(viz, na.rm = TRUE)) %>%
+    filter(season >= 3 & season <= 9)
+
+  visitDat <- left_join(fullDf, vizDat, by = c("fips", "season")) %>%
+    filter(!is.na(y1_inmodel)) %>%
+    group_by(season, modCodeStr) %>%
+    summarise(visits = sum(visits)) %>%
+    mutate(repCodeStr = ifelse(nchar(modCodeStr)==min(nchar(modCodeStr))| nchar(modCodeStr)==(min(nchar(modCodeStr))+1), modCodeStr, substring(modCodeStr, 1, nchar(modCodeStr)-2))) #%>%
+    # group_by(repCodeStr) %>%
+    # summarise(visits_mn = mean(visits), visits_sd = sd(visits))
+ 
+  ## Identify overlaps ##
+  # clean and organize bound data  
+  prepDat <- bind_rows(fullDf, completeDat) %>%
+    gather(bound, value, LB:UB) %>%
+    mutate(bound_spread = paste(modCodeStr, bound, sep = "_")) %>%
+    arrange(modCodeStr, bound) 
+
+  # create bound dataframe
+  boundLs <- prepDat %>% distinct(bound_spread) %>% unlist
+  boundMx <- matrix(boundLs, ncol=2, byrow = TRUE)
+
+  spreadDat <- prepDat %>%
+    select(season, fips, bound_spread, value) %>%
+    spread(bound_spread, value) 
+
+  # potential denominators for overlap percentage
+  totCty <- nrow(spreadDat %>% distinct(fips))
+  totObs <- nrow(spreadDat)
+  cdcMnViz <- 9564568
+  cdcTotViz <- 66951976
+
+  # indicate overlap with all replicates
+  overlapDat <- spreadDat
+  for (i in 2:nrow(boundMx)){
+    newcol <- paste0("o_", substring(boundMx[i,1], 16, nchar(boundMx[i,1])-3))
+    overlapDat <- do.call(overlapping_intervals, list(df = overlapDat, intervalA_LB = boundMx[1,1], intervalA_UB = boundMx[1,2], intervalB_LB = boundMx[i,1], intervalB_UB = boundMx[i,2])) %>%
+      rename_(.dots = setNames("overlap", newcol))
+  }
+
+  # summarise across replicates and seasons
+  overlapDat2 <- overlapDat %>%
+    select(season, fips, contains("o_")) %>%
+    gather(repcode, overlap, contains("o_")) %>%
+    mutate(modCodeStr = gsub("o_", paste0(completeCode, "_"), repcode)) %>%
+    select(-repcode) %>%
+    group_by(season, modCodeStr) %>%
+    summarise(overlaps = sum(as.numeric(overlap))) %>%
+    mutate(overlapPerc = overlaps/(totCty)*100) %>%
+    mutate(repCodeStr = ifelse(nchar(modCodeStr)==min(nchar(modCodeStr))| nchar(modCodeStr)==(min(nchar(modCodeStr))+1), modCodeStr, substring(modCodeStr, 1, nchar(modCodeStr)-2))) %>%
+    mutate(repCodeStr = factor(repCodeStr, levels = pltFormats$lvls, labels = pltFormats$labs))
+  #   group_by(repCodeStr) %>%
+  #   summarise(overlapPerc_mn = mean(overlapPerc), overlapPerc_sd = sd(overlapPerc))
+
+  ## Combine overlap and visit data ##
+  seasLabels <- label_seas_predictors()
+  plotDat <- full_join(overlapDat2, visitDat %>% select(-repCodeStr), by = c("modCodeStr", "season")) %>%
+    mutate(RV = paste0("S", season)) %>%
+    left_join(seasLabels, by = c("RV")) %>%
+    rename(seasLab = pltLabs)
+
+  scaleFUN <- function(x) sprintf("%1.0e", x)
+  ## Plot ##
+  plotOutput <- ggplot(plotDat, aes(x = visits, y = overlapPerc)) +
+    geom_point(aes(colour = repCodeStr), alpha = 0.5) +
+    geom_vline(aes(xintercept = cdcMnViz), colour = "red")+ # see source_export_msResults.R
+    # geom_ribbon(aes(ymin = overlapPerc_mn-overlapPerc_sd, ymax = overlapPerc_mn+overlapPerc_sd), alpha = 0.3, colour = "grey") + 
+    scale_x_continuous("Total Visits", labels = scaleFUN) +
+    scale_y_continuous("County Match (%)") +
+    scale_colour_tableau() +
+    theme_bw() +
+    theme(axis.text=element_text(size=10), panel.grid = element_blank(), legend.margin = margin(1,1,1,1, unit="pt"), legend.text=element_text(size=8), legend.position=c(0.73, 0.25), legend.title = element_blank(), legend.key.size=unit(.35, "cm"), legend.key = element_rect(fill = "transparent", colour = "transparent"), legend.background = element_rect(fill = "transparent", colour = "transparent")) 
+  ggsave(exportFname, plotOutput, height = h, width = w, dpi = dp)
+ 
+  return(plotDat)
+
+}
+
 ################################
 line_fitCompareReplicates_threshold <- function(baseCodeLs, pltFormats){
   print(match.call())
@@ -1987,6 +2104,7 @@ line_fitCompareReplicates_threshold <- function(baseCodeLs, pltFormats){
     print(paste(baseRepCode, "imported"))
   }
 
+  ## Identify overlaps ##
   # clean and organize bound data  
   prepDat <- bind_rows(fullDf, completeDat) %>%
     gather(bound, value, LB:UB) %>%
@@ -2016,22 +2134,23 @@ line_fitCompareReplicates_threshold <- function(baseCodeLs, pltFormats){
     gather(repcode, overlap, contains("o_")) %>%
     mutate(repgroup = substring(repcode, 1, repcodelength)) %>%
     group_by(fips, season, repgroup) %>%
-    summarise(mismatchedReps = (numReplicates-sum(as.numeric(overlap)))) %>% # replicates without overlaps
+    summarise(mismatchedReps = numReplicates - sum(as.numeric(overlap))) %>% # replicates without overlaps
     group_by(season, repgroup, mismatchedReps) %>%
     summarise(numCty = length(fips)) %>%
-    mutate(mismatchedReps = factor(mismatchedReps, levels = as.character(0:10))) %>%
+    mutate(mismatchedReps = factor(mismatchedReps, levels = as.character(10:0), labels = as.character(0:10))) %>%
     mutate(percCty = numCty/3105*100) %>%
+    mutate(cumPercCty = cumsum(percCty)) %>%
     mutate(RV = paste0("S", season)) %>%
     full_join(seasLabels, by = c("RV")) 
  
   # plot 
-  plotOutput <- ggplot(plotDat, aes(x = mismatchedReps, y = percCty, group = season)) +
+  plotOutput <- ggplot(plotDat, aes(x = mismatchedReps, y = cumPercCty, group = season)) +
     geom_line(aes(colour = pltLabs)) +
     scale_colour_tableau(name = "Flu Season") +
-    scale_x_discrete("Mismatched Replicates") +
+    scale_x_discrete("(at least x) Matched Replicates") +
     scale_y_continuous("Percentage of Counties") +
     theme_bw() +
-    theme(axis.text=element_text(size=12), panel.grid = element_blank(), legend.position=legendposition, legend.margin = margin(1,1,1,1, unit="pt")) +
+    theme(axis.text=element_text(size=12), legend.position=legendposition, legend.margin = margin(1,1,1,1, unit="pt")) +
     facet_wrap(~repgroup)
   ggsave(exportFname, plotOutput, height = h, width = w, dpi = dp)
 

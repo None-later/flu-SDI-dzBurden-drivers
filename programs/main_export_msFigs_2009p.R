@@ -38,7 +38,7 @@ setwd(dirname(sys.frame(1)$ofile))
 fit_plotFormats_one <- list(w = 3.15, h = 2.5, popCode = "_2009p", legendStep = 1)
 choro_fit_seasIntensityRR_oneSeason("9a_iliSum_2009p_v1-2", fit_plotFormats_one, path_list)
 
-obsFit_plotFormats_one <- list(w = 7, h = 3.5, popCode = "_2009p")
+obsFit_plotFormats_one <- list(w = 7, h = 3.5, popCode = "_2009p", legendStep = 1)
 choro_obsFit_seasIntensityRR_oneSeason("9a_iliSum_2009p_v1-2", obsFit_plotFormats_one, path_list)
 
 choro_stateEffects("9a_iliSum_2009p_v1-2")

@@ -45,15 +45,15 @@ setwd(dirname(sys.frame(1)$ofile))
 ### SEASONAL INTENSITY - total population ###################
 # obsFit_plotFormats_one <- list(w = 7, h = 3.5)
 # choro_obsFit_seasIntensityRR_oneSeason("8a_iliSum_v2-6", obsFit_plotFormats_one, path_list)
-# 
+
 # fit_plotFormats_one <- list(w = 3.1, h = 2.5, popCode = "")
 # choro_fit_seasIntensityRR_oneSeason("8a_iliSum_v2-6", fit_plotFormats_one, path_list)
-# 
+
 # obsFit_plotFormats_multi <- list(w = 4.25, h = 9, popCode = "") # add (rmSeas = "2006-07") arg if needed and (h = 8)
 # choro_obsFit_seasIntensityRR_multiSeason("8a_iliSum_v2-6", obsFit_plotFormats_multi, path_list)
 
-# obsFit_plotFormats_scatter <- list(w = 6, h = 4)
-# scatter_obsFit_seasIntensityRR_multiSeason("8a_iliSum_v2-6", obsFit_plotFormats_scatter, path_list)
+obsFit_plotFormats_scatter <- list(w = 6, h = 4)
+scatter_obsFit_seasIntensityRR_multiSeason("8a_iliSum_v2-6", obsFit_plotFormats_scatter, path_list)
 # scatter_obsFit_excessSeasIntensityRR_multiSeason("8a_iliSum_v2-6", obsFit_plotFormats_scatter, path_list)
 # scatter_residFit_logSeasIntensity_multiSeason("8a_iliSum_v2-6", obsFit_plotFormats_scatter, path_list)
 
@@ -65,44 +65,44 @@ setwd(dirname(sys.frame(1)$ofile))
 
 
 ###############################################################################
-### EPIDEMIC DURATION - total population ###################
+# ### EPIDEMIC DURATION - total population ###################
 # fit_plotFormats_one <- list(w = 3, h = 2.3, popCode = "")
-# choro_fit_epiDuration_oneSeason("8e_epiDur_v2-3", fit_plotFormats_one, path_list)
+# choro_fit_epiDuration_oneSeason("8e_epiDur_log_v2-4", fit_plotFormats_one, path_list)
 
 # obsFit_plotFormats_one <- list(w = 7, h = 3.5)
-# choro_obsFit_epiDuration_oneSeason("8e_epiDur_v2-3", obsFit_plotFormats_one, path_list)
+# choro_obsFit_epiDuration_oneSeason("8e_epiDur_log_v2-4", obsFit_plotFormats_one, path_list)
 
 # obsFit_plotFormats_multi_epiDur <- list(w = 4.25, h = 9, popCode = "")
-# choro_obsFit_epiDuration_multiSeason("8e_epiDur_v2-3", obsFit_plotFormats_multi_epiDur, path_list)
+# choro_obsFit_epiDuration_multiSeason("8e_epiDur_log_v2-4", obsFit_plotFormats_multi_epiDur, path_list)
 
 # obsFit_plotFormats_scatter <- list(w = 6, h = 4)
-# scatter_obsFit_epiDuration_multiSeason("8e_epiDur_v2-3", obsFit_plotFormats_scatter, path_list)
-# scatter_residFit_epiDuration_multiSeason("8e_epiDur_v2-3", obsFit_plotFormats_scatter, path_list)
+# scatter_obsFit_epiDuration_multiSeason("8e_epiDur_log_v2-4", obsFit_plotFormats_scatter, path_list)
+# scatter_residFit_epiDuration_multiSeason("8e_epiDur_log_v2-4", obsFit_plotFormats_scatter, path_list)
 
 
 ###############################################################################
-# ### EPIDEMIC DURATION vs. SEASONAL INTENSITY ###################
+### EPIDEMIC DURATION vs. SEASONAL INTENSITY ###################
 # pltFormats_epiDur_seasInt <- list(w = 5, h = 8, modLabs = c("seasIntensity", "epiDuration"))
-# scatter_obsFit_seasInt_epiDur_multiSeason(c("8a_iliSum_v2-6", "8e_epiDur_v2-3"), pltFormats_epiDur_seasInt, path_list)
+# scatter_obsFit_seasInt_epiDur_multiSeason(c("8a_iliSum_v2-6", "8e_epiDur_log_v2-4"), pltFormats_epiDur_seasInt, path_list)
 
 
 ###############################################################################
 ### AGGREGATION BIAS: DIFFERENCE BETWEEN COUNTY-STATE ###################
 
 # test <- import_fit_aggBias_seasIntensityRR("8a_iliSum_v2-6", "10a_iliSum_v2-3", path_list)
-# 
+
 # fit_aggBias_plotFormats_one <- list(w = 3, h = 2.5)
 # choro_fit_aggBias_seasIntensityRR_oneSeason("8a_iliSum_v2-6", "10a_iliSum_v2-3", fit_aggBias_plotFormats_one, path_list)
-# 
+
 # fit_aggBias_plotFormats_mult <- list(w = 7, h = 4.25)
 # choro_fit_aggBias_seasIntensityRR_multiSeason("8a_iliSum_v2-6", "10a_iliSum_v2-3", fit_aggBias_plotFormats_mult, path_list)
 
 # stCty_fit_plotFormats_one <- list(w = 3, h = 1.9, stName = "south carolina")
 # choro_stCty_fit_seasIntensityRR_oneSeason("8a_iliSum_v2-6", "10a_iliSum_v2-3", stCty_fit_plotFormats_one, path_list)
-# 
+
 # stCty_fit_plotFormats_one <- list(w = 3.1, h = 1.9, stName = "montana", legendStep = 0.5)
 # choro_stCty_fit_seasIntensityRR_oneSeason("8a_iliSum_v2-6", "10a_iliSum_v2-3", stCty_fit_plotFormats_one, path_list)
-# 
+
 # stCty_fit_plotFormats_one <- list(w = 3.1, h = 1.9, stName = "kansas", legendStep = 0.5)
 # choro_stCty_fit_seasIntensityRR_oneSeason("8a_iliSum_v2-6", "10a_iliSum_v2-3", stCty_fit_plotFormats_one, path_list)
 
@@ -116,16 +116,16 @@ setwd(dirname(sys.frame(1)$ofile))
 
 # fit_plotFormats_choroSt_one <- list(w = 3.15, h = 2.5, popCode = "", legendStep = 1)
 # choroSt_fit_seasIntensityRR_oneSeason("10a_iliSum_v2-3", fit_plotFormats_choroSt_one, path_list)
-# 
+
 # obsFit_plotFormats_choroSt_multi <- list(w = 4.25, h = 9, popCode = "", manualBreaks = seq(-4,3,by=1)) 
 # choroSt_obsFit_seasIntensityRR_multiSeason("10a_iliSum_v2-3", obsFit_plotFormats_choroSt_multi, path_list)
 
 # choro_stateEffects("10a_iliSum_v2-3") # no states were significant
 
 ###############################################################################
-### MULTI-SEASON MODELS ###################
-# allCombs_modCodeLs <- c("8a_iliSum_v2-6", "8e_epiDur_v2-3", "8a_iliSum_v3-6", "8a_iliSum_v4-6")
-# allCombs_modCodeLs <- c("8a_iliSum_v2-6", "8e_epiDur_v2-3")
+## MULTI-SEASON MODELS ###################
+# allCombs_modCodeLs <- c("8a_iliSum_v2-6", "8e_epiDur_log_v2-4", "8a_iliSum_v3-6", "8a_iliSum_v4-6")
+# allCombs_modCodeLs <- c("8a_iliSum_v2-6", "8e_epiDur_log_v2-4")
 # allCombs_modCodeLs <- c("9a_iliSum_2009p_v1-2") # pandemic model
 # for (code in allCombs_modCodeLs){
 #   choro_stateEffects(code)
@@ -135,7 +135,7 @@ setwd(dirname(sys.frame(1)$ofile))
 #   forest_coefDistr_stateEffects(code) #8a V3-6 and 8a V4-6 don't have graphIdx_st in ids file
 #   forest_coefDistr_ctyEffects_sample(code)
 #   forest_coefDistr_errorEffects_sample(code)
-#   forest_coefDistr_fixedEffects(code, TRUE) # multi-season fixed effects, T/F is2009p
+  # forest_coefDistr_fixedEffects(code, FALSE) # multi-season fixed effects, T/F is2009p
 # }
 
 
@@ -150,10 +150,10 @@ setwd(dirname(sys.frame(1)$ofile))
 ###############################################################################
 ### DOT PLOTS - Replicate comparison ###################
 # ## missing county sequence
-# baseCtySeq <- c("8a_iliSum_v2-6", "8a_iliSum_v2-6_c80", "8a_iliSum_v2-6_c60", "8a_iliSum_v2-6_c40", "8a_iliSum_v2-6_c20")
-# ctyPlotFormats <- list(w = 6, h = 3, lvls = baseCtySeq, labs = c("complete", "80% of counties", "60% of counties","40% of counties", "20% of counties"), replvls = c(.25, .5, .75, 1), replabs = c("25", "50", "75", "100"), descrip = "ctySeq", numReplicates = 10)
+# baseCtySeq <- c("8a_iliSum_v2-6", "8a_iliSum_v2-6_c80", "8a_iliSum_v2-6_c60", "8a_iliSum_v2-6_c40", "8a_iliSum_v2-6_c20", "8a_iliSum_v2-6_c10", "8a_iliSum_v2-6_c05", "8a_iliSum_v2-6_c025")
+# ctyPlotFormats <- list(w = 6, h = 4, lvls = baseCtySeq, labs = c("complete", "80% of counties", "60% of counties","40% of counties", "20% of counties", "10% of counties", "5% of counties", "2.5% of counties"), replvls = c(.25, .5, .75, 1), replabs = c("25", "50", "75", "100"), descrip = "ctySeq", numReplicates = 10)
 # dot_coefCompareReplicates(baseCtySeq, ctyPlotFormats)
-# 
+
 # ## missing stratified county sequence
 # baseMissSeq <- c("8a_iliSum_v2-6", "8a_iliSum_v2-6_m20", "8a_iliSum_v2-6_m40", "8a_iliSum_v2-6_m60", "8a_iliSum_v2-6_m80")
 # missPlotFormats <- list(w = 6, h = 3, lvls = baseMissSeq, labs = c("complete", "missing 20%", "missing 40%", "missing 60%", "missing 80%"), replvls = c(.25, .5, .75, 1), replabs = c("25", "50", "75", "100"), descrip = "missSeq", numReplicates = 10)
@@ -168,44 +168,52 @@ setwd(dirname(sys.frame(1)$ofile))
 ###############################################################################
 ### FIT CHOROS - Replicate comparison ###################
 # ## missing county sequence
-# baseCtySeq <- c("8a_iliSum_v2-6", "8a_iliSum_v2-6_c40", "8a_iliSum_v2-6_c20")
-# ctyPlotFormats <- list(w = 6, h = 2, lvls = baseCtySeq[2:length(baseCtySeq)], labs = c("40% of counties", "20% of counties"), replvls = c(.25, .5, .75, 1), replabs = c("25", "50", "75", "100"), descrip = "ctySeq", repcodelength = 5, numReplicates = 10, nomatchThresh = 0.1)
+# baseCtySeq <- c("8a_iliSum_v2-6", "8a_iliSum_v2-6_c80", "8a_iliSum_v2-6_c40", "8a_iliSum_v2-6_c20", "8a_iliSum_v2-6_c05")
+# ctyPlotFormats <- list(w = 3, h = 3.25, lvls = baseCtySeq[2:length(baseCtySeq)], labs = c("80% of counties", "40% of counties", "20% of counties", "5% of counties"), replvls = c(.25, .5, .75, 1), replabs = c("25", "50", "75", "100"), descrip = "ctySeq", repcodelength = 5, numReplicates = 10, nomatchThresh = 0.1)
 # choro_fitCompareReplicates(baseCtySeq, ctyPlotFormats)
 
-# baseCtySeq <- c("8a_iliSum_v2-6", "8a_iliSum_v2-6_c10", "8a_iliSum_v2-6_c05")
-# ctyPlotFormats <- list(w = 6, h = 2, lvls = baseCtySeq[2:length(baseCtySeq)], labs = c("10% of counties", "5% of counties"), replvls = c(.25, .5, .75, 1), replabs = c("25", "50", "75", "100"), descrip = "ctySeq2", repcodelength = 5, numReplicates = 3, nomatchThresh = 0.1)
-# choro_fitCompareReplicates(baseCtySeq, ctyPlotFormats)
-# 
+# baseCtySeq2 <- c("8a_iliSum_v2-6", "8a_iliSum_v2-6_c10", "8a_iliSum_v2-6_c05", "8a_iliSum_v2-6_c025")
+# ctyPlotFormats2 <- list(w = 7.5, h = 2.5, lvls = substring(baseCtySeq2[2:length(baseCtySeq2)], 1, min(nchar(baseCtySeq2[2:length(baseCtySeq2)]))), labs = c("10% of counties", "5% of counties", "2.5% of counties"), replvls = c(.25, .5, .75, 1), replabs = c("25", "50", "75", "100"), descrip = "ctySeq2", repcodelength = 5, numReplicates = 10, nomatchThresh = 0.1)
+# choro_fitCompareReplicates(baseCtySeq2, ctyPlotFormats2)
+
 # ## missing stratified county sequence
 # baseMissSeq <- c("8a_iliSum_v2-6", "8a_iliSum_v2-6_m60", "8a_iliSum_v2-6_m80")
-# missPlotFormats <- list(w = 6, h = 2, lvls = baseMissSeq[2:length(baseMissSeq)], labs = c("missing 60%", "missing 80%"), replvls = c(.25, .5, .75, 1), replabs = c("25", "50", "75", "100"), descrip = "missSeq", repcodelength = 5, numReplicates = 10, nomatchThresh = 0.5)
+# missPlotFormats <- list(w = 6, h = 2, lvls = baseMissSeq[2:length(baseMissSeq)], labs = c("missing 60%", "missing 80%"), replvls = c(.25, .5, .75, 1), replabs = c("25", "50", "75", "100"), descrip = "missSeq", repcodelength = 5, numReplicates = 10, nomatchThresh = 0.1)
 # choro_fitCompareReplicates(baseMissSeq, missPlotFormats)
-# 
+
 # ## missing season sequence
 # baseSeasSeq <- c("8a_iliSum_v2-6", "8a_iliSum_v2-6_s6", "8a_iliSum_v2-6_s4", "8a_iliSum_v2-6_s2")
-# seasPlotFormats <- list(w = 6, h = 2.25, lvls = baseSeasSeq[2:length(baseSeasSeq)], labs = c("missing 1", "missing 3","missing 5"), replvls = c(.25, .5, .75, 1), replabs = c("25", "50", "75", "100"), descrip = "seasSeq", repcodelength = 4, numReplicates = 10, nomatchThresh = 0.5)
+# seasPlotFormats <- list(w = 6, h = 2.25, lvls = baseSeasSeq[2:length(baseSeasSeq)], labs = c("missing 1", "missing 3","missing 5"), replvls = c(.25, .5, .75, 1), replabs = c("25", "50", "75", "100"), descrip = "seasSeq", repcodelength = 4, numReplicates = 10, nomatchThresh = 0.1)
 # choro_fitCompareReplicates(baseSeasSeq, seasPlotFormats)
 
 ###############################################################################
+# ### LINE - Examine mismatch by visit volume ###################
+# ## missing county sequence
+# baseCtySeq <- c("8a_iliSum_v2-6", "8a_iliSum_v2-6_c80", "8a_iliSum_v2-6_c60", "8a_iliSum_v2-6_c40", "8a_iliSum_v2-6_c20", "8a_iliSum_v2-6_c10", "8a_iliSum_v2-6_c05", "8a_iliSum_v2-6_c025")
+# ctyPlotFormats <- list(w = 3, h = 3.1, lvls = baseCtySeq[2:length(baseCtySeq)], labs = c("80% of counties", "60% of counties", "40% of counties", "20% of counties", "10% of counties", "5% of counties", "2.5% of counties"), descrip = "ctySeq", numReplicates = 10)
+# visitVolumeDat <- line_fitCompareReplicates_visitVolume(baseCtySeq, ctyPlotFormats)
+
+
+###############################################################################
 ### LINE - Identify replicate threshold ###################
-## missing county sequence
-baseCtySeq <- c("8a_iliSum_v2-6", "8a_iliSum_v2-6_c80", "8a_iliSum_v2-6_c60", "8a_iliSum_v2-6_c40", "8a_iliSum_v2-6_c20")
-ctyPlotFormats <- list(w = 6, h = 4, lvls = baseCtySeq[2:length(baseCtySeq)], labs = c("80% of counties", "60% of counties", "40% of counties", "20% of counties"), descrip = "ctySeq", repcodelength = 5, numReplicates = 10)
-thresh_ctySeq <- line_fitCompareReplicates_threshold(baseCtySeq, ctyPlotFormats)
+# ## missing county sequence
+# baseCtySeq <- c("8a_iliSum_v2-6", "8a_iliSum_v2-6_c80", "8a_iliSum_v2-6_c60", "8a_iliSum_v2-6_c40", "8a_iliSum_v2-6_c20", "8a_iliSum_v2-6_c10", "8a_iliSum_v2-6_c05", "8a_iliSum_v2-6_c025")
+# ctyPlotFormats <- list(w = 6, h = 4, 2lvls = baseCtySeq[2:length(baseCtySeq)], labs = c("80% of counties", "60% of counties", "40% of counties", "20% of counties", "10% of counties", "5% of counties", "2.5% of counties"), descrip = "ctySeq", repcodelength = 5, numReplicates = 10)
+# thresh_ctySeq <- line_fitCompareReplicates_threshold(baseCtySeq, ctyPlotFormats)
+# 
+# ## stratified missing county sequence
+# baseMissSeq <- c("8a_iliSum_v2-6", "8a_iliSum_v2-6_m20", "8a_iliSum_v2-6_m40", "8a_iliSum_v2-6_m60", "8a_iliSum_v2-6_m80")
+# missPlotFormats <- list(w = 6, h = 4, lvls = baseMissSeq[2:length(baseMissSeq)], labs = c("missing 20%", "missing 40%", "missing 60%", "missing 80%"), descrip = "missSeq", repcodelength = 5, numReplicates = 10)
+# thresh_missSeq <- line_fitCompareReplicates_threshold(baseMissSeq, missPlotFormats)
 
-## stratified missing county sequence
-baseMissSeq <- c("8a_iliSum_v2-6", "8a_iliSum_v2-6_m20", "8a_iliSum_v2-6_m40", "8a_iliSum_v2-6_m60", "8a_iliSum_v2-6_m80")
-missPlotFormats <- list(w = 6, h = 4, lvls = baseMissSeq[2:length(baseMissSeq)], labs = c("missing 20%", "missing 40%", "missing 60%", "missing 80%"), descrip = "missSeq", repcodelength = 5, numReplicates = 10)
-thresh_missSeq <- line_fitCompareReplicates_threshold(baseMissSeq, missPlotFormats)
 
-
-# ###############################################################################
-# ### SCATTER - obsFit out of sample replicates ###################
+###############################################################################
+### SCATTER - obsFit out of sample replicates ###################
 # # missing county sequence
-# baseCtySeq <- c("8a_iliSum_v2-6_c80", "8a_iliSum_v2-6_c60", "8a_iliSum_v2-6_c40", "8a_iliSum_v2-6_c20")
-# ctyPlotFormats <- list(w = 6, h = 4, lvls = baseCtySeq[1:length(baseCtySeq)], labs = c("80% of counties", "60% of counties", "40% of counties", "20% of counties"), descrip = "ctySeq", repcodelength = 5, numReplicates = 10)
+# baseCtySeq <- c("8a_iliSum_v2-6_c80", "8a_iliSum_v2-6_c60", "8a_iliSum_v2-6_c40", "8a_iliSum_v2-6_c20", "8a_iliSum_v2-6_c10", "8a_iliSum_v2-6_c05", "8a_iliSum_v2-6_c025")
+# ctyPlotFormats <- list(w = 6, h = 4, lvls = baseCtySeq, labs = c("80% of counties", "60% of counties", "40% of counties", "20% of counties", "10% of counties", "5% of counties", "2.5% of counties"), descrip = "ctySeq", repcodelength = 5, numReplicates = 10)
 # cty_outOfSample <- scatter_obsFit_outOfSampleReplicates(baseCtySeq, ctyPlotFormats)
-# cor.test(cty_outOfSample$y1_orig, cty_outOfSample$mean, method = "pearson") # cor = .7509, p-value < 2.2e-16
+# cor.test(cty_outOfSample$y1_orig, cty_outOfSample$mean, method = "pearson") # cor = .562, p-value < 2.2e-16
 
 # # missing stratified county sequence
 # baseMissSeq <- c("8a_iliSum_v2-6_m20", "8a_iliSum_v2-6_m40", "8a_iliSum_v2-6_m60", "8a_iliSum_v2-6_m80")

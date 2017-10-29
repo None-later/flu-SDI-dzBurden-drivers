@@ -15,7 +15,7 @@ source("source_export_msFigs.R")
 source("source_clean_response_functions_cty.R")
 
 ################################
-dbCodeStr <- "_ilinDt_Octfit_child_span0.4_degree2"
+dbCodeStr <- "_ilinDt_Octfit_adult_span0.4_degree2"
 
 ## PATHS ##
 setwd('../reference_data')
@@ -36,8 +36,8 @@ setwd(dirname(sys.frame(1)$ofile))
 ### SEASONAL INTENSITY - age-specific population (not dependent on dbCodeStr) ###################
 # N.B. does not rely on dbCodeStr args
 
-# obsFit_plotFormats_scatter_age <- list(w = 6, h = 3, ageLabs = c("Children", "Adults"))
-# scatter_obsFit_seasIntensityRR_multiSeason_age(c("8a_iliSum_v3-6", "8a_iliSum_v4-6"), obsFit_plotFormats_scatter_age, path_list)
+obsFit_plotFormats_scatter_age <- list(w = 6, h = 3, ageLabs = c("Children", "Adults"))
+scatter_obsFit_seasIntensityRR_multiSeason_age(c("8a_iliSum_v3-6", "8a_iliSum_v4-6"), obsFit_plotFormats_scatter_age, path_list)
 
 # modCodeLs_regionValidation <- c("8a_iliSum_v2-6", "8a_iliSum_v3-6", "8a_iliSum_v4-6")
 # ageVec <- c("total", "child", "adult")
@@ -49,7 +49,7 @@ setwd(dirname(sys.frame(1)$ofile))
 
 
 # # not in appendix
-# obsFit_plotFormats_child <- list(w = 5, h = 9, popCode = "_child")
+# # obsFit_plotFormats_child <- list(w = 5, h = 9, popCode = "_child")
 # choro_obsFit_seasIntensityRR_multiSeason("8a_iliSum_v3-6", obsFit_plotFormats_child, path_list)
 # obsFit_plotFormats_adult <- list(w = 5, h = 9, popCode = "_adult")
 # choro_obsFit_seasIntensityRR_multiSeason("8a_iliSum_v4-6", obsFit_plotFormats_adult, path_list)
