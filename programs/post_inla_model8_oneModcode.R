@@ -34,7 +34,7 @@ seasons <- c(3:9)
 # modCodeStrLs <- paste0("8a_iliSum_v2-6_R", labLs)
 
 # modCodeStrLs <- paste0("8f_wksToEpi_v", 1:2, "-2")
-modCodeStrLs <- c("8e_epiDur_log_v2-4")
+modCodeStrLs <- c("8a_iliSum_v2-6_hr", "8a_iliSum_v2-6_lr")
 
 likString <- "normal"; likStrings <- c(likString)
 source("source_calculate_residuals_shift1.R") # source_calculate_residuals_shift1

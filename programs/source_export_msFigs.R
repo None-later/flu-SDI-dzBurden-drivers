@@ -2056,7 +2056,7 @@ line_fitCompareReplicates_visitVolume <- function(baseCodeLs, pltFormats){
   ## Plot ##
   plotOutput <- ggplot(plotDat, aes(x = visits, y = overlapPerc)) +
     geom_point(aes(colour = repCodeStr), alpha = 0.5) +
-    geom_vline(aes(xintercept = cdcMnViz), colour = "red")+ # see source_export_msResults.R
+    geom_vline(aes(xintercept = cdcMnViz), colour = "black", alpha = 0.9, size = 1.15, linetype = 2)+ # see source_export_msResults.R
     # geom_ribbon(aes(ymin = overlapPerc_mn-overlapPerc_sd, ymax = overlapPerc_mn+overlapPerc_sd), alpha = 0.3, colour = "grey") + 
     scale_x_continuous("Total Visits", labels = scaleFUN) +
     scale_y_continuous("County Match (%)") +

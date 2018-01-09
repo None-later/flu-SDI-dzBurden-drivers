@@ -52,8 +52,8 @@ setwd(dirname(sys.frame(1)$ofile))
 # obsFit_plotFormats_multi <- list(w = 4.25, h = 9, popCode = "") # add (rmSeas = "2006-07") arg if needed and (h = 8)
 # choro_obsFit_seasIntensityRR_multiSeason("8a_iliSum_v2-6", obsFit_plotFormats_multi, path_list)
 
-obsFit_plotFormats_scatter <- list(w = 6, h = 4)
-scatter_obsFit_seasIntensityRR_multiSeason("8a_iliSum_v2-6", obsFit_plotFormats_scatter, path_list)
+# obsFit_plotFormats_scatter <- list(w = 6, h = 4)
+# scatter_obsFit_seasIntensityRR_multiSeason("8a_iliSum_v2-6", obsFit_plotFormats_scatter, path_list)
 # scatter_obsFit_excessSeasIntensityRR_multiSeason("8a_iliSum_v2-6", obsFit_plotFormats_scatter, path_list)
 # scatter_residFit_logSeasIntensity_multiSeason("8a_iliSum_v2-6", obsFit_plotFormats_scatter, path_list)
 
@@ -105,6 +105,9 @@ scatter_obsFit_seasIntensityRR_multiSeason("8a_iliSum_v2-6", obsFit_plotFormats_
 
 # stCty_fit_plotFormats_one <- list(w = 3.1, h = 1.9, stName = "kansas", legendStep = 0.5)
 # choro_stCty_fit_seasIntensityRR_oneSeason("8a_iliSum_v2-6", "10a_iliSum_v2-3", stCty_fit_plotFormats_one, path_list)
+
+stCty_fit_plotFormats_one <- list(w = 6, h = 4.6, stName = "california", legendStep = 0.5)
+choro_stCty_fit_seasIntensityRR_oneSeason("8a_iliSum_v2-6", "10a_iliSum_v2-3", stCty_fit_plotFormats_one, path_list)
 
 
 # # Is there more heterogeneity within states that have greater under or overestimation?
